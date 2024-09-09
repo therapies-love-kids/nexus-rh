@@ -1,0 +1,59 @@
+{
+    "appId": "com.electron.app",
+    "asar": true,
+    "directories": {
+        "output": "release/${version}"
+    },
+    "files": [
+        "dist-electron",
+        "dist",
+        {
+            "from": "node_modules/electron/dist/locales",
+            "filter": [
+                "en-US.pak",
+                "pt-BR.pak"
+            ]
+        },
+        {
+            "filter": "!node_modules/electron/dist/locales/*.pak"
+        }
+    ],
+    "mac": {
+        "artifactName": "${productName}_${version}.${ext}",
+        "target": [
+            "dmg",
+            "zip"
+        ],
+        "icon": "public/icon.png",
+    },
+    "win": {
+        "target": [{
+            "target": "nsis",
+            "arch": [
+                "x64"
+            ]
+        }],
+        "artifactName": "${productName}.${ext}",
+        "icon": "public/icon.png",
+    },
+    "linux":{
+        "target": [
+            "deb"
+        ],
+        "maintainer": "electronjs.org",
+        "category": "Utility",
+        "artifactName": "${productName}-${version}.${ext}",
+        "icon": "public/icon.png",
+    },
+    "nsis": {
+        "oneClick": false,
+        "perMachine": true,
+        "allowToChangeInstallationDirectory": true,
+        "deleteAppDataOnUninstall": true
+    },
+    "publish": {
+        "provider": "generic",
+        "channel": "latest",
+        "url": "https://github.com/electron-vite/electron-vite-react/releases/download/v0.9.9/"
+    }
+}
