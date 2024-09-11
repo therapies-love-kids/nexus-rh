@@ -5,6 +5,11 @@
         "moduleResolution": "Node",
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
+        "typeRoots": [
+            "./node_modules/@types",
+            "./src/type"
+        ]
+
     },
     "include": ["vite.config.ts", "package.json"]
 }

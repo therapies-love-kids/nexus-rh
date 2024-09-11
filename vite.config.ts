@@ -1,16 +1,20 @@
-import { rmSync } from 'node:fs'
-import path from 'node:path'
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import electron from 'vite-plugin-electron/simple'
-import pkg from './package.json'
+/// <reference path="./src/type/package-json.d.ts" />
+
+import { rmSync } from 'node:fs';
+import path from 'node:path';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import electron from 'vite-plugin-electron/simple';
+import pkg from './package.json';
+
+const packageJson = pkg as PackageJson;
 
 export default defineConfig(({ command }) => {
-    rmSync('dist-electron', { recursive: true, force: true })
+    rmSync('dist-electron', { recursive: true, force: true });
 
-    const isServe = command === 'serve'
-    const isBuild = command === 'build'
-    const sourcemap = isServe || !!process.env.VSCODE_DEBUG
+    const isServe = command === 'serve';
+    const isBuild = command === 'build';
+    const sourcemap = isServe || !!process.env.VSCODE_DEBUG;
 
     return {
         resolve: {
@@ -25,9 +29,9 @@ export default defineConfig(({ command }) => {
                     entry: 'electron/main/index.ts',
                     onstart(args) {
                         if (process.env.VSCODE_DEBUG) {
-                            console.log('[startup] Electron App')
+                            console.log('[startup] Electron App');
                         } else {
-                            args.startup()
+                            args.startup();
                         }
                     },
                     vite: {
@@ -48,7 +52,7 @@ export default defineConfig(({ command }) => {
                     input: 'electron/preload/index.ts',
                     vite: {
                         build: {
-                            sourcemap: sourcemap ? 'inline' : undefined, // #332
+                            sourcemap: sourcemap ? 'inline' : undefined,
                             minify: isBuild,
                             outDir: 'dist-electron/preload',
                             rollupOptions: {
@@ -61,12 +65,15 @@ export default defineConfig(({ command }) => {
             }),
         ],
         server: process.env.VSCODE_DEBUG && (() => {
-            const url = new URL(pkg.debug.env.VITE_DEV_SERVER_URL)
-            return {
-                host: url.hostname,
-                port: +url.port,
+            if (packageJson.debug && packageJson.debug.env && packageJson.debug.env.VITE_DEV_SERVER_URL) {
+                const url = new URL(packageJson.debug.env.VITE_DEV_SERVER_URL);
+                return {
+                    host: url.hostname,
+                    port: +url.port,
+                };
             }
+            return {};
         })(),
         clearScreen: false,
-    }
-})
+    };
+});
