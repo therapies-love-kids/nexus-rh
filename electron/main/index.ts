@@ -1,9 +1,10 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import os from 'node:os';
 import { update } from './update';
-import { deleteRecords, queryDatabase, insertRecord } from './databaseConnection'; // Supondo que você tenha um arquivo database-firebird.ts
+import './ftpConnection'; // Importa o FTPCONNECTION para definir os IPC handlers
+import { setupDatabaseIpcHandlers } from './DBConnection'; // Importa a função para configurar os IPC handlers
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -65,7 +66,10 @@ async function createWindow() {
     update(win);
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    createWindow();
+    setupDatabaseIpcHandlers(); // Configura os IPC handlers para o banco de dados
+});
 
 app.on('window-all-closed', () => {
     win = null;
@@ -102,22 +106,5 @@ ipcMain.handle('open-win', (_, arg) => {
         childWindow.loadURL(`${VITE_DEV_SERVER_URL}#${arg}`);
     } else {
         childWindow.loadFile(indexHtml, { hash: arg });
-    }
-});
-
-ipcMain.handle('query-database-postgres', async (event, sql, params) => {
-    return await queryDatabase(sql, params);
-});
-
-ipcMain.handle('delete-records-postgres', async (event, ids: number[]) => {
-    await deleteRecords(ids);
-});
-
-ipcMain.handle('insert-into-database', async (event, { table, columns, values }) => {
-    try {
-        await insertRecord(table, columns, values);
-        return { success: true }; // Retorna uma resposta de sucesso
-    } catch (error) {
-        console.error('Erro ao inserir no banco de dados:', error);
     }
 });

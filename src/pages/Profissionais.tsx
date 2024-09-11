@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
-import { getSambaImageUrl } from '@/utils/imageUtils';
 import { IoClose, IoSearch } from 'react-icons/io5';
 
 interface Profissional {
@@ -377,10 +376,10 @@ export default function Profissionais () {
                                             <td>
                                                 <div className="avatar">
                                                     <div className="mask mask-squircle h-12 w-12">
-                                                        <img
-                                                            src={getSambaImageUrl(prof.profissional_foto)}
+                                                        {/* <img
+                                                            src=(prof.profissional_foto)
                                                             alt={prof.profissional_nome}
-                                                        />
+                                                        /> */}
                                                     </div>
                                                 </div>
                                             </td>

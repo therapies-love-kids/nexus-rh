@@ -1,17 +1,5 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { FaCopy } from "react-icons/fa6";
-
-interface ErrorBoundaryProps {
-    children: ReactNode;
-}
-
-interface ErrorBoundaryState {
-    hasError: boolean;
-    errorTitle: string | null;
-    errorLocation: string | null;
-    errorStage: 'Inicialização' | 'Renderização' | 'Utilização' | null;
-    showToast: boolean; 
-}
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
     constructor(props: ErrorBoundaryProps) {
@@ -21,7 +9,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             errorTitle: null, 
             errorLocation: null, 
             errorStage: null,
-            showToast: false // Inicialize o estado showToast
+            showToast: false 
         };
     }
 
@@ -80,45 +68,43 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                             </div>
                         </div>
                     )}
-                    {hasError ? (
-                        <div className='mx-10 h-full flex flex-col items-center justify-center'>
-                            <article className="prose">
-                                <h1 className='text-8xl mb-8'>:(</h1>
-                                <h1>Ops... Ocorreu um erro na renderização do aplicativo</h1>
-                                <p></p>
-                                <p>Caso o problema persista mesmo depois de atualizar, recomendamos que copie o código de erro abaixo e encaminhe para o setor responsável:</p>
-                            </article>
+                    <div className='mx-10 h-full flex flex-col items-center justify-center'>
+                        <article className="prose">
+                            <h1 className='text-8xl mb-8'>:(</h1>
+                            <h1>Ops... Ocorreu um erro na renderização do aplicativo</h1>
+                            <p></p>
+                            <p>Caso o problema persista mesmo depois de atualizar, recomendamos que copie o código de erro abaixo e encaminhe para o setor responsável:</p>
+                        </article>
 
-                            <div className='hidden md:flex w-full mt-10'>
-                                <ul className="steps w-full mt-10">
-                                    <li className={`step ${errorStage === 'Inicialização' ? 'step-error' : 'step-primary'}`}>Inicialização</li>
-                                    <li className={`step ${errorStage === 'Renderização' ? 'step-error' : 'step-primary'}`}>Renderização</li>
-                                    <li className={`step ${errorStage === 'Utilização' ? 'step-error' : 'step-neutral'}`} data-content={errorStage === 'Utilização' ? '✕' : ''}>Utilização</li>
-                                </ul>
-                            </div>
-
-                            <div className='flex md:hidden flex-col items-center w-full mt-10'>
-                                <ul className="steps steps-vertical mt-10">
-                                    <li className={`step ${errorStage === 'Inicialização' ? 'step-error' : 'step-primary'}`}>Inicialização</li>
-                                    <li className={`step ${errorStage === 'Renderização' ? 'step-error' : 'step-primary'}`}>Renderização</li>
-                                    <li className={`step ${errorStage === 'Utilização' ? 'step-error' : 'step-neutral'}`} data-content={errorStage === 'Utilização' ? '✕' : ''}>Utilização</li>
-                                </ul>
-                            </div>
-
-                            <div className="mockup-code relative w-full my-10">
-                                <pre data-prefix="1"><code>Erro: {errorTitle}</code></pre>
-                                <pre data-prefix="2"><code>Local: {errorLocation}</code></pre>
-                                <FaCopy className='absolute z-10 top-4 right-4 cursor-pointer' onClick={this.handleCopyToClipboard} />
-                            </div>
-
-                            <button 
-                                onClick={this.handleReload} 
-                                className="btn btn-primary"
-                            >
-                                Atualizar
-                            </button>
+                        <div className='hidden md:flex w-full mt-10'>
+                            <ul className="steps w-full mt-10">
+                                <li className={`step ${errorStage === 'Inicialização' ? 'step-error' : 'step-primary'}`}>Inicialização</li>
+                                <li className={`step ${errorStage === 'Renderização' ? 'step-error' : 'step-primary'}`}>Renderização</li>
+                                <li className={`step ${errorStage === 'Utilização' ? 'step-error' : 'step-neutral'}`} data-content={errorStage === 'Utilização' ? '✕' : ''}>Utilização</li>
+                            </ul>
                         </div>
-                    ) : this.props.children}
+
+                        <div className='flex md:hidden flex-col items-center w-full mt-10'>
+                            <ul className="steps steps-vertical mt-10">
+                                <li className={`step ${errorStage === 'Inicialização' ? 'step-error' : 'step-primary'}`}>Inicialização</li>
+                                <li className={`step ${errorStage === 'Renderização' ? 'step-error' : 'step-primary'}`}>Renderização</li>
+                                <li className={`step ${errorStage === 'Utilização' ? 'step-error' : 'step-neutral'}`} data-content={errorStage === 'Utilização' ? '✕' : ''}>Utilização</li>
+                            </ul>
+                        </div>
+
+                        <div className="mockup-code relative w-full my-10">
+                            <pre data-prefix="1"><code>Erro: {errorTitle}</code></pre>
+                            <pre data-prefix="2"><code>Local: {errorLocation}</code></pre>
+                            <FaCopy className='absolute z-10 top-4 right-4 cursor-pointer' onClick={this.handleCopyToClipboard} />
+                        </div>
+
+                        <button 
+                            onClick={this.handleReload} 
+                            className="btn btn-primary"
+                        >
+                            Atualizar
+                        </button>
+                    </div>
                 </div>
             );
         }

@@ -1,11 +1,12 @@
+import { ipcMain } from 'electron';
 import { Pool } from 'pg';
 
 const pool = new Pool({
     host: '192.168.1.13',
     port: 5432,
-    database: 'CADASTRO',
+    database: 'recepcao',
     user: 'master',
-    password: '789456123',
+    password: 'tlk@951753',
 });
 
 export const queryDatabase = async (sql: string, params: unknown[] = []): Promise<unknown> => {
@@ -51,4 +52,24 @@ export const insertRecord = async (table: string, columns: string[], values: (st
     } finally {
         client.release();
     }
+};
+
+// Configura os handlers IPC
+export const setupDatabaseIpcHandlers = () => {
+    ipcMain.handle('query-database-postgres', async (event, sql, params) => {
+        return await queryDatabase(sql, params);
+    });
+
+    ipcMain.handle('delete-records-postgres', async (event, ids: number[]) => {
+        await deleteRecords(ids);
+    });
+
+    ipcMain.handle('insert-into-database', async (event, { table, columns, values }) => {
+        try {
+            await insertRecord(table, columns, values);
+            return { success: true };
+        } catch (error) {
+            console.error('Erro ao inserir no banco de dados:', error);
+        }
+    });
 };
