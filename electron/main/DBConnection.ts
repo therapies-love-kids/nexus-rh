@@ -14,23 +14,9 @@ export const queryDatabase = async (sql: string, params: unknown[] = []): Promis
     
     try {
         const res = await client.query(sql, params);
-        const updatedRows = res.rows.map((row: any) => row);
-        return updatedRows;
+        return res.rows;
     } catch (err: any) {
         throw new Error(`Query failed: ${err.message}`);
-    } finally {
-        client.release();
-    }
-};
-
-export const deleteRecords = async (ids: number[]): Promise<void> => {
-    const client = await pool.connect();
-    
-    try {
-        const query = 'DELETE FROM profissional WHERE id = ANY($1::int[])';
-        await client.query(query, [ids]);
-    } catch (err: any) {
-        throw new Error(`Delete failed: ${err.message}`);
     } finally {
         client.release();
     }
@@ -54,14 +40,9 @@ export const insertRecord = async (table: string, columns: string[], values: (st
     }
 };
 
-// Configura os handlers IPC
 export const setupDatabaseIpcHandlers = () => {
     ipcMain.handle('query-database-postgres', async (event, sql, params) => {
         return await queryDatabase(sql, params);
-    });
-
-    ipcMain.handle('delete-records-postgres', async (event, ids: number[]) => {
-        await deleteRecords(ids);
     });
 
     ipcMain.handle('insert-into-database', async (event, { table, columns, values }) => {
@@ -70,6 +51,7 @@ export const setupDatabaseIpcHandlers = () => {
             return { success: true };
         } catch (error) {
             console.error('Erro ao inserir no banco de dados:', error);
+            return { success: false, message: error.message };
         }
     });
 };
