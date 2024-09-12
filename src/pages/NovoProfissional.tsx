@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
+import { Link } from 'react-router-dom';
 
 interface Unidade {
     id: number;
@@ -137,6 +138,9 @@ export default function NovoProfissional() {
                         >
                             Adicionar Profissional
                         </button>
+                        <Link to={'/profissionais'}>
+                            <button className="btn btn-neutral mt-2 w-full">Voltar</button>
+                        </Link>
                     </div>
                 </div>
             </div>

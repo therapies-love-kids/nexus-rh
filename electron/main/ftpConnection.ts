@@ -1,25 +1,42 @@
 import ftp from 'basic-ftp';
 import { ipcMain } from 'electron';
+import { Writable } from 'stream';
+
 
 // Configurações do FTP
 const ftpConfig = {
-    host: '192.168.1.13',  // Substitua pelo IP do seu servidor
+    host: '192.168.1.13',
     user: 'ftpimages',
     password: 'tlk@951753',
-    secure: false  // Ou true se estiver usando FTP sobre TLS/SSL
+    secure: false, // Manter o SSL habilitado
+    secureOptions: {
+        rejectUnauthorized: false, // Ignora certificados auto-assinados
+        sessionTickets: true, // Tentar reutilização de sessão
+    }
 };
 
-async function uploadImageToFtp(localFilePath: string, remoteFilePath: string): Promise<void> {
+
+async function getImageFromFtp(remoteFilePath: string): Promise<Buffer> {
     const client = new ftp.Client();
     client.ftp.verbose = true;
     try {
         await client.access(ftpConfig);
-        await client.uploadFrom(localFilePath, remoteFilePath);
+
+        const chunks: Buffer[] = [];
+        const writableStream = new Writable({
+            write(chunk, encoding, callback) {
+                chunks.push(chunk);
+                callback();
+            }
+        });
+
+        await client.downloadTo(writableStream, remoteFilePath);
+        return Buffer.concat(chunks);
     } catch (err) {
         if (err instanceof Error) {
             console.error('Erro ao conectar ao FTP:', err.message);
         } else {
-            console.error('Erro ao conectar ao FTP:', err);
+            console.error('Erro desconhecido ao conectar ao FTP:', err);
         }
         throw err;
     } finally {
@@ -27,11 +44,12 @@ async function uploadImageToFtp(localFilePath: string, remoteFilePath: string): 
     }
 }
 
-// Expondo a função via IPC
-ipcMain.handle('ftp-upload', async (event, localFilePath: string, remoteFilePath: string) => {
+ipcMain.handle('ftp-get-image', async (event, fileName: string | null) => {
     try {
-        await uploadImageToFtp(localFilePath, remoteFilePath);
-        return { success: true };
+        const imagePath = fileName ? `profissionais/${fileName}` : 'profissionais/default.png';
+        const imageBuffer = await getImageFromFtp(imagePath);
+        const base64Image = imageBuffer.toString('base64');
+        return { success: true, base64Image };
     } catch (error) {
         if (error instanceof Error) {
             return { success: false, message: error.message };

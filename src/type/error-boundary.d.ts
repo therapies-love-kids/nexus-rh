@@ -1,6 +1,6 @@
 // src/type/error-boundary.d.ts
 declare interface ErrorBoundaryProps {
-    children: React.ReactNode;
+    children: null;
 }
 
 declare interface ErrorBoundaryState {

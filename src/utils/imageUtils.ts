@@ -1,16 +1,16 @@
-const baseFtpPath = '/profissionais/';  // Caminho no servidor FTP
-
-export const uploadImageToFtp = async (localFilePath: string, imageName: string): Promise<string> => {
+export const fetchImageFromFtp = async (imagePath: string | null): Promise<string> => {
     try {
-        // Invoca o IPC para fazer upload da imagem
-        const result = await window.ipcRenderer.invoke('ftp-upload', localFilePath, `${baseFtpPath}${imageName}`);
+        // Invoca o método IPC para obter a imagem do FTP
+        const result = await window.ipcRenderer.invoke('ftp-get-image', imagePath);
         if (result.success) {
-            return `${baseFtpPath}${imageName}`;  // Retorna o caminho da imagem no FTP
+            // Retorna a imagem no formato base64 para ser utilizada no front-end
+            return `data:image/jpeg;base64,${result.base64Image}`;
         } else {
-            throw new Error(result.message || 'Erro desconhecido no upload');
+            throw new Error(result.message);
         }
-    } catch (err) {
-        console.error('Erro ao fazer upload da imagem:', err);
-        throw err;
+    } catch (error) {
+        console.error('Erro ao buscar imagem do FTP:', error);
+        // Retorna a imagem padrão em caso de erro
+        return '/default.png';
     }
 };

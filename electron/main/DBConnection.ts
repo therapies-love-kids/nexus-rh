@@ -15,8 +15,12 @@ export const queryDatabase = async (sql: string, params: unknown[] = []): Promis
     try {
         const res = await client.query(sql, params);
         return res.rows;
-    } catch (err: any) {
-        throw new Error(`Query failed: ${err.message}`);
+    } catch (err) {
+        if (err instanceof Error) {
+            throw new Error(`Query failed: ${err.message}`);
+        } else {
+            throw new Error('Erro desconhecido na consulta ao banco de dados');
+        }
     } finally {
         client.release();
     }
@@ -32,9 +36,35 @@ export const insertRecord = async (table: string, columns: string[], values: (st
     
     try {
         await client.query(query, values);
-    } catch (err: any) {
-        console.error('Erro ao inserir o registro:', err);
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error('Erro ao inserir o registro:', err.message);
+        } else {
+            console.error('Erro desconhecido ao inserir o registro');
+        }
         throw err;
+    } finally {
+        client.release();
+    }
+};
+
+export const deleteRecords = async (table: string, ids: number[]): Promise<void> => {
+    const client = await pool.connect();
+    
+    // Monta a query para deletar múltiplos registros
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+    const query = `DELETE FROM ${table} WHERE profissional_id IN (${placeholders})`;
+
+    try {
+        await client.query(query, ids);
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error('Erro ao excluir registros:', err.message);
+            throw err;
+        } else {
+            console.error('Erro desconhecido ao excluir registros');
+            throw new Error('Erro desconhecido ao excluir registros');
+        }
     } finally {
         client.release();
     }
@@ -50,8 +80,27 @@ export const setupDatabaseIpcHandlers = () => {
             await insertRecord(table, columns, values);
             return { success: true };
         } catch (error) {
-            console.error('Erro ao inserir no banco de dados:', error);
-            return { success: false, message: error.message };
+            if (error instanceof Error) {
+                console.error('Erro ao inserir no banco de dados:', error.message);
+                return { success: false, message: error.message };
+            } else {
+                console.error('Erro desconhecido ao inserir no banco de dados');
+                return { success: false, message: 'Erro desconhecido' };
+            }
+        }
+    });
+
+    // Handler para deletar registros
+    ipcMain.handle('delete-records-postgres', async (event, ids: number[]) => {
+        try {
+            await deleteRecords('profissionais', ids);
+            return { success: true };
+        } catch (error) {
+            if (error instanceof Error) {
+                return { success: false, message: error.message };
+            } else {
+                return { success: false, message: 'Erro desconhecido' };
+            }
         }
     });
 };

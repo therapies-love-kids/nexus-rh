@@ -32,7 +32,7 @@ export default function App() {
                             </LayoutDash>
                         } />
 
-                        <Route path="/" element={
+                        <Route path="/addprofissional" element={
                             <LayoutDash>
                                 <NovoProfissional />
                             </LayoutDash>
