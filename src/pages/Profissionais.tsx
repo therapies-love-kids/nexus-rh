@@ -9,6 +9,7 @@ interface Profissional {
     profissional_nome: string;
     profissional_funcao_id: string;
     profissional_unidade_id: string;
+    profissional_status: string;
 }
 
 interface Unidade {
@@ -23,94 +24,113 @@ export default function Profissionais() {
     const [profissionais, setProfissionais] = useState<Profissional[]>([]);
     const [selectedProfissionais, setSelectedProfissionais] = useState<number[]>([]);
     const [filteredProfissionais, setFilteredProfissionais] = useState<Profissional[]>([]);
-    const [unidades, setUnidades] = useState<string[]>([]);
-    const [funcoes, setFuncoes] = useState<string[]>([]);
-    const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
     const [unidadesMap, setUnidadesMap] = useState<Record<string, string>>({});
     const [funcoesMap, setFuncoesMap] = useState<Record<string, string>>({});
-    
-
-    // Paginação
+    const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
-
+    const [statusFilter, setStatusFilter] = useState<'Ativo' | 'Demitido'>('Ativo');
     const [modal, setModal] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
+    const fetchProfissionais = async (status: string) => {
+        try {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                `SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id, profissional_unidade_id, profissional_status FROM profissionais WHERE profissional_status = $1`,
+                [status]
+            );
+            setProfissionais(result as Profissional[]);
+            setFilteredProfissionais(result as Profissional[]);
+
+            const imagePromises = (result as Profissional[]).map(async (profissional) => {
+                const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
+                return { id: profissional.profissional_id, imageUrl };
+            });
+
+            const imageResults = await Promise.all(imagePromises);
+            const imageMap: Record<number, string> = {};
+            imageResults.forEach(result => {
+                imageMap[result.id] = result.imageUrl;
+            });
+
+            setImageUrls(imageMap);
+        } catch (error) {
+            console.error('Erro ao buscar profissionais:', error);
+        }
+    };
+
+    const fetchUnidades = async () => {
+        try {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                'SELECT id, unidade FROM profissionais_unidade'
+            );
+            const unidadesMapping: Record<string, string> = {};
+            result.forEach((item: { id: string, unidade: string }) => {
+                unidadesMapping[item.id] = item.unidade;
+            });
+            setUnidadesMap(unidadesMapping);
+        } catch (error) {
+            console.error('Erro ao buscar unidades:', error);
+        }
+    };
+
+    const fetchFuncoes = async () => {
+        try {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                'SELECT id, funcao FROM profissionais_funcao'
+            );
+            const funcoesMapping: Record<string, string> = {};
+            result.forEach((item: { id: string, funcao: string }) => {
+                funcoesMapping[item.id] = item.funcao;
+            });
+            setFuncoesMap(funcoesMapping);
+        } catch (error) {
+            console.error('Erro ao buscar funções:', error);
+        }
+    };
+
     useEffect(() => {
-        const fetchProfissionais = async () => {
-            try {
-                const result = await window.ipcRenderer.invoke(
-                    'query-database-postgres',
-                    'SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id, profissional_unidade_id FROM profissionais'
-                );
-                setProfissionais(result as Profissional[]);
-                setFilteredProfissionais(result as Profissional[]);
-    
-                // Carregar o caminho das imagens para cada profissional
-                const imagePromises = (result as Profissional[]).map(async (profissional) => {
-                    const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
-                    return { id: profissional.profissional_id, imageUrl };
-                });
-    
-                const imageResults = await Promise.all(imagePromises);
-                const imageMap: Record<number, string> = {};
-                imageResults.forEach(result => {
-                    imageMap[result.id] = result.imageUrl;
-                });
-    
-                setImageUrls(imageMap);
-    
-            } catch (error) {
-                console.error('Erro ao buscar profissionais:', error);
-            }
-    
-        };
-    
-
-        const fetchUnidades = async () => {
-            try {
-                const result = await window.ipcRenderer.invoke(
-                    'query-database-postgres',
-                    'SELECT id, unidade FROM profissionais_unidade'
-                );
-                const unidadesMapping: Record<string, string> = {};
-                result.forEach((item: { id: string, unidade: string }) => {
-                    unidadesMapping[item.id] = item.unidade;
-                });
-                setUnidadesMap(unidadesMapping);
-            } catch (error) {
-                console.error('Erro ao buscar unidades:', error);
-            }
-        };
-
-        const fetchFuncoes = async () => {
-            try {
-                const result = await window.ipcRenderer.invoke(
-                    'query-database-postgres',
-                    'SELECT id, funcao FROM profissionais_funcao'
-                );
-                const funcoesMapping: Record<string, string> = {};
-                result.forEach((item: { id: string, funcao: string }) => {
-                    funcoesMapping[item.id] = item.funcao;
-                });
-                setFuncoesMap(funcoesMapping);
-            } catch (error) {
-                console.error('Erro ao buscar funções:', error);
-            }
-        };
-        
-
-        fetchProfissionais();
+        fetchProfissionais(statusFilter);
         fetchUnidades();
         fetchFuncoes();
-    }, []);
+    }, [statusFilter]);
 
-    // Paginação
     const indexOfLastRecord = currentPage * recordsPerPage;
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
     const currentRecords = filteredProfissionais.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(filteredProfissionais.length / recordsPerPage);
 
+    const handleChangeStatus = async (profissional_status: string) => {
+        if (selectedProfissionais.length > 0) {
+            try {
+                setModal({ type: 'info', message: 'Atualizando status...' });
+    
+                const extraData = profissional_status === 'Demitido' ? { profissional_datademissaoempresa: new Date().toISOString() } : {};
+    
+                // Chama o IPC para alterar o status dos profissionais
+                const result = await window.ipcRenderer.invoke('update-records-postgres', 'profissionais', { profissional_status, ...extraData }, selectedProfissionais);
+    
+                if (result.success) {
+                    // Atualiza os profissionais localmente
+                    await fetchProfissionais(statusFilter); // Atualiza a lista conforme o status atual
+                    setSelectedProfissionais([]); // Limpa seleção
+                    setModal({ type: 'success', message: 'Status atualizado com sucesso!' });
+                } else {
+                    setModal({ type: 'error', message: result.message || 'Erro ao atualizar status.' });
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                setModal({ type: 'error', message: 'Erro ao atualizar status.' });
+            }
+        } else {
+            setModal({ type: 'error', message: 'Nenhum profissional selecionado.' });
+        }
+    };
+
+
+    // Função para manipular a seleção dos checkboxes
     const handleCheckboxChange = (id: number): void => {
         setSelectedProfissionais(prevSelected =>
             prevSelected.includes(id)
@@ -119,42 +139,11 @@ export default function Profissionais() {
         );
     };
 
-    const handleDeleteRecords = async () => {
-        if (selectedProfissionais.length > 0) {
-            try {
-                setModal({ type: 'info', message: 'Excluindo registros...' });
-    
-                // Chama o IPC para excluir os registros
-                await window.ipcRenderer.invoke('delete-records-postgres', selectedProfissionais);
-    
-                // Atualiza a lista de profissionais localmente
-                const updatedProfissionais = profissionais.filter(
-                    (prof) => !selectedProfissionais.includes(prof.profissional_id)
-                );
-    
-                // Atualiza tanto a lista de profissionais quanto a lista filtrada
-                setProfissionais(updatedProfissionais);
-                setFilteredProfissionais(updatedProfissionais);
-    
-                // Limpar seleção
-                setSelectedProfissionais([]);
-    
-                setModal({ type: 'success', message: 'Registros excluídos com sucesso!' });
-            } catch (error) {
-                console.error('Error deleting records:', error);
-                setModal({ type: 'error', message: 'Erro ao excluir registros.' });
-            }
-        } else {
-            setModal({ type: 'error', message: 'Nenhum registro selecionado.' });
-        }
-    };
-    
-
     return (
         <div className='bg-base-200 min-h-screen'>
             <Breadcrumbs />
 
-            <div className="px-24 rounded">
+            <div className=" mt-10 px-24 rounded">
                 <div className='card bg-base-100 shadow-xl w-full mb-10'>
                     <div className="card-body">
                         <div className='flex justify-between'>
@@ -166,13 +155,23 @@ export default function Profissionais() {
                                     </div>
                                     <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                         <li>
-                                            <a onClick={handleDeleteRecords}>
-                                                Excluir
+                                            <a onClick={() => setStatusFilter('Ativo')}>
+                                                Visualizar Ativos
                                             </a>
                                         </li>
                                         <li>
-                                            <a>
-                                                Editar
+                                            <a onClick={() => setStatusFilter('Demitido')}>
+                                                Visualizar Demitidos
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a onClick={() => handleChangeStatus('Demitido')}>
+                                                Mover para Demitido
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a onClick={() => handleChangeStatus('Ativo')}>
+                                                Mover para Ativo
                                             </a>
                                         </li>
                                     </ul>
@@ -187,7 +186,6 @@ export default function Profissionais() {
                                 <Link to={'/addprofissional'}>
                                     <button className="btn btn-primary">Adicionar</button>
                                 </Link>
-                                
                             </div>
                         </div>
 
@@ -196,8 +194,8 @@ export default function Profissionais() {
                                 <tr>
                                     <th>
                                         <label>
-                                            <input 
-                                                type="checkbox" 
+                                            <input
+                                                type="checkbox"
                                                 className="checkbox"
                                                 onChange={(e) => {
                                                     if (e.target.checked) {
@@ -222,11 +220,11 @@ export default function Profissionais() {
                                     <tr key={prof.profissional_id}>
                                         <th>
                                             <label>
-                                                <input 
-                                                    type="checkbox" 
-                                                    className="checkbox" 
+                                                <input
+                                                    type="checkbox"
+                                                    className="checkbox"
                                                     checked={selectedProfissionais.includes(prof.profissional_id)}
-                                                    onChange={() => handleCheckboxChange(prof.profissional_id)} 
+                                                    onChange={() => handleCheckboxChange(prof.profissional_id)}
                                                 />
                                             </label>
                                         </th>
@@ -241,7 +239,6 @@ export default function Profissionais() {
                                                         alt={prof.profissional_nome}
                                                         className="w-16 h-16 object-cover"
                                                     />
-
                                                 </div>
                                             </div>
                                         </td>
@@ -249,10 +246,10 @@ export default function Profissionais() {
                                             <div className="font-bold">{prof.profissional_nome}</div>
                                         </td>
                                         <td>
-                                            <div className="font-bold">{funcoesMap[prof.profissional_funcao_id] || 'N/A'}</div> {/* Exibe o nome da função */}
+                                            <div className="font-bold">{funcoesMap[prof.profissional_funcao_id] || 'N/A'}</div>
                                         </td>
                                         <td>
-                                            {unidadesMap[prof.profissional_unidade_id] || 'N/A'} {/* Exibe o nome da unidade */}
+                                            {unidadesMap[prof.profissional_unidade_id] || 'N/A'}
                                         </td>
                                     </tr>
                                 ))}
@@ -262,7 +259,7 @@ export default function Profissionais() {
                         {/* Controles de paginação */}
                         <div className='w-full flex justify-center mt-4'>
                             <div className="join">
-                                <button 
+                                <button
                                     className="join-item btn btn-ghost"
                                     onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))}
                                 >
@@ -277,7 +274,7 @@ export default function Profissionais() {
                                         {index + 1}
                                     </button>
                                 ))}
-                                <button 
+                                <button
                                     className="join-item btn btn-ghost"
                                     onClick={() => setCurrentPage(prevPage => Math.min(prevPage + 1, totalPages))}
                                 >
@@ -289,5 +286,5 @@ export default function Profissionais() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

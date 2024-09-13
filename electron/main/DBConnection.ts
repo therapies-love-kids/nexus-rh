@@ -11,7 +11,6 @@ const pool = new Pool({
 
 export const queryDatabase = async (sql: string, params: unknown[] = []): Promise<unknown> => {
     const client = await pool.connect();
-    
     try {
         const res = await client.query(sql, params);
         return res.rows;
@@ -29,7 +28,6 @@ export const queryDatabase = async (sql: string, params: unknown[] = []): Promis
 export const insertRecord = async (table: string, columns: string[], values: (string | Buffer | null)[]): Promise<void> => {
     const client = await pool.connect();
     
-    // Cria a string de colunas e valores para a consulta SQL
     const columnsString = columns.join(', ');
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
     const query = `INSERT INTO ${table} (${columnsString}) VALUES (${placeholders})`;
@@ -51,7 +49,6 @@ export const insertRecord = async (table: string, columns: string[], values: (st
 export const deleteRecords = async (table: string, ids: number[]): Promise<void> => {
     const client = await pool.connect();
     
-    // Monta a query para deletar múltiplos registros
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
     const query = `DELETE FROM ${table} WHERE profissional_id IN (${placeholders})`;
 
@@ -64,6 +61,30 @@ export const deleteRecords = async (table: string, ids: number[]): Promise<void>
         } else {
             console.error('Erro desconhecido ao excluir registros');
             throw new Error('Erro desconhecido ao excluir registros');
+        }
+    } finally {
+        client.release();
+    }
+};
+
+export const updateRecords = async (table: string, updates: Record<string, any>, ids: number[]): Promise<void> => {
+    const client = await pool.connect();
+    
+    const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 1}`).join(', ');
+    const values = [...Object.values(updates), ...ids];
+    const placeholders = ids.map((_, i) => `$${Object.keys(updates).length + i + 1}`).join(', ');
+    
+    const query = `UPDATE ${table} SET ${setClause} WHERE profissional_id IN (${placeholders})`;
+
+    try {
+        await client.query(query, values);
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error('Erro ao atualizar registros:', err.message);
+            throw err;
+        } else {
+            console.error('Erro desconhecido ao atualizar registros');
+            throw new Error('Erro desconhecido ao atualizar registros');
         }
     } finally {
         client.release();
@@ -90,7 +111,6 @@ export const setupDatabaseIpcHandlers = () => {
         }
     });
 
-    // Handler para deletar registros
     ipcMain.handle('delete-records-postgres', async (event, ids: number[]) => {
         try {
             await deleteRecords('profissionais', ids);
@@ -99,6 +119,21 @@ export const setupDatabaseIpcHandlers = () => {
             if (error instanceof Error) {
                 return { success: false, message: error.message };
             } else {
+                return { success: false, message: 'Erro desconhecido' };
+            }
+        }
+    });
+
+    ipcMain.handle('update-records-postgres', async (event, table, updates, ids) => {
+        try {
+            await updateRecords(table, updates, ids);
+            return { success: true };
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error('Erro ao atualizar registros:', error.message);
+                return { success: false, message: error.message };
+            } else {
+                console.error('Erro desconhecido ao atualizar registros');
                 return { success: false, message: 'Erro desconhecido' };
             }
         }

@@ -2,64 +2,109 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Notification } from '@/components';
 
-interface Profissional {
+interface Unidade {
     id: number;
+    unidade: string;
+}
+
+interface Funcao {
+    id: number;
+    funcao: string;
+}
+
+interface Profissional {
+    profissional_id: number;
     profissional_nome: string;
     profissional_senha: string;
-    profissional_tipo: string;
+    profissional_mac: string | null; // Adicione a propriedade profissional_mac
 }
 
 export default function Login() {
+    const [unidades, setUnidades] = useState<Unidade[]>([]);
+    const [funcoes, setFuncoes] = useState<Funcao[]>([]);
     const [profissionais, setProfissionais] = useState<Profissional[]>([]);
+    const [selectedUnidade, setSelectedUnidade] = useState<number | string>('');
+    const [selectedFuncao, setSelectedFuncao] = useState<number | string>('');
     const [selectedProfissional, setSelectedProfissional] = useState<number | string>('');
     const [senha, setSenha] = useState<string>('');
     const [loginStatus, setLoginStatus] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
     const navigate = useNavigate(); // Hook de navegação
 
     useEffect(() => {
-        // Recuperar informações de login do cache local ou cookies
-        const storedTipo = localStorage.getItem('profissional_tipo');
-        if (storedTipo) {
-            // Lógica para redirecionar ou ajustar a UI com base no tipo recuperado
-            // Exemplo: navigate('/dashboard'); 
-        }
-
-        const fetchProfissionais = async () => {
+        const fetchUnidades = async () => {
             try {
-                const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT id, profissional_nome FROM profissional WHERE profissional_tipo = $1', ['admin']);
-                setProfissionais(result as Profissional[]);
+                const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT id, unidade FROM profissionais_unidade');
+                setUnidades(result as Unidade[]);
             } catch (error) {
-                console.error('Error fetching professionals:', error);
+                console.error('Error fetching units:', error);
             }
         };
 
-        fetchProfissionais();
-    }, [navigate]);
+        fetchUnidades();
+    }, []);
+
+    useEffect(() => {
+        if (selectedUnidade) {
+            const fetchFuncoes = async () => {
+                try {
+                    const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT id, funcao FROM profissionais_funcao WHERE id >= $1', [selectedUnidade]);
+                    setFuncoes(result as Funcao[]);
+                } catch (error) {
+                    console.error('Error fetching roles:', error);
+                }
+            };
+
+            fetchFuncoes();
+        } else {
+            setFuncoes([]);
+            setSelectedFuncao('');
+            setProfissionais([]);
+            setSelectedProfissional('');
+        }
+    }, [selectedUnidade]);
+
+    useEffect(() => {
+        if (selectedUnidade && selectedFuncao) {
+            const fetchProfissionais = async () => {
+                try {
+                    const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_id, profissional_nome, profissional_senha, profissional_mac FROM profissionais WHERE profissional_unidade_id = $1 AND profissional_funcao_id = $2', [selectedUnidade, selectedFuncao]);
+                    setProfissionais(result as Profissional[]);
+                } catch (error) {
+                    console.error('Error fetching professionals:', error);
+                }
+            };
+
+            fetchProfissionais();
+        } else {
+            setProfissionais([]);
+            setSelectedProfissional('');
+        }
+    }, [selectedUnidade, selectedFuncao]);
 
     const handleLogin = async () => {
-        if (!selectedProfissional) {
-            setLoginStatus({ type: 'error', message: 'Please select a professional' });
+        if (!selectedProfissional || !senha) {
+            setLoginStatus({ type: 'error', message: 'Please fill all fields' });
             return;
         }
 
         try {
-            const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_senha, profissional_tipo FROM profissional WHERE id = $1', [selectedProfissional]);
+            const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_senha, profissional_mac FROM profissionais WHERE profissional_id = $1', [selectedProfissional]);
 
             if (result.length === 0) {
                 setLoginStatus({ type: 'error', message: 'Professional not found' });
                 return;
             }
 
-            const hashedPassword = result[0].profissional_senha;
-            const profissionalTipo = result[0].profissional_tipo;
+            const { profissional_senha, profissional_mac } = result[0];
 
-            if (senha === hashedPassword) {
-                // Salvar informações no cache local e cookie
-                localStorage.setItem('profissional_tipo', profissionalTipo);
-                document.cookie = `profissional_tipo=${profissionalTipo}; path=/`;
-
-                // Redirecionar para a tela de dashboard
-                navigate('/dashboard'); // Atualize para a URL correta da sua aplicação
+            if (senha === profissional_senha) {
+                if (profissional_mac === null) {
+                    // Redirecionar para a página específica
+                    navigate('/primeiros-passos'); // Atualize para a URL correta da sua aplicação
+                } else {
+                    // Redirecionar para o dashboard
+                    navigate('/dashboard');
+                }
             } else {
                 setLoginStatus({ type: 'error', message: 'Incorrect password' });
             }
@@ -76,26 +121,54 @@ export default function Login() {
     return (
         <div className="min-h-screen w-screen flex flex-col items-center justify-center p-4 bg-gray-100">
             <div className="w-full max-w-md p-6 bg-white shadow-lg rounded-lg">
-                <h2 className="text-2xl font-bold text-center mb-4">Admin Login</h2>
+                <h2 className="text-2xl font-bold text-center mb-4">Login</h2>
                 
                 <select
-                    value={selectedProfissional}
-                    onChange={(e) => setSelectedProfissional(e.target.value)}
+                    value={selectedUnidade}
+                    onChange={(e) => setSelectedUnidade(e.target.value)}
                     className="select w-full mb-4"
                 >
-                    <option value="">Select a professional</option>
-                    {profissionais.map((prof) => (
-                        <option key={prof.id} value={prof.id}>{prof.profissional_nome}</option>
+                    <option value="">Select a Unidade</option>
+                    {unidades.map((unidade) => (
+                        <option key={unidade.id} value={unidade.id}>{unidade.unidade}</option>
                     ))}
                 </select>
 
-                <input
-                    type="password"
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
-                    placeholder="Enter password"
-                    className="input w-full mb-4"
-                />
+                {selectedUnidade && (
+                    <select
+                        value={selectedFuncao}
+                        onChange={(e) => setSelectedFuncao(e.target.value)}
+                        className="select w-full mb-4"
+                    >
+                        <option value="">Select a Funcao</option>
+                        {funcoes.map((funcao) => (
+                            <option key={funcao.id} value={funcao.id}>{funcao.funcao}</option>
+                        ))}
+                    </select>
+                )}
+
+                {selectedFuncao && (
+                    <select
+                        value={selectedProfissional}
+                        onChange={(e) => setSelectedProfissional(e.target.value)}
+                        className="select w-full mb-4"
+                    >
+                        <option value="">Select a Profissional</option>
+                        {profissionais.map((prof) => (
+                            <option key={prof.profissional_id} value={prof.profissional_id}>{prof.profissional_nome}</option>
+                        ))}
+                    </select>
+                )}
+
+                {selectedProfissional && (
+                    <input
+                        type="password"
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                        placeholder="Enter password"
+                        className="input w-full mb-4"
+                    />
+                )}
 
                 <button
                     onClick={handleLogin}

@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout, { LayoutDash } from './Layout';
-import { StylePage, Login, Inicio, Profissionais, NovoProfissional } from './pages';
+import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos } from './pages';
 import { Suspense } from 'react';
 
 export default function App() {
@@ -13,19 +13,31 @@ export default function App() {
                     <Routes>
 
                         {/* LEMBRAR DE CORRIGIR OS LINKS */}
+
                         <Route
-                            path="/login"
+                            path="/"
                             element={
                                 <Layout>
                                     <Login />
                                 </Layout>
                             }
                         />
-                        <Route path="/inicio" element={
+
+                        <Route
+                            path="/primeiros-passos"
+                            element={
+                                <Layout>
+                                    <PrimeirosPassos />
+                                </Layout>
+                            }
+                        />
+
+                        <Route path="/dashboard" element={
                             <LayoutDash>
                                 <Inicio />
                             </LayoutDash>
                         } />
+
                         <Route path="/profissionais" element={
                             <LayoutDash>
                                 <Profissionais />
