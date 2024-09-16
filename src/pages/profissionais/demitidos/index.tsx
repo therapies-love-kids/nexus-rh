@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
 import { fetchImageFromFtp } from '@/utils/imageUtils';
 import { Link } from 'react-router-dom';
+import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 
 interface Profissional {
     profissional_id: number;
@@ -105,7 +106,6 @@ export default function ProfissionaisDemitidos() {
             try {
                 setModal({ type: 'info', message: 'Reativando profissionais...' });
     
-                // Chama o IPC para mover os registros e limpar a data de demissão
                 const result = await window.ipcRenderer.invoke('move-records-postgres', {
                     sourceTable: 'profissionais_demitidos',
                     destinationTable: 'profissionais',
@@ -246,14 +246,14 @@ export default function ProfissionaisDemitidos() {
                                     onClick={() => setCurrentPage(currentPage - 1)}
                                     disabled={currentPage === 1}
                                 >
-                                    Anterior
+                                    <IoArrowBack />
                                 </button>
                                 <button
                                     className={`btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
                                     onClick={() => setCurrentPage(currentPage + 1)}
                                     disabled={currentPage === totalPages}
                                 >
-                                    Próxima
+                                    <IoArrowForward />
                                 </button>
                             </div>
                         </div>

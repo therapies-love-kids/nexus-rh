@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
 import { fetchImageFromFtp } from '@/utils/imageUtils';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 
 interface Profissional {
     profissional_id: number;
@@ -100,30 +101,32 @@ export default function Profissionais() {
     const currentRecords = filteredProfissionais.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(filteredProfissionais.length / recordsPerPage);
 
-    const handleChangeStatus = async (p0: string) => {
+    const handleChangeStatus = async (status: 'Demitido' | 'Ativo') => {
         if (selectedProfissionais.length > 0) {
             try {
-                setModal({ type: 'info', message: 'Atualizando status...' });
+                const currentDate = new Date();
+                const formattedDate = currentDate.toISOString();
     
-                const currentDateTime = new Date().toISOString(); // Data e hora atuais no formato ISO
+                setModal({ type: 'info', message: `Movendo profissionais para ${status}...` });
     
-                // Chama o IPC para mover os registros com a data e hora
                 const result = await window.ipcRenderer.invoke('move-records-postgres', {
-                    sourceTable: 'profissionais',
-                    destinationTable: 'profissionais_demitidos',
+                    sourceTable: status === 'Demitido' ? 'profissionais' : 'profissionais_demitidos',
+                    destinationTable: status === 'Demitido' ? 'profissionais_demitidos' : 'profissionais',
                     ids: selectedProfissionais,
-                    demissaoData: currentDateTime // Passa a data e hora atuais
+                    demissaoData: status === 'Demitido' ? formattedDate : undefined,
+                    clearDemissaoData: status === 'Ativo'
                 });
     
                 if (result.success) {
-                    setSelectedProfissionais([]); // Limpa seleção
-                    setModal({ type: 'success', message: 'Status atualizado com sucesso!' });
+                    await fetchProfissionais();
+                    setSelectedProfissionais([]);
+                    setModal({ type: 'success', message: `Profissionais movidos para ${status} com sucesso!` });
                 } else {
-                    setModal({ type: 'error', message: result.message || 'Erro ao atualizar status.' });
+                    setModal({ type: 'error', message: result.message || 'Erro ao mover profissionais.' });
                 }
             } catch (error) {
-                console.error('Erro ao atualizar status:', error);
-                setModal({ type: 'error', message: 'Erro ao atualizar status.' });
+                console.error('Erro ao mover profissionais:', error);
+                setModal({ type: 'error', message: 'Erro ao mover profissionais.' });
             }
         } else {
             setModal({ type: 'error', message: 'Nenhum profissional selecionado.' });
@@ -138,142 +141,159 @@ export default function Profissionais() {
         );
     };
 
+    const navigate = useNavigate();
+
+    const handleEdit = () => {
+        if (selectedProfissionais.length === 1) {
+            const [selectedId] = selectedProfissionais;
+            navigate(`/profissionais/editar/${selectedId}`);
+        } else {
+            setModal({ type: 'error', message: 'Selecione apenas um profissional para editar.' });
+        }
+    };
+
     return (
-<div className='bg-base-200 min-h-screen'>
-    <Breadcrumbs />
+        <div className='bg-base-200 min-h-screen'>
+            <Breadcrumbs />
 
-    <div className=" mt-10 px-24 rounded">
-        <div className='card bg-base-100 shadow-xl w-full mb-10'>
-            <div className="card-body">
-                <div className='flex justify-between'>
-                    <h2 className="card-title">Profissionais</h2>
-                    <div className='flex gap-2 justify-between'>
-                        <div className="dropdown dropdown-end">
-                            <div tabIndex={1} role="button" className="btn">
-                                Ações
-                            </div>
-                            <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                <li>
-                                    <Link to="/profissionais/demitidos">
-                                        Visualizar Demitidos
-                                    </Link>
-                                </li>
-                                <li>
-                                    <a onClick={() => handleChangeStatus('Demitido')}>
-                                        Mover para Demitidos
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <select className="select select-bordered max-w-xs" onChange={(e) => setRecordsPerPage(parseInt(e.target.value))}>
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </select>
-                        <Link to={'/addprofissional'}>
-                            <button className="btn btn-primary">Adicionar</button>
-                        </Link>
-                    </div>
-                </div>
-
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th>
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        className="checkbox"
-                                        onChange={(e) => {
-                                            if (e.target.checked) {
-                                                setSelectedProfissionais(currentRecords.map(p => p.profissional_id));
-                                            } else {
-                                                setSelectedProfissionais([]);
-                                            }
-                                        }}
-                                        checked={selectedProfissionais.length === currentRecords.length}
-                                    />
-                                </label>
-                            </th>
-                            <th>ID</th>
-                            <th>Foto</th>
-                            <th>Nome</th>
-                            <th>Nível de Acesso</th>
-                            <th>Unidade de Atuação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {currentRecords.map((prof) => (
-                            <tr key={prof.profissional_id}>
-                                <th>
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            className="checkbox"
-                                            checked={selectedProfissionais.includes(prof.profissional_id)}
-                                            onChange={() => handleCheckboxChange(prof.profissional_id)}
-                                        />
-                                    </label>
-                                </th>
-                                <td>
-                                    <div className="font-bold">{prof.profissional_id}</div>
-                                </td>
-                                <td>
-                                    <div className="avatar">
-                                        <div className="mask mask-squircle h-12 w-12">
-                                            <img
-                                                src={imageUrls[prof.profissional_id] || '/profissionais/default.png'}
-                                                alt={prof.profissional_nome}
-                                                className="w-16 h-16 object-cover"
-                                            />
-                                        </div>
+            <div className=" mt-10 px-24 rounded">
+                <div className='card bg-base-100 shadow-xl w-full mb-10'>
+                    <div className="card-body">
+                        <div className='flex justify-between'>
+                            <h2 className="card-title">Profissionais</h2>
+                            <div className='flex gap-2 justify-between'>
+                                <div className="dropdown dropdown-end">
+                                    <div tabIndex={1} role="button" className="btn">
+                                        Ações
                                     </div>
-                                </td>
-                                <td>
-                                    <div className="font-bold">{prof.profissional_nome}</div>
-                                </td>
-                                <td>
-                                    <div className="font-bold">{funcoesMap[prof.profissional_funcao_id] || 'N/A'}</div>
-                                </td>
-                                <td>
-                                    {unidadesMap[prof.profissional_unidade_id] || 'N/A'}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                    <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                        <li>
+                                            <Link to="/profissionais/demitidos">
+                                                Visualizar Demitidos
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <a onClick={() => handleChangeStatus('Demitido')}>
+                                                Mover para Demitidos
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a onClick={handleEdit}>
+                                                Editar informações
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
 
-                {/* Controles de paginação */}
-                <div className='flex justify-between mt-4'>
-                    <p>Página {currentPage} de {totalPages}</p>
-                    <div className="btn-group">
-                        <button
-                            className={`btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-                            onClick={() => setCurrentPage(currentPage - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            Anterior
-                        </button>
-                        <button
-                            className={`btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-                            onClick={() => setCurrentPage(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                        >
-                            Próxima
-                        </button>
+                                <select className="select select-bordered max-w-xs" onChange={(e) => setRecordsPerPage(parseInt(e.target.value))}>
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
+                                <Link to={'/profissionais/novo'}>
+                                    <button className="btn btn-primary">Adicionar</button>
+                                </Link>
+                            </div>
+                        </div>
+
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                className="checkbox"
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedProfissionais(currentRecords.map(p => p.profissional_id));
+                                                    } else {
+                                                        setSelectedProfissionais([]);
+                                                    }
+                                                }}
+                                                checked={selectedProfissionais.length === currentRecords.length}
+                                            />
+                                        </label>
+                                    </th>
+                                    <th>ID</th>
+                                    <th>Foto</th>
+                                    <th>Nome</th>
+                                    <th>Nível de Acesso</th>
+                                    <th>Unidade de Atuação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentRecords.map((prof) => (
+                                    <tr key={prof.profissional_id}>
+                                        <th>
+                                            <label>
+                                                <input
+                                                    type="checkbox"
+                                                    className="checkbox"
+                                                    checked={selectedProfissionais.includes(prof.profissional_id)}
+                                                    onChange={() => handleCheckboxChange(prof.profissional_id)}
+                                                />
+                                            </label>
+                                        </th>
+                                        <td>
+                                            <div className="font-bold">{prof.profissional_id}</div>
+                                        </td>
+                                        <td>
+                                            <div className="avatar">
+                                                <div className="mask mask-squircle h-12 w-12">
+                                                    <img
+                                                        src={imageUrls[prof.profissional_id] || '/profissionais/default.png'}
+                                                        alt={prof.profissional_nome}
+                                                        className="w-16 h-16 object-cover"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div className="font-bold">{prof.profissional_nome}</div>
+                                        </td>
+                                        <td>
+                                            <div className="font-bold">{funcoesMap[prof.profissional_funcao_id] || 'N/A'}</div>
+                                        </td>
+                                        <td>
+                                            {unidadesMap[prof.profissional_unidade_id] || 'N/A'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {/* Controles de paginação */}
+                        <div className='flex justify-between mt-4'>
+                            <p>Página {currentPage} de {totalPages}</p>
+                            <div className="btn-group">
+                                <button
+                                    className={`btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+                                    onClick={() => setCurrentPage(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                >
+                                    <IoArrowBack />
+                                </button>
+                                <button
+                                    className={`btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+                                    onClick={() => setCurrentPage(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    <IoArrowForward />
+                                </button>
+                            </div>
+                        </div>
+
+                        {modal && (
+                            <div className={`alert alert-${modal.type}`}>
+                                <span>{modal.message}</span>
+                                <button className="btn btn-sm" onClick={() => setModal(null)}>Fechar</button>
+                            </div>
+                        )}
                     </div>
                 </div>
-
-                {modal && (
-                    <div className={`alert alert-${modal.type}`}>
-                        <span>{modal.message}</span>
-                        <button className="btn btn-sm" onClick={() => setModal(null)}>Fechar</button>
-                    </div>
-                )}
             </div>
         </div>
-    </div>
-</div>
     );
 }

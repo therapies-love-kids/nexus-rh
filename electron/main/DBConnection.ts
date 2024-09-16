@@ -70,11 +70,18 @@ export const deleteRecords = async (table: string, ids: number[]): Promise<void>
 export const updateRecords = async (table: string, updates: Record<string, any>, ids: number[]): Promise<void> => {
     const client = await pool.connect();
     
+    if (!table || !updates || !ids || ids.length === 0) {
+        throw new Error('Parâmetros inválidos para atualização.');
+    }
+
     const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 1}`).join(', ');
     const values = [...Object.values(updates), ...ids];
     const placeholders = ids.map((_, i) => `$${Object.keys(updates).length + i + 1}`).join(', ');
-    
-    const query = `UPDATE ${table} SET ${setClause} WHERE profissional_id IN (${placeholders})`;
+
+    const query = `UPDATE ${table} SET ${setClause} WHERE profissional_id = $${Object.keys(updates).length + 1}`;
+
+    console.log('Query:', query);
+    console.log('Values:', values);
 
     try {
         await client.query(query, values);
@@ -90,7 +97,6 @@ export const updateRecords = async (table: string, updates: Record<string, any>,
         client.release();
     }
 };
-
 export const moveRecords = async (sourceTable: string, destinationTable: string, ids: number[]): Promise<void> => {
     const client = await pool.connect();
     

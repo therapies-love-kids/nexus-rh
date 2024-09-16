@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout, { LayoutDash } from './Layout';
 import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos, ProfissionaisDemitidos } from './pages';
 import { Suspense } from 'react';
+import EditarProfissional from './pages/profissionais/editar';
 
 export default function App() {
     // const faultyVariable = null;
@@ -15,7 +16,7 @@ export default function App() {
                         {/* LEMBRAR DE CORRIGIR OS LINKS */}
 
                         <Route
-                            path="/addprofissional"
+                            path="/"
                             element={
                                 <Layout>
                                     <Login />
@@ -43,13 +44,20 @@ export default function App() {
                                 <Profissionais />
                             </LayoutDash>
                         } />
+
                         <Route path="/profissionais/demitidos" element={
                             <LayoutDash>
                                 <ProfissionaisDemitidos />
                             </LayoutDash>
                         } />
 
-                        <Route path="/" element={
+                        <Route path="/profissionais/editar/:id" element={
+                            <LayoutDash>
+                                <EditarProfissional />
+                            </LayoutDash>
+                        } />
+
+                        <Route path="/profissionais/novo" element={
                             <LayoutDash>
                                 <NovoProfissional />
                             </LayoutDash>

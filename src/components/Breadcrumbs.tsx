@@ -9,7 +9,7 @@ export default function Breadcrumbs() {
 
     return (
         <div className="breadcrumbs text-sm bg-base-300 flex flex-col items-center py-10">
-            <h2 className='text-4xl capitalize mt-10'>{currentTitle}</h2>
+            <h2 className='text-4xl capitalize mt-10 mb-5'>{currentTitle}</h2>
             <ul>
                 <li>
                     <Link to="/">Início</Link>
