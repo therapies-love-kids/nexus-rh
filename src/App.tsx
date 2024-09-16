@@ -15,7 +15,7 @@ export default function App() {
                         {/* LEMBRAR DE CORRIGIR OS LINKS */}
 
                         <Route
-                            path="/"
+                            path="/addprofissional"
                             element={
                                 <Layout>
                                     <Login />
@@ -44,7 +44,7 @@ export default function App() {
                             </LayoutDash>
                         } />
 
-                        <Route path="/addprofissional" element={
+                        <Route path="/" element={
                             <LayoutDash>
                                 <NovoProfissional />
                             </LayoutDash>

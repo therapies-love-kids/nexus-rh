@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { Link } from 'react-router-dom';
+import { IoCalendar, IoClose, IoKey, IoOpen, IoPerson } from 'react-icons/io5';
+import DatePicker from 'react-date-picker';
+import 'react-date-picker/dist/DatePicker.css';
+import 'react-calendar/dist/Calendar.css';
 
 interface Unidade {
     id: number;
@@ -15,7 +19,7 @@ interface Funcao {
 export default function NovoProfissional() {
     const [nome, setNome] = useState('');
     const [senha, setSenha] = useState('');
-    const [dataIngressoEmpresa, setDataIngressoEmpresa] = useState('');
+    const [dataIngressoEmpresa, setDataIngressoEmpresa] = useState<Date | null>(null);
 
     const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,21 +63,6 @@ export default function NovoProfissional() {
         fetchOptions();
     }, []);
 
-    const handleDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let input = e.target.value;
-    
-        // Permitir que o usuário digite números e "/"
-        const regex = /^(\d{0,2})(\/?)(\d{0,2})(\/?)(\d{0,4})$/;
-    
-        if (regex.test(input)) {
-            // Adicionar "/" automaticamente conforme o usuário digita
-            if (input.length === 2 || input.length === 5) {
-                input += '/';
-            }
-            setDataIngressoEmpresa(input);
-        }
-    };
-
     const handleSubmit = async () => {
         if (unidadeId === null || funcaoId === null || empresaId === null || !senha || !dataIngressoEmpresa) {
             setModalMessage('Preencha todos os campos obrigatórios: unidade, função, empresa, senha e data de ingresso.');
@@ -110,47 +99,65 @@ export default function NovoProfissional() {
                     <div className="card-body">
                         <h2 className="card-title">Adicionar Novo Profissional</h2>
 
-                        <div className="form-control">
+                        <div className="form-control mt-4">
                             <label className="label">
-                                <span className="label-text">Nome</span>
+                                <span className="label-text">Nome do profissional</span>
                             </label>
-                            <input 
-                                type="text" 
-                                placeholder="Nome do profissional" 
-                                className="input input-bordered"
-                                value={nome}
-                                onChange={(e) => setNome(e.target.value)} 
-                            />
+                            <label className="input input-bordered flex items-center gap-2">
+                                <IoPerson />
+                                <input 
+                                    type="text" 
+                                    placeholder="Nome do profissional" 
+                                    className="flex-grow"
+                                    value={nome}
+                                    onChange={(e) => setNome(e.target.value)} 
+                                />
+                            </label>
+                        </div>
+                        
+                        <div className="form-control mt-4">
+                            <label className="label">
+                                <span className="label-text">Senha provisória</span>
+                            </label>
+                            <label className="input input-bordered flex items-center gap-2">
+                                <IoKey />
+                                <input
+                                    type="password"
+                                    placeholder="Senha do profissional"
+                                    className="flex-grow"
+                                    value={senha}
+                                    defaultValue={"123"}
+                                    onChange={(e) => setSenha(e.target.value)}
+                                />
+                            </label>
+                            <div className="label">
+                                <span className="label-text-alt">Padrão: <b>123</b></span>
+                            </div>
                         </div>
 
                         <div className="form-control mt-4">
                             <label className="label">
                                 <span className="label-text">Data de Ingresso na Empresa</span>
                             </label>
-                            <input
-                                type="text"
-                                placeholder="dd/mm/aaaa"
-                                className="input input-bordered"
-                                value={dataIngressoEmpresa}
-                                onChange={handleDataChange}
-                                maxLength={10}  // Limita o comprimento a 10 caracteres (dd/mm/aaaa)
-                            />
-                        </div>
-
-
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Senha</span>
+                            <label className="input input-bordered flex items-center gap-2">
+                                <IoCalendar />
+                                <DatePicker
+                                    onChange={(value) => {
+                                        if (value && !Array.isArray(value)) {
+                                            setDataIngressoEmpresa(value as Date); 
+                                        }
+                                    }}
+                                    value={dataIngressoEmpresa}
+                                    format="dd/MM/y"
+                                    className="border-none "
+                                    calendarIcon={<IoCalendar />}
+                                    clearIcon={<IoClose />}
+                                    dayPlaceholder="dd"
+                                    monthPlaceholder="mm"
+                                    yearPlaceholder="aaaa"
+                                />
                             </label>
-                            <input
-                                type="password"
-                                placeholder="Senha do profissional"
-                                className="input input-bordered"
-                                value={senha}
-                                onChange={(e) => setSenha(e.target.value)}
-                            />
                         </div>
-
 
                         <div className="form-control mt-4">
                             <label className="label">
