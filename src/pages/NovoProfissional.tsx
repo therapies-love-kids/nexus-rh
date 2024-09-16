@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { Link } from 'react-router-dom';
-import { IoCalendar, IoClose, IoKey, IoOpen, IoPerson } from 'react-icons/io5';
+import { IoAdd, IoArrowBack, IoCalendar, IoCheckmark, IoClose, IoKey, IoOpen, IoPerson } from 'react-icons/io5';
+import { FaCopy } from 'react-icons/fa'; // Importe o ícone de cópia
 import DatePicker from 'react-date-picker';
 import 'react-date-picker/dist/DatePicker.css';
 import 'react-calendar/dist/Calendar.css';
@@ -18,7 +19,7 @@ interface Funcao {
 
 export default function NovoProfissional() {
     const [nome, setNome] = useState('');
-    const [senha, setSenha] = useState('');
+    const [senha, setSenha] = useState('123');
     const [dataIngressoEmpresa, setDataIngressoEmpresa] = useState<Date | null>(null);
 
     const [modalMessage, setModalMessage] = useState<string | null>(null);
@@ -26,6 +27,7 @@ export default function NovoProfissional() {
 
     const [unidades, setUnidades] = useState<Unidade[]>([]);
     const [unidadeId, setUnidadeId] = useState<number | null>(null);
+    const [unidadeNome, setUnidadeNome] = useState<string | null>(null);
 
     const [funcoes, setFuncoes] = useState<Funcao[]>([]);
     const [funcaoId, setFuncaoId] = useState<number | null>(null);
@@ -63,6 +65,13 @@ export default function NovoProfissional() {
         fetchOptions();
     }, []);
 
+    useEffect(() => {
+        if (unidadeId !== null) {
+            const unidade = unidades.find((u) => u.id === unidadeId);
+            setUnidadeNome(unidade ? unidade.unidade : null);
+        }
+    }, [unidadeId, unidades]);
+
     const handleSubmit = async () => {
         if (unidadeId === null || funcaoId === null || empresaId === null || !senha || !dataIngressoEmpresa) {
             setModalMessage('Preencha todos os campos obrigatórios: unidade, função, empresa, senha e data de ingresso.');
@@ -78,7 +87,7 @@ export default function NovoProfissional() {
             const result = await window.ipcRenderer.invoke('insert-into-database', { table, columns, values });
     
             if (result.success) {
-                setModalMessage('Profissional adicionado com sucesso!');
+                setModalMessage('Usuário criado com sucesso!');
             } else {
                 setModalMessage(`Erro ao adicionar profissional: ${result.message}`);
             }
@@ -89,7 +98,19 @@ export default function NovoProfissional() {
             setIsModalOpen(true);
         }
     };
-    
+
+    const handleCopyToClipboard = () => {
+        const text = `
+            Unidade: ${unidadeNome}
+            Usuário: ${nome}
+            Login: ${nome}
+            Senha provisória: ${senha}
+        `;
+        navigator.clipboard.writeText(text)
+            .then(() => console.log('Texto copiado para a área de transferência!'))
+            .catch((error) => console.error('Erro ao copiar o texto:', error));
+    };
+
     return (
         <div className='bg-base-200 min-h-screen'>
             <Breadcrumbs />
@@ -97,7 +118,14 @@ export default function NovoProfissional() {
             <div className="px-24 rounded">
                 <div className="card bg-base-100 shadow-xl w-full my-10">
                     <div className="card-body">
-                        <h2 className="card-title">Adicionar Novo Profissional</h2>
+                        <div className=' flex flex-row items-center gap-2'>
+                            <Link to={'/profissionais'}>
+                                <button className="btn btn-ghost w-full"><IoArrowBack /></button>
+                            </Link>
+                            <p className="card-title m-0 p-0">
+                                Adicionar Novo Profissional
+                            </p>
+                        </div>
 
                         <div className="form-control mt-4">
                             <label className="label">
@@ -126,7 +154,6 @@ export default function NovoProfissional() {
                                     placeholder="Senha do profissional"
                                     className="flex-grow"
                                     value={senha}
-                                    defaultValue={"123"}
                                     onChange={(e) => setSenha(e.target.value)}
                                 />
                             </label>
@@ -144,12 +171,12 @@ export default function NovoProfissional() {
                                 <DatePicker
                                     onChange={(value) => {
                                         if (value && !Array.isArray(value)) {
-                                            setDataIngressoEmpresa(value as Date); 
+                                            setDataIngressoEmpresa(value as Date);
                                         }
                                     }}
                                     value={dataIngressoEmpresa}
                                     format="dd/MM/y"
-                                    className="border-none "
+                                    className="w-full custom-datepicker"
                                     calendarIcon={<IoCalendar />}
                                     clearIcon={<IoClose />}
                                     dayPlaceholder="dd"
@@ -219,9 +246,7 @@ export default function NovoProfissional() {
                         >
                             Adicionar Profissional
                         </button>
-                        <Link to={'/profissionais'}>
-                            <button className="btn btn-neutral mt-2 w-full">Voltar</button>
-                        </Link>
+
                     </div>
                 </div>
             </div>
@@ -231,8 +256,25 @@ export default function NovoProfissional() {
                 <Modal 
                     type={modalMessage?.includes('sucesso') ? 'success' : 'error'} 
                     message={modalMessage || ''} 
-                    onClose={() => setIsModalOpen(false)} 
-                />
+                    onClose={() => setIsModalOpen(false)}
+                >
+                    <p>{modalMessage}</p>
+                    {modalMessage?.includes('sucesso') && (
+                        <>
+                            <div className="mockup-code relative w-full my-10">
+                                <pre data-prefix="1">Unidade: {unidadeNome}</pre>
+                                <pre data-prefix="2">Usuário: {nome}</pre>
+                                <pre data-prefix="3">Login: {nome}</pre>
+                                <pre data-prefix="4">Senha provisória: {senha}</pre>
+                                <button
+                                    className="absolute z-10 top-4 right-4 cursor-pointer hover:text-secondary"
+                                    onClick={handleCopyToClipboard}
+                                >
+                                <FaCopy/></button>
+                            </div>
+                        </>
+                    )}
+                </Modal>
             )}
         </div>
     );

@@ -91,6 +91,52 @@ export const updateRecords = async (table: string, updates: Record<string, any>,
     }
 };
 
+export const moveRecords = async (sourceTable: string, destinationTable: string, ids: number[]): Promise<void> => {
+    const client = await pool.connect();
+    
+    try {
+        // Begin transaction
+        await client.query('BEGIN');
+        
+        // Get columns from source table
+        const columnsQuery = await client.query(`SELECT column_name FROM information_schema.columns WHERE table_name = $1`, [sourceTable]);
+        const columns = columnsQuery.rows.map(row => row.column_name);
+        if (columns.length === 0) {
+            throw new Error(`No columns found for table ${sourceTable}`);
+        }
+        const columnsString = columns.join(', ');
+
+        // Ensure IDs are correctly formatted as integers
+        const idValues = ids.map(id => parseInt(id.toString(), 10));
+
+        // Generate placeholders for the IDs
+        const idPlaceholders = idValues.map((_, i) => `$${i + 1}`).join(', ');
+
+        // Insert records into destination table
+        const insertQuery = `INSERT INTO ${destinationTable} (${columnsString}) SELECT ${columnsString} FROM ${sourceTable} WHERE profissional_id IN (${idPlaceholders})`;
+        await client.query(insertQuery, idValues);
+
+        // Delete records from source table
+        const deleteQuery = `DELETE FROM ${sourceTable} WHERE profissional_id IN (${idPlaceholders})`;
+        await client.query(deleteQuery, idValues);
+
+        // Commit transaction
+        await client.query('COMMIT');
+    } catch (err) {
+        await client.query('ROLLBACK');
+        if (err instanceof Error) {
+            console.error('Erro ao mover registros:', err.message);
+            throw err;
+        } else {
+            console.error('Erro desconhecido ao mover registros');
+            throw new Error('Erro desconhecido ao mover registros');
+        }
+    } finally {
+        client.release();
+    }
+};
+
+
 export const setupDatabaseIpcHandlers = () => {
     ipcMain.handle('query-database-postgres', async (event, sql, params) => {
         return await queryDatabase(sql, params);
@@ -134,6 +180,21 @@ export const setupDatabaseIpcHandlers = () => {
                 return { success: false, message: error.message };
             } else {
                 console.error('Erro desconhecido ao atualizar registros');
+                return { success: false, message: 'Erro desconhecido' };
+            }
+        }
+    });
+
+    ipcMain.handle('move-records-postgres', async (event, { sourceTable, destinationTable, ids }) => {
+        try {
+            await moveRecords(sourceTable, destinationTable, ids);
+            return { success: true };
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error('Erro ao mover registros:', error.message);
+                return { success: false, message: error.message };
+            } else {
+                console.error('Erro desconhecido ao mover registros');
                 return { success: false, message: 'Erro desconhecido' };
             }
         }

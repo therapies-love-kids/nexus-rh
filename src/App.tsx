@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout, { LayoutDash } from './Layout';
-import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos } from './pages';
+import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos, ProfissionaisDemitidos } from './pages';
 import { Suspense } from 'react';
 
 export default function App() {
@@ -41,6 +41,11 @@ export default function App() {
                         <Route path="/profissionais" element={
                             <LayoutDash>
                                 <Profissionais />
+                            </LayoutDash>
+                        } />
+                        <Route path="/profissionais/demitidos" element={
+                            <LayoutDash>
+                                <ProfissionaisDemitidos />
                             </LayoutDash>
                         } />
 
