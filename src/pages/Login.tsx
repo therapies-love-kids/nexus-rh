@@ -99,8 +99,8 @@ export default function Login() {
 
             if (senha === profissional_senha) {
                 if (profissional_mac === null) {
-                    // Redirecionar para a página específica
-                    navigate('/primeiros-passos'); // Atualize para a URL correta da sua aplicação
+                    // Redirecionar para a página específica com o ID do profissional
+                    navigate(`/primeiros-passos/${selectedProfissional}`);
                 } else {
                     // Redirecionar para o dashboard
                     navigate('/dashboard');

@@ -1,5 +1,18 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { FaCopy } from "react-icons/fa6";
+
+// Define types for props and state
+interface ErrorBoundaryProps {
+    children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+    hasError: boolean;
+    errorTitle: string | null;
+    errorLocation: string | null;
+    errorStage: 'Inicialização' | 'Renderização' | 'Utilização' | null;
+    showToast: boolean;
+}
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
     constructor(props: ErrorBoundaryProps) {
@@ -17,10 +30,10 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         return { hasError: true, errorTitle: null, errorLocation: null, errorStage: null, showToast: false };
     }
 
-    componentDidCatch(error: any, errorInfo: any) {
+    componentDidCatch(error: Error, errorInfo: { componentStack: string }) {
         console.error("ErrorBoundary caught an error", error, errorInfo);
     
-        const errorTitle = error?.message || "Erro desconhecido";
+        const errorTitle = error.message || "Erro desconhecido";
         const errorLocation = errorInfo?.componentStack
             ? errorInfo.componentStack.split('\n')[1]?.trim() || "Localização desconhecida"
             : "Nenhuma informação de stack disponível.";

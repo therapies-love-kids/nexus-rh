@@ -3,8 +3,10 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import os from 'node:os';
 import { update } from './update';
-import './ftpConnection'; // Importa o FTPCONNECTION para definir os IPC handlers
-import { setupDatabaseIpcHandlers } from './DBConnection'; // Importa a função para configurar os IPC handlers
+import { setupFtpIpcHandlers } from './ftpConnection';
+import { setupMacAddressIpcHandler } from './macConsulta';
+import { setupDatabaseIpcHandlers } from './DBConnection';
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -68,7 +70,9 @@ async function createWindow() {
 
 app.whenReady().then(() => {
     createWindow();
+    setupFtpIpcHandlers();
     setupDatabaseIpcHandlers(); // Configura os IPC handlers para o banco de dados
+    setupMacAddressIpcHandler();
 });
 
 app.on('window-all-closed', () => {

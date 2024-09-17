@@ -3,8 +3,6 @@ import { Breadcrumbs, Modal } from "@/components";
 import { Link, useParams } from 'react-router-dom';
 import { IoArrowBack, IoCalendar, IoKey, IoPerson, IoClose } from 'react-icons/io5';
 import DatePicker from 'react-date-picker';
-import 'react-date-picker/dist/DatePicker.css';
-import 'react-calendar/dist/Calendar.css';
 
 interface Unidade {
     id: number;
@@ -57,7 +55,7 @@ export default function AtualizarProfissional() {
                     setDataIngressoEmpresa(profissional.profissional_dataingressoempresa ? new Date(profissional.profissional_dataingressoempresa) : null);
                 }
             } catch (error) {
-                console.error('Erro ao carregar os dados do profissional:', error);
+                console.log(error)
             }
         };
 
@@ -89,7 +87,7 @@ export default function AtualizarProfissional() {
                 );
                 setEmpresas(empresaResult);
             } catch (error) {
-                console.error('Erro ao buscar opções:', error);
+                console.log(error)
             }
         };
         fetchOptions();
@@ -127,8 +125,7 @@ export default function AtualizarProfissional() {
                 setModalMessage('ID do profissional não encontrado.');
             }
         } catch (error) {
-            console.error('Erro ao atualizar profissional:', error);
-            setModalMessage('Erro ao atualizar profissional.');
+            setModalMessage(`Erro ao atualizar profissional ${error}`);
         } finally {
             setIsModalOpen(true);
         }

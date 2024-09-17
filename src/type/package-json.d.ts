@@ -3,5 +3,5 @@ declare interface PackageJson {
     version: string;
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
-    [key: string]: any; // Para outras propriedades opcionais
+    [key: string]; // Para outras propriedades opcionais
 }

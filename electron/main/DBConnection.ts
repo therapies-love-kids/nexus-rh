@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 import { Pool } from 'pg';
+import { Buffer } from 'buffer'; 
 
 const pool = new Pool({
     host: '192.168.1.13',
@@ -31,16 +32,16 @@ export const insertRecord = async (table: string, columns: string[], values: (st
     const columnsString = columns.join(', ');
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
     const query = `INSERT INTO ${table} (${columnsString}) VALUES (${placeholders})`;
+    console.log('Query:', query, 'Values:', values);
     
     try {
         await client.query(query, values);
     } catch (err) {
         if (err instanceof Error) {
-            console.error('Erro ao inserir o registro:', err.message);
+            throw new Error(`Erro ao inserir o registro: ${err.message}`);
         } else {
-            console.error('Erro desconhecido ao inserir o registro');
+            throw new Error('Erro desconhecido ao inserir o registro');
         }
-        throw err;
     } finally {
         client.release();
     }
@@ -56,10 +57,8 @@ export const deleteRecords = async (table: string, ids: number[]): Promise<void>
         await client.query(query, ids);
     } catch (err) {
         if (err instanceof Error) {
-            console.error('Erro ao excluir registros:', err.message);
-            throw err;
+            throw new Error(`Erro ao excluir registros: ${err.message}`);
         } else {
-            console.error('Erro desconhecido ao excluir registros');
             throw new Error('Erro desconhecido ao excluir registros');
         }
     } finally {
@@ -67,36 +66,32 @@ export const deleteRecords = async (table: string, ids: number[]): Promise<void>
     }
 };
 
-export const updateRecords = async (table: string, updates: Record<string, any>, ids: number[]): Promise<void> => {
+export const updateRecords = async (table: string, updates: Record<string, unknown>, ids: number[]): Promise<void> => {
     const client = await pool.connect();
-    
+
     if (!table || !updates || !ids || ids.length === 0) {
         throw new Error('Parâmetros inválidos para atualização.');
     }
 
     const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 1}`).join(', ');
     const values = [...Object.values(updates), ...ids];
-    const placeholders = ids.map((_, i) => `$${Object.keys(updates).length + i + 1}`).join(', ');
 
     const query = `UPDATE ${table} SET ${setClause} WHERE profissional_id = $${Object.keys(updates).length + 1}`;
-
-    console.log('Query:', query);
-    console.log('Values:', values);
 
     try {
         await client.query(query, values);
     } catch (err) {
         if (err instanceof Error) {
-            console.error('Erro ao atualizar registros:', err.message);
-            throw err;
+            throw new Error(`Erro ao atualizar registros: ${err.message}`);
         } else {
-            console.error('Erro desconhecido ao atualizar registros');
             throw new Error('Erro desconhecido ao atualizar registros');
         }
     } finally {
         client.release();
     }
 };
+
+
 export const moveRecords = async (sourceTable: string, destinationTable: string, ids: number[]): Promise<void> => {
     const client = await pool.connect();
     
@@ -131,10 +126,8 @@ export const moveRecords = async (sourceTable: string, destinationTable: string,
     } catch (err) {
         await client.query('ROLLBACK');
         if (err instanceof Error) {
-            console.error('Erro ao mover registros:', err.message);
-            throw err;
+            throw new Error(`Erro ao mover registros: ${err.message}`);
         } else {
-            console.error('Erro desconhecido ao mover registros');
             throw new Error('Erro desconhecido ao mover registros');
         }
     } finally {
@@ -142,22 +135,20 @@ export const moveRecords = async (sourceTable: string, destinationTable: string,
     }
 };
 
-
 export const setupDatabaseIpcHandlers = () => {
+    
     ipcMain.handle('query-database-postgres', async (event, sql, params) => {
         return await queryDatabase(sql, params);
     });
 
-    ipcMain.handle('insert-into-database', async (event, { table, columns, values }) => {
+    ipcMain.handle('insert-record-postgres', async (event, { table, columns, values }) => {
         try {
             await insertRecord(table, columns, values);
             return { success: true };
         } catch (error) {
             if (error instanceof Error) {
-                console.error('Erro ao inserir no banco de dados:', error.message);
                 return { success: false, message: error.message };
             } else {
-                console.error('Erro desconhecido ao inserir no banco de dados');
                 return { success: false, message: 'Erro desconhecido' };
             }
         }
@@ -182,10 +173,8 @@ export const setupDatabaseIpcHandlers = () => {
             return { success: true };
         } catch (error) {
             if (error instanceof Error) {
-                console.error('Erro ao atualizar registros:', error.message);
                 return { success: false, message: error.message };
             } else {
-                console.error('Erro desconhecido ao atualizar registros');
                 return { success: false, message: 'Erro desconhecido' };
             }
         }
@@ -197,10 +186,8 @@ export const setupDatabaseIpcHandlers = () => {
             return { success: true };
         } catch (error) {
             if (error instanceof Error) {
-                console.error('Erro ao mover registros:', error.message);
                 return { success: false, message: error.message };
             } else {
-                console.error('Erro desconhecido ao mover registros');
                 return { success: false, message: 'Erro desconhecido' };
             }
         }

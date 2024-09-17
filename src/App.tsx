@@ -1,8 +1,9 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout, { LayoutDash } from './Layout';
-import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos, ProfissionaisDemitidos } from './pages';
+import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos, ProfissionaisDemitidos, EditarProfissional } from './pages';
 import { Suspense } from 'react';
-import EditarProfissional from './pages/profissionais/editar';
+import 'react-date-picker/dist/DatePicker.css';
+import 'react-calendar/dist/Calendar.css';
 
 export default function App() {
     // const faultyVariable = null;
@@ -25,7 +26,7 @@ export default function App() {
                         />
 
                         <Route
-                            path="/primeiros-passos"
+                            path="/primeiros-passos/:id"
                             element={
                                 <Layout>
                                     <PrimeirosPassos />

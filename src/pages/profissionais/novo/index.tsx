@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { Link } from 'react-router-dom';
-import { IoAdd, IoArrowBack, IoCalendar, IoCheckmark, IoClose, IoKey, IoOpen, IoPerson } from 'react-icons/io5';
-import { FaCopy } from 'react-icons/fa'; // Importe o ícone de cópia
+import { IoArrowBack, IoCalendar, IoClose, IoKey, IoPerson } from 'react-icons/io5';
+import { FaCopy } from 'react-icons/fa';
 import DatePicker from 'react-date-picker';
-import 'react-date-picker/dist/DatePicker.css';
-import 'react-calendar/dist/Calendar.css';
 
 interface Unidade {
     id: number;
@@ -84,7 +82,7 @@ export default function NovoProfissional() {
             const columns = ['profissional_nome', 'profissional_unidade_id', 'profissional_funcao_id', 'profissional_empresa_id', 'profissional_senha', 'profissional_dataingressoempresa'];
             const values = [nome, unidadeId, funcaoId, empresaId, senha, dataIngressoEmpresa];
     
-            const result = await window.ipcRenderer.invoke('insert-into-database', { table, columns, values });
+            const result = await window.ipcRenderer.invoke('insert-record-postgres', { table, columns, values });
     
             if (result.success) {
                 setModalMessage('Usuário criado com sucesso!');

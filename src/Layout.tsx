@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, ReactNode } from 'react';
 import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
 import { IoBrush, IoEnter, IoMenu, IoMoon, IoSunny } from "react-icons/io5";
@@ -7,7 +7,11 @@ import { Link } from 'react-router-dom';
 // Register the overscroll plugin
 Scrollbar.use(OverscrollPlugin);
 
-export default function Layout({ children }:any) {
+interface LayoutProps {
+    children: ReactNode;
+}
+
+export default function Layout({ children }: LayoutProps) {
     const scrollbarRef = useRef(null);
 
     useEffect(() => {
@@ -49,7 +53,7 @@ export default function Layout({ children }:any) {
     );
 }
 
-export function LayoutDash({ children }: any) {
+export function LayoutDash({ children }: LayoutProps) {
     const scrollbarRef = useRef(null);
     const [scrollY, setScrollY] = useState(0);
 

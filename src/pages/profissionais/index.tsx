@@ -13,16 +13,8 @@ interface Profissional {
     profissional_status: string;
 }
 
-interface Unidade {
-    unidade: string;
-}
-
-interface Funcao {
-    funcao: string;
-}
-
 export default function Profissionais() {
-    const [profissionais, setProfissionais] = useState<Profissional[]>([]);
+    const [, setProfissionais] = useState<Profissional[]>([]);
     const [selectedProfissionais, setSelectedProfissionais] = useState<number[]>([]);
     const [filteredProfissionais, setFilteredProfissionais] = useState<Profissional[]>([]);
     const [unidadesMap, setUnidadesMap] = useState<Record<string, string>>({});
