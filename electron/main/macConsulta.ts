@@ -7,9 +7,11 @@ export function setupMacAddressIpcHandler() {
 
         for (const interfaceName in interfaces) {
             const networkInterface = interfaces[interfaceName];
-            if (networkInterface) {
+
+            // Verifica se a interface é um array e contém dados
+            if (Array.isArray(networkInterface)) {
                 for (const network of networkInterface) {
-                    if (network.mac && network.mac !== '00:00:00:00:00:00') {
+                    if (network && network.mac && network.mac !== '00:00:00:00:00:00') {
                         return network.mac;
                     }
                 }

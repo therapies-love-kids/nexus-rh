@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import DatePicker from "react-date-picker";
 import { IoArrowBack, IoCalendar, IoClose } from "react-icons/io5";
 import { Link } from "react-router-dom";
-import { Notification } from '@/components'; // Importa o componente de notificação
+import { Notification } from '@/components';
 
 export default function PrimeirosPassos() {
     const [step, setStep] = useState(1);
@@ -19,10 +19,11 @@ export default function PrimeirosPassos() {
     async function handleFinalSubmit() {
         const fileExt = foto?.name.split('.').pop();
         const fotoNome = `profissional_${id}.${fileExt}`;
-    
+        
         try {
             // Chama o IPC para obter o endereço MAC
             const macAddress = await window.ipcRenderer.invoke('get-mac-address');
+            console.log('MAC Address:', macAddress);
             
             const updates = {
                 profissional_senha: senha,
@@ -30,21 +31,41 @@ export default function PrimeirosPassos() {
                 profissional_horaentrada: horaEntrada,
                 profissional_horasaida: horaSaida,
                 profissional_datanascimento: dataNascimento,
-                profissional_mac: macAddress, // Adiciona o MAC ao registro
             };
     
+            // Atualiza a tabela 'profissionais'
             const response = await window.ipcRenderer.invoke('update-records-postgres', 'profissionais', updates, [id]);
     
             if (response.success) {
                 setNotification({ type: 'success', message: 'Informações atualizadas com sucesso!' });
     
+                // Envia o MAC para a tabela 'profissionais_mac'
+                if (typeof macAddress === 'string' && macAddress && id) {
+                    const macInsertResponse = await window.ipcRenderer.invoke('insert-records-postgres', {
+                        table: 'profissionais_mac',
+                        columns: ['profissional_id', 'mac'],
+                        values: [id, macAddress],
+                    });
+                
+                    if (macInsertResponse.success) {
+                        setNotification({ type: 'success', message: 'MAC registrado com sucesso!' });
+                    } else {
+                        setNotification({ type: 'error', message: `Erro ao registrar MAC: ${macInsertResponse.message}` });
+                    }
+                } else {
+                    setNotification({ type: 'error', message: 'Endereço MAC ou ID não são válidos.' });
+                }
+                
                 if (foto) {
-                    const localPath = foto.path;
+                    // Usa o caminho do arquivo local em vez de usar buffer
+                    const localFilePath = foto.path;
                     const remoteFileName = fotoNome;
     
-                    const ftpResponse = await window.ipcRenderer.invoke('upload-ftp', { localPath, remoteFileName });
+                    // Envia o caminho local e o nome remoto para o upload via FTP
+                    const ftpResponse = await window.ipcRenderer.invoke('upload-ftp', { localFilePath, remoteFileName });
+    
                     if (ftpResponse.success) {
-                        setNotification({ type: 'success', message: 'Imagem enviada ao servidor com sucesso!' });
+                        // setNotification({ type: 'success', message: 'Imagem enviada ao servidor com sucesso!' });
                     } else {
                         setNotification({ type: 'error', message: `Erro ao enviar a imagem: ${ftpResponse.message}` });
                     }
@@ -57,6 +78,7 @@ export default function PrimeirosPassos() {
             setNotification({ type: 'error', message: 'Erro ao enviar dados.' });
         }
     }
+    
 
     function validateStep() {
         if (step === 1 && !senha) {

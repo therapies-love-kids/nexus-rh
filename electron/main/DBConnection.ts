@@ -27,10 +27,14 @@ export const queryDatabase = async (sql: string, params: unknown[] = []): Promis
 };
 
 export const insertRecord = async (table: string, columns: string[], values: (string | Buffer | null)[]): Promise<void> => {
+    if (!table || columns.length === 0 || values.length === 0) {
+        throw new Error('Tabela, colunas ou valores não podem ser indefinidos ou vazios.');
+    }
+
     const client = await pool.connect();
-    
     const columnsString = columns.join(', ');
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
+
     const query = `INSERT INTO ${table} (${columnsString}) VALUES (${placeholders})`;
     console.log('Query:', query, 'Values:', values);
     
@@ -141,7 +145,7 @@ export const setupDatabaseIpcHandlers = () => {
         return await queryDatabase(sql, params);
     });
 
-    ipcMain.handle('insert-record-postgres', async (event, { table, columns, values }) => {
+    ipcMain.handle('insert-records-postgres', async (event, { table, columns, values }) => {
         try {
             await insertRecord(table, columns, values);
             return { success: true };

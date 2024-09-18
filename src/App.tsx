@@ -4,6 +4,7 @@ import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPas
 import { Suspense } from 'react';
 import 'react-date-picker/dist/DatePicker.css';
 import 'react-calendar/dist/Calendar.css';
+import MacErro from './pages/Login/MacErro';
 
 export default function App() {
     // const faultyVariable = null;
@@ -30,6 +31,15 @@ export default function App() {
                             element={
                                 <Layout>
                                     <PrimeirosPassos />
+                                </Layout>
+                            }
+                        />
+
+                        <Route
+                            path="/mac-erro"
+                            element={
+                                <Layout>
+                                    <MacErro />
                                 </Layout>
                             }
                         />

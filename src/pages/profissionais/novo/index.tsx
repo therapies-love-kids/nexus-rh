@@ -82,7 +82,7 @@ export default function NovoProfissional() {
             const columns = ['profissional_nome', 'profissional_unidade_id', 'profissional_funcao_id', 'profissional_empresa_id', 'profissional_senha', 'profissional_dataingressoempresa'];
             const values = [nome, unidadeId, funcaoId, empresaId, senha, dataIngressoEmpresa];
     
-            const result = await window.ipcRenderer.invoke('insert-record-postgres', { table, columns, values });
+            const result = await window.ipcRenderer.invoke('insert-records-postgres', { table, columns, values });
     
             if (result.success) {
                 setModalMessage('Usuário criado com sucesso!');

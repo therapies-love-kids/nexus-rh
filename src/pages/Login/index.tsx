@@ -16,7 +16,6 @@ interface Profissional {
     profissional_id: number;
     profissional_nome: string;
     profissional_senha: string;
-    profissional_mac: string | null; // Adicione a propriedade profissional_mac
 }
 
 export default function Login() {
@@ -28,7 +27,7 @@ export default function Login() {
     const [selectedProfissional, setSelectedProfissional] = useState<number | string>('');
     const [senha, setSenha] = useState<string>('');
     const [loginStatus, setLoginStatus] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
-    const navigate = useNavigate(); // Hook de navegação
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUnidades = async () => {
@@ -36,7 +35,7 @@ export default function Login() {
                 const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT id, unidade FROM profissionais_unidade');
                 setUnidades(result as Unidade[]);
             } catch (error) {
-                console.error('Error fetching units:', error);
+                console.error('Erro ao buscar unidades:', error);
             }
         };
 
@@ -50,7 +49,7 @@ export default function Login() {
                     const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT id, funcao FROM profissionais_funcao WHERE id >= $1', [selectedUnidade]);
                     setFuncoes(result as Funcao[]);
                 } catch (error) {
-                    console.error('Error fetching roles:', error);
+                    console.error('Erro ao buscar funções:', error);
                 }
             };
 
@@ -67,10 +66,10 @@ export default function Login() {
         if (selectedUnidade && selectedFuncao) {
             const fetchProfissionais = async () => {
                 try {
-                    const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_id, profissional_nome, profissional_senha, profissional_mac FROM profissionais WHERE profissional_unidade_id = $1 AND profissional_funcao_id = $2', [selectedUnidade, selectedFuncao]);
+                    const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_id, profissional_nome, profissional_senha FROM profissionais WHERE profissional_unidade_id = $1 AND profissional_funcao_id = $2', [selectedUnidade, selectedFuncao]);
                     setProfissionais(result as Profissional[]);
                 } catch (error) {
-                    console.error('Error fetching professionals:', error);
+                    console.error('Erro ao buscar profissionais:', error);
                 }
             };
 
@@ -83,34 +82,46 @@ export default function Login() {
 
     const handleLogin = async () => {
         if (!selectedProfissional || !senha) {
-            setLoginStatus({ type: 'error', message: 'Please fill all fields' });
+            setLoginStatus({ type: 'error', message: 'Por favor, preencha todos os campos' });
             return;
         }
 
         try {
-            const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_senha, profissional_mac FROM profissionais WHERE profissional_id = $1', [selectedProfissional]);
+            // Verificar a senha do profissional
+            const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_senha FROM profissionais WHERE profissional_id = $1', [selectedProfissional]);
 
             if (result.length === 0) {
-                setLoginStatus({ type: 'error', message: 'Professional not found' });
+                setLoginStatus({ type: 'error', message: 'Profissional não encontrado' });
                 return;
             }
 
-            const { profissional_senha, profissional_mac } = result[0];
+            const { profissional_senha } = result[0];
 
             if (senha === profissional_senha) {
-                if (profissional_mac === null) {
-                    // Redirecionar para a página específica com o ID do profissional
+                // Buscar os MACs permitidos para o profissional na nova tabela
+                const macResults = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT mac FROM profissionais_mac WHERE profissional_id = $1', [selectedProfissional]);
+                
+                const macAtual = await window.ipcRenderer.invoke('get-mac-address');
+                
+                // Se não há MAC registrado para o profissional
+                if (macResults.length === 0) {
                     navigate(`/primeiros-passos/${selectedProfissional}`);
                 } else {
-                    // Redirecionar para o dashboard
-                    navigate('/dashboard');
+                    // Verificar se o MAC atual está entre os MACs permitidos
+                    const macPermitido = macResults.some((row: { mac: string }) => row.mac === macAtual);
+
+                    if (macPermitido) {
+                        navigate('/dashboard');
+                    } else {
+                        navigate('/mac-erro');  // Página de erro de MAC não permitido
+                    }
                 }
             } else {
-                setLoginStatus({ type: 'error', message: 'Incorrect password' });
+                setLoginStatus({ type: 'error', message: 'Senha incorreta' });
             }
         } catch (error) {
-            console.error('Error during login:', error);
-            setLoginStatus({ type: 'error', message: 'Error during login' });
+            console.error('Erro durante o login:', error);
+            setLoginStatus({ type: 'error', message: 'Erro durante o login' });
         }
     };
 
@@ -128,7 +139,7 @@ export default function Login() {
                     onChange={(e) => setSelectedUnidade(e.target.value)}
                     className="select w-full mb-4"
                 >
-                    <option value="">Select a Unidade</option>
+                    <option value="">Selecione uma Unidade</option>
                     {unidades.map((unidade) => (
                         <option key={unidade.id} value={unidade.id}>{unidade.unidade}</option>
                     ))}
@@ -140,7 +151,7 @@ export default function Login() {
                         onChange={(e) => setSelectedFuncao(e.target.value)}
                         className="select w-full mb-4"
                     >
-                        <option value="">Select a Funcao</option>
+                        <option value="">Selecione uma Função</option>
                         {funcoes.map((funcao) => (
                             <option key={funcao.id} value={funcao.id}>{funcao.funcao}</option>
                         ))}
@@ -153,7 +164,7 @@ export default function Login() {
                         onChange={(e) => setSelectedProfissional(e.target.value)}
                         className="select w-full mb-4"
                     >
-                        <option value="">Select a Profissional</option>
+                        <option value="">Selecione um Profissional</option>
                         {profissionais.map((prof) => (
                             <option key={prof.profissional_id} value={prof.profissional_id}>{prof.profissional_nome}</option>
                         ))}
@@ -165,7 +176,7 @@ export default function Login() {
                         type="password"
                         value={senha}
                         onChange={(e) => setSenha(e.target.value)}
-                        placeholder="Enter password"
+                        placeholder="Digite a senha"
                         className="input w-full mb-4"
                     />
                 )}
@@ -174,12 +185,8 @@ export default function Login() {
                     onClick={handleLogin}
                     className="btn btn-primary w-full"
                 >
-                    Login
+                    Entrar
                 </button>
-
-                <Link to={"/profissionais"}>
-                    a
-                </Link>
 
                 {loginStatus && (
                     <Notification

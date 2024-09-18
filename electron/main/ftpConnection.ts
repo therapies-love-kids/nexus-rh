@@ -84,9 +84,9 @@ export function setupFtpIpcHandlers() {
         }
     });
 
-    ipcMain.handle('upload-ftp', async (event, { localPath, remoteFileName }) => {
+    ipcMain.handle('upload-ftp', async (event, { localFilePath, remoteFileName }) => {
         try {
-            await uploadImageToFtp(localPath, remoteFileName);
+            await uploadImageToFtp(localFilePath, remoteFileName);  // Certifique-se que está usando 'localFilePath'
             return { success: true, message: 'Upload realizado com sucesso!' };
         } catch (error) {
             if (error instanceof Error) {

@@ -3,6 +3,7 @@ import { Breadcrumbs } from "@/components";
 import { fetchImageFromFtp } from '@/utils/imageUtils';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import {Notification} from "@/components"; // Importando o componente Notification
 
 interface Profissional {
     profissional_id: number;
@@ -22,13 +23,13 @@ export default function Profissionais() {
     const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
-    const [modal, setModal] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
+    const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null); // Estado para a notificação
 
     const fetchProfissionais = async () => {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                `SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id, profissional_unidade_id, profissional_status FROM profissionais`
+                'SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id, profissional_unidade_id, profissional_status FROM profissionais'
             );
             setProfissionais(result as Profissional[]);
             setFilteredProfissionais(result as Profissional[]);
@@ -98,9 +99,9 @@ export default function Profissionais() {
             try {
                 const currentDate = new Date();
                 const formattedDate = currentDate.toISOString();
-    
-                setModal({ type: 'info', message: `Movendo profissionais para ${status}...` });
-    
+
+                setNotification({ type: 'info', message: `Movendo profissionais para ${status}...` });
+
                 const result = await window.ipcRenderer.invoke('move-records-postgres', {
                     sourceTable: status === 'Demitido' ? 'profissionais' : 'profissionais_demitidos',
                     destinationTable: status === 'Demitido' ? 'profissionais_demitidos' : 'profissionais',
@@ -108,20 +109,20 @@ export default function Profissionais() {
                     demissaoData: status === 'Demitido' ? formattedDate : undefined,
                     clearDemissaoData: status === 'Ativo'
                 });
-    
+
                 if (result.success) {
                     await fetchProfissionais();
                     setSelectedProfissionais([]);
-                    setModal({ type: 'success', message: `Profissionais movidos para ${status} com sucesso!` });
+                    setNotification({ type: 'success', message: `Profissionais movidos para ${status} com sucesso!` });
                 } else {
-                    setModal({ type: 'error', message: result.message || 'Erro ao mover profissionais.' });
+                    setNotification({ type: 'error', message: result.message || 'Erro ao mover profissionais.' });
                 }
             } catch (error) {
                 console.error('Erro ao mover profissionais:', error);
-                setModal({ type: 'error', message: 'Erro ao mover profissionais.' });
+                setNotification({ type: 'error', message: 'Erro ao mover profissionais.' });
             }
         } else {
-            setModal({ type: 'error', message: 'Nenhum profissional selecionado.' });
+            setNotification({ type: 'error', message: 'Nenhum profissional selecionado.' });
         }
     };
 
@@ -140,7 +141,7 @@ export default function Profissionais() {
             const [selectedId] = selectedProfissionais;
             navigate(`/profissionais/editar/${selectedId}`);
         } else {
-            setModal({ type: 'error', message: 'Selecione apenas um profissional para editar.' });
+            setNotification({ type: 'error', message: 'Selecione apenas um profissional para editar.' });
         }
     };
 
@@ -170,9 +171,15 @@ export default function Profissionais() {
                                             </a>
                                         </li>
                                         <li>
-                                            <a onClick={handleEdit}>
-                                                Editar informações
-                                            </a>
+                                            <div className={` ${selectedProfissionais.length !== 1 ? 'tooltip text-base-300' : ''}`} data-tip={selectedProfissionais.length !== 1 ? 'Selecione apenas um profissional para editar.' : ''}>
+                                                <button
+                                                    className={` ${selectedProfissionais.length !== 1 ? '' : ''}`}
+                                                    onClick={handleEdit}
+                                                    disabled={selectedProfissionais.length !== 1}
+                                                >
+                                                    Editar informações
+                                                </button>
+                                            </div>
                                         </li>
                                     </ul>
                                 </div>
@@ -228,62 +235,57 @@ export default function Profissionais() {
                                                 />
                                             </label>
                                         </th>
+                                        <td>{prof.profissional_id}</td>
                                         <td>
-                                            <div className="font-bold">{prof.profissional_id}</div>
-                                        </td>
-                                        <td>
-                                            <div className="avatar">
-                                                <div className="mask mask-squircle h-12 w-12">
-                                                    <img
-                                                        src={imageUrls[prof.profissional_id] || '/profissionais/default.png'}
-                                                        alt={prof.profissional_nome}
-                                                        className="w-16 h-16 object-cover"
-                                                    />
+                                            {imageUrls[prof.profissional_id] ? (
+                                                <div className="avatar">
+                                                    <div className="mask mask-squircle w-12 h-12">
+                                                        <img src={imageUrls[prof.profissional_id]} alt={`Foto de ${prof.profissional_nome}`} />
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            ) : (
+                                                'Sem foto'
+                                            )}
                                         </td>
-                                        <td>
-                                            <div className="font-bold">{prof.profissional_nome}</div>
-                                        </td>
-                                        <td>
-                                            <div className="font-bold">{funcoesMap[prof.profissional_funcao_id] || 'N/A'}</div>
-                                        </td>
-                                        <td>
-                                            {unidadesMap[prof.profissional_unidade_id] || 'N/A'}
-                                        </td>
+                                        <td>{prof.profissional_nome}</td>
+                                        <td>{funcoesMap[prof.profissional_funcao_id]}</td>
+                                        <td>{unidadesMap[prof.profissional_unidade_id]}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
 
-                        {/* Controles de paginação */}
-                        <div className='flex justify-between mt-4'>
-                            <p>Página {currentPage} de {totalPages}</p>
-                            <div className="btn-group">
+                        <div className="flex justify-between items-center mt-4">
+                            <div className="flex items-center gap-5">
                                 <button
-                                    className={`btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+                                    className="btn"
                                     onClick={() => setCurrentPage(currentPage - 1)}
                                     disabled={currentPage === 1}
                                 >
                                     <IoArrowBack />
                                 </button>
+                                <div>Página {currentPage}</div>
                                 <button
-                                    className={`btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+                                    className="btn"
                                     onClick={() => setCurrentPage(currentPage + 1)}
                                     disabled={currentPage === totalPages}
                                 >
                                     <IoArrowForward />
                                 </button>
                             </div>
-                        </div>
 
-                        {modal && (
-                            <div className={`alert alert-${modal.type}`}>
-                                <span>{modal.message}</span>
-                                <button className="btn btn-sm" onClick={() => setModal(null)}>Fechar</button>
+                            <div className="text-sm text-gray-600">
+                                Mostrando {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, filteredProfissionais.length)} de {filteredProfissionais.length} registros
                             </div>
-                        )}
+                        </div>
                     </div>
+                    {notification && (
+                        <Notification
+                            type={notification.type}
+                            message={notification.message}
+                            onClose={() => setNotification(null)} // Função para fechar a notificação
+                        />
+                    )}
                 </div>
             </div>
         </div>

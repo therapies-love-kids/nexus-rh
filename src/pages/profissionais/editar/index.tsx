@@ -37,6 +37,64 @@ export default function AtualizarProfissional() {
     const [empresas, setEmpresas] = useState<Empresa[]>([]);
     const [empresaId, setEmpresaId] = useState<number | null>(null);
 
+    const [macs, setMacs] = useState<string[]>([]);
+    const [newMac, setNewMac] = useState<string>('');
+
+    // Função para buscar os MACs do profissional
+    const fetchMacs = async () => {
+        try {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                `SELECT mac FROM profissionais_mac WHERE profissional_id = ${id}`
+            );
+            setMacs(result.map((row: any) => row.mac));
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    // Carregar os MACs ao montar o componente
+    useEffect(() => {
+        if (id) {
+            fetchMacs();
+        }
+    }, [id]);
+
+    const handleDeleteMac = async (macToDelete: string) => {
+        try {
+            await window.ipcRenderer.invoke(
+                'delete-records-postgres',
+                { table: 'profissionais_mac', column: 'mac', value: macToDelete }
+            );
+            setMacs(macs.filter(mac => mac !== macToDelete)); // Atualizar a lista de MACs
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleAddMac = async () => {
+        if (newMac.trim() === '') {
+            setModalMessage('O campo de MAC não pode estar vazio.');
+            setIsModalOpen(true);
+            return;
+        }
+    
+        try {
+            await window.ipcRenderer.invoke(
+                'insert-records-postgres',
+                {
+                    table: 'profissionais_mac',
+                    columns: ['profissional_id', 'mac'],
+                    values: [id, newMac]
+                }
+            );
+            setMacs([...macs, newMac]); // Atualizar a lista de MACs
+            setNewMac(''); // Limpar o campo
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     // Carregar os dados do profissional existente
     useEffect(() => {
         const fetchProfissionalData = async () => {
@@ -255,6 +313,38 @@ export default function AtualizarProfissional() {
                                     </option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div className="form-control mt-4">
+                            <label className="label">
+                                <span className="label-text">MACs Cadastrados</span>
+                            </label>
+                            <ul>
+                                {macs.map((mac, index) => (
+                                    <li key={index} className="flex items-center justify-between">
+                                        <span>{mac}</span>
+                                        <button
+                                            className="btn btn-error btn-xs"
+                                            onClick={() => handleDeleteMac(mac)}
+                                        >
+                                            Excluir
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <label className="input input-bordered flex items-center gap-2 mt-4">
+                                <input
+                                    type="text"
+                                    placeholder="Novo MAC"
+                                    className="flex-grow"
+                                    value={newMac}
+                                    onChange={(e) => setNewMac(e.target.value)}
+                                />
+                                <button className="btn btn-primary btn-sm" onClick={handleAddMac}>
+                                    Adicionar MAC
+                                </button>
+                            </label>
                         </div>
 
                         <button 
