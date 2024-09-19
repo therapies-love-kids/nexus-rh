@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Notification } from '@/components';
 
 interface Unidade {
@@ -130,60 +130,91 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen w-screen flex flex-col items-center justify-center p-4 bg-gray-100">
-            <div className="w-full max-w-md p-6 bg-white shadow-lg rounded-lg">
-                <h2 className="text-2xl font-bold text-center mb-4">Login</h2>
-                
-                <select
-                    value={selectedUnidade}
-                    onChange={(e) => setSelectedUnidade(e.target.value)}
-                    className="select w-full mb-4"
-                >
-                    <option value="">Selecione uma Unidade</option>
-                    {unidades.map((unidade) => (
-                        <option key={unidade.id} value={unidade.id}>{unidade.unidade}</option>
-                    ))}
-                </select>
+    <div className="min-h-screen w-screen flex bg-gradient-to-l to-primary/50 from-accent/50">
+        <div className='w-2/5 relative flex items-center justify-center'>
+            <img src="/LogoVertical.svg" className='w-1/2 p-5' alt="" />
+        </div>
 
-                {selectedUnidade && (
+        <div className='w-3/5 h-screen flex items-center justify-center py-40 px-40 relative'>
+            <div className="z-10 absolute right-10 w-2/3 h- p-6 bg-base-100 shadow-xl rounded-lg">
+                <h2 className="text-2xl font-bold mb-0">Login</h2>
+
+                <div className='divider divider-primary mt-0 mb-20 w-40'></div>
+                
+                <div className="form-control mt-4">
+                    <label className="label">
+                        <span className="label-text">Unidade</span>
+                    </label>
+                    <select
+                        value={selectedUnidade}
+                        onChange={(e) => setSelectedUnidade(e.target.value)}
+                        className="select select-bordered w-full"
+                    >
+                        <option value="">Selecione uma Unidade</option>
+                        {unidades.map((unidade) => (
+                            <option key={unidade.id} value={unidade.id}>{unidade.unidade}</option>
+                        ))}
+                    </select>
+                </div>
+
+
+                <div className="form-control mt-4">
+                    <label className="label">
+                        <span className="label-text">Função</span>
+                    </label>
+
                     <select
                         value={selectedFuncao}
                         onChange={(e) => setSelectedFuncao(e.target.value)}
-                        className="select w-full mb-4"
+                        className="select select-bordered w-full"
+                        disabled={!selectedUnidade}
                     >
                         <option value="">Selecione uma Função</option>
                         {funcoes.map((funcao) => (
                             <option key={funcao.id} value={funcao.id}>{funcao.funcao}</option>
                         ))}
                     </select>
-                )}
+                </div>
 
-                {selectedFuncao && (
+
+                <div className="form-control mt-4">
+                    <label className="label">
+                        <span className="label-text">Profissional</span>
+                    </label>
                     <select
                         value={selectedProfissional}
                         onChange={(e) => setSelectedProfissional(e.target.value)}
-                        className="select w-full mb-4"
+                        className="select select-bordered w-full"
+                        disabled={!selectedFuncao}
                     >
                         <option value="">Selecione um Profissional</option>
                         {profissionais.map((prof) => (
                             <option key={prof.profissional_id} value={prof.profissional_id}>{prof.profissional_nome}</option>
                         ))}
                     </select>
-                )}
+                </div>
 
-                {selectedProfissional && (
+
+                <div className="form-control mt-4">
+                    <label className="label">
+                        <span className="label-text">Senha</span>
+                    </label>
+
                     <input
                         type="password"
                         value={senha}
                         onChange={(e) => setSenha(e.target.value)}
                         placeholder="Digite a senha"
-                        className="input w-full mb-4"
+                        className="input input-bordered w-full mb-4"
+                        disabled={!selectedProfissional}
                     />
-                )}
+                </div>
+
+                
 
                 <button
                     onClick={handleLogin}
-                    className="btn btn-primary w-full"
+                    className="btn btn-primary w-full mt-20"
                 >
                     Entrar
                 </button>
@@ -196,6 +227,15 @@ export default function Login() {
                     />
                 )}
             </div>
+
+            <div className='absolute inset-0'>
+                <img
+                    src="/clouds.svg"
+                    className='h-full w-full object-cover object-left'
+                    alt="Clouds"
+                />
+            </div>
         </div>
+    </div>
     );
 }

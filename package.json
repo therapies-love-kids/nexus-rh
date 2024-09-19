@@ -1,7 +1,7 @@
 {
-    "name": "formulario-triagem",
+    "name": "nexus",
     "version": "2.6.0",
-    "description": "Formulário de triagem infantil para avaliações.",
+    "description": "Aplicativo de gestão integrada para clínicas - módulo de RECEPÇÃO",
     "main": "dist-electron/main/index.js",
     "author": "Pedro Laurenti",
     "license": "MIT",
@@ -26,6 +26,7 @@
         "@fontsource/ubuntu": "^5.0.13",
         "@tailwindcss/typography": "^0.5.14",
         "basic-ftp": "^5.0.5",
+        "canvas-confetti": "^1.9.3",
         "electron-updater": "^6.2.1",
         "npm": "^10.8.2",
         "react-date-picker": "^11.0.0",

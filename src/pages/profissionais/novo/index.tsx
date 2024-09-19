@@ -98,9 +98,12 @@ export default function NovoProfissional() {
     };
 
     const handleCopyToClipboard = () => {
+        const funcaoSelecionada = funcoes.find((f) => f.id === funcaoId);
+        const funcaoNome = funcaoSelecionada ? funcaoSelecionada.funcao : '';
+    
         const text = `
             Unidade: ${unidadeNome}
-            Usuário: ${nome}
+            Função: ${funcaoNome}
             Login: ${nome}
             Senha provisória: ${senha}
         `;
@@ -108,6 +111,7 @@ export default function NovoProfissional() {
             .then(() => console.log('Texto copiado para a área de transferência!'))
             .catch((error) => console.error('Erro ao copiar o texto:', error));
     };
+    
 
     return (
         <div className='bg-base-200 min-h-screen'>
@@ -261,7 +265,7 @@ export default function NovoProfissional() {
                         <>
                             <div className="mockup-code relative w-full my-10">
                                 <pre data-prefix="1">Unidade: {unidadeNome}</pre>
-                                <pre data-prefix="2">Usuário: {nome}</pre>
+                                <pre data-prefix="2">Função: {funcoes.find((f) => f.id === funcaoId)?.funcao}</pre>
                                 <pre data-prefix="3">Login: {nome}</pre>
                                 <pre data-prefix="4">Senha provisória: {senha}</pre>
                                 <button
