@@ -3,6 +3,7 @@ import { Breadcrumbs } from "@/components";
 import { fetchImageFromFtp } from '@/utils/imageUtils';
 import { Link } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { Notification }  from '@/components'; // Importa o componente de notificação
 
 interface Profissional {
     profissional_id: number;
@@ -10,7 +11,6 @@ interface Profissional {
     profissional_nome: string;
     profissional_funcao_id: string;
     profissional_unidade_id: string;
-    profissional_status: string;
 }
 
 export default function ProfissionaisDemitidos() {
@@ -22,13 +22,13 @@ export default function ProfissionaisDemitidos() {
     const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
-    const [modal, setModal] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
+    const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null); // Estado da notificação
 
     const fetchProfissionais = async () => {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                `SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id, profissional_unidade_id, profissional_status FROM profissionais_demitidos`
+                `SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id, profissional_unidade_id FROM profissionais_demitidos`
             );
             setProfissionais(result as Profissional[]);
             setFilteredProfissionais(result as Profissional[]);
@@ -96,28 +96,28 @@ export default function ProfissionaisDemitidos() {
     const handleChangeStatus = async () => {
         if (selectedProfissionais.length > 0) {
             try {
-                setModal({ type: 'info', message: 'Reativando profissionais...' });
-    
+                setNotification({ type: 'info', message: 'Reativando profissionais...' });
+
                 const result = await window.ipcRenderer.invoke('move-records-postgres', {
                     sourceTable: 'profissionais_demitidos',
                     destinationTable: 'profissionais',
                     ids: selectedProfissionais,
                     clearDemissaoData: true // Passa a flag para limpar a data de demissão
                 });
-    
+
                 if (result.success) {
                     await fetchProfissionais(); // Recarrega a lista de profissionais
                     setSelectedProfissionais([]); // Limpa seleção
-                    setModal({ type: 'success', message: 'Profissionais reativados com sucesso!' });
+                    setNotification({ type: 'success', message: 'Profissionais reativados com sucesso!' });
                 } else {
-                    setModal({ type: 'error', message: result.message || 'Erro ao reativar profissionais.' });
+                    setNotification({ type: 'error', message: result.message || 'Erro ao reativar profissionais.' });
                 }
             } catch (error) {
                 console.error('Erro ao reativar profissionais:', error);
-                setModal({ type: 'error', message: 'Erro ao reativar profissionais.' });
+                setNotification({ type: 'error', message: 'Erro ao reativar profissionais.' });
             }
         } else {
-            setModal({ type: 'error', message: 'Nenhum profissional selecionado.' });
+            setNotification({ type: 'error', message: 'Nenhum profissional selecionado.' });
         }
     };
 
@@ -230,35 +230,40 @@ export default function ProfissionaisDemitidos() {
                             </tbody>
                         </table>
 
-                        <div className='flex justify-between mt-4'>
-                            <p>Página {currentPage} de {totalPages}</p>
-                            <div className="btn-group">
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-5">
                                 <button
-                                    className={`btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+                                    className="btn"
                                     onClick={() => setCurrentPage(currentPage - 1)}
                                     disabled={currentPage === 1}
                                 >
                                     <IoArrowBack />
                                 </button>
+                                <div>Página {currentPage}</div>
                                 <button
-                                    className={`btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+                                    className="btn"
                                     onClick={() => setCurrentPage(currentPage + 1)}
                                     disabled={currentPage === totalPages}
                                 >
                                     <IoArrowForward />
                                 </button>
                             </div>
-                        </div>
 
-                        {modal && (
-                            <div className={`alert alert-${modal.type}`}>
-                                <span>{modal.message}</span>
-                                <button className="btn btn-sm" onClick={() => setModal(null)}>Fechar</button>
+                            <div className="text-sm text-gray-600">
+                                Mostrando {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, filteredProfissionais.length)} de {filteredProfissionais.length} registros
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {notification && (
+                <Notification 
+                    type={notification.type} 
+                    message={notification.message} 
+                    onClose={() => setNotification(null)}
+                />
+            )}
         </div>
     );
 }

@@ -297,7 +297,7 @@ export default function AtualizarProfissional() {
                             </select>
                         </div>
 
-                        <div className="form-control mt-4">
+                        <div className="form-control my-4">
                             <label className="label">
                                 <span className="label-text">Empresa</span>
                             </label>
@@ -315,40 +315,55 @@ export default function AtualizarProfissional() {
                             </select>
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">MACs Cadastrados</span>
-                            </label>
-                            <ul>
-                                {macs.map((mac, index) => (
-                                    <li key={index} className="flex items-center justify-between">
-                                        <span>{mac}</span>
-                                        <button
-                                            className="btn btn-error btn-xs"
-                                            onClick={() => handleDeleteMac(mac)}
-                                        >
-                                            Excluir
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
+                        <div className="divider mt-8">DISPOSITIVOS AUTORIZADOS</div>
 
-                            <label className="input input-bordered flex items-center gap-2 mt-4">
-                                <input
-                                    type="text"
-                                    placeholder="Novo MAC"
-                                    className="flex-grow"
-                                    value={newMac}
-                                    onChange={(e) => setNewMac(e.target.value)}
-                                />
-                                <button className="btn btn-primary btn-sm" onClick={handleAddMac}>
-                                    Adicionar MAC
-                                </button>
-                            </label>
+                        <div className="overflow-x-auto mt-4">
+                            <table className="table">
+                                {/* Cabeçalho */}
+                                <thead>
+                                    <tr>
+                                        <th>MAC</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {/* Exibir MACs */}
+                                    {macs.map((mac, index) => (
+                                        <tr key={index}>
+                                            <td>{mac}</td>
+                                            <td>
+                                                <button
+                                                    className="btn btn-error"
+                                                    onClick={() => handleDeleteMac(mac)}
+                                                >
+                                                    Excluir
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {/* Linha para adicionar novo MAC */}
+                                    <tr>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                placeholder="Novo MAC"
+                                                className="input input-bordered w-full"
+                                                value={newMac}
+                                                onChange={(e) => setNewMac(e.target.value)}
+                                            />
+                                        </td>
+                                        <td>
+                                            <button className="btn btn-primary" onClick={handleAddMac}>
+                                                Adicionar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
                         <button 
-                            className="btn btn-primary mt-6" 
+                            className="btn btn-primary mt-20" 
                             onClick={handleSubmit}
                         >
                             Atualizar Profissional

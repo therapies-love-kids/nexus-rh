@@ -11,7 +11,6 @@ interface Profissional {
     profissional_nome: string;
     profissional_funcao_id: string;
     profissional_unidade_id: string;
-    profissional_status: string;
 }
 
 export default function Profissionais() {
@@ -29,7 +28,7 @@ export default function Profissionais() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id, profissional_unidade_id, profissional_status FROM profissionais'
+                'SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id, profissional_unidade_id FROM profissionais'
             );
             setProfissionais(result as Profissional[]);
             setFilteredProfissionais(result as Profissional[]);
@@ -97,19 +96,14 @@ export default function Profissionais() {
     const handleChangeStatus = async (status: 'Demitido' | 'Ativo') => {
         if (selectedProfissionais.length > 0) {
             try {
-                const currentDate = new Date();
-                const formattedDate = currentDate.toISOString();
-
                 setNotification({ type: 'info', message: `Movendo profissionais para ${status}...` });
-
+    
                 const result = await window.ipcRenderer.invoke('move-records-postgres', {
                     sourceTable: status === 'Demitido' ? 'profissionais' : 'profissionais_demitidos',
                     destinationTable: status === 'Demitido' ? 'profissionais_demitidos' : 'profissionais',
                     ids: selectedProfissionais,
-                    demissaoData: status === 'Demitido' ? formattedDate : undefined,
-                    clearDemissaoData: status === 'Ativo'
                 });
-
+    
                 if (result.success) {
                     await fetchProfissionais();
                     setSelectedProfissionais([]);
@@ -149,7 +143,7 @@ export default function Profissionais() {
         <div className='bg-base-200 min-h-screen'>
             <Breadcrumbs />
 
-            <div className=" mt-10 px-24 rounded">
+            <div className="mt-10 px-24 rounded">
                 <div className='card bg-base-100 shadow-xl w-full mb-10'>
                     <div className="card-body">
                         <div className='flex justify-between'>
@@ -279,15 +273,16 @@ export default function Profissionais() {
                             </div>
                         </div>
                     </div>
-                    {notification && (
-                        <Notification
-                            type={notification.type}
-                            message={notification.message}
-                            onClose={() => setNotification(null)} // Função para fechar a notificação
-                        />
-                    )}
                 </div>
             </div>
+
+            {notification && (
+                <Notification 
+                    type={notification.type} 
+                    message={notification.message} 
+                    onClose={() => setNotification(null)}
+                />
+            )}
         </div>
     );
 }

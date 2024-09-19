@@ -44,7 +44,7 @@ export default function App() {
                             }
                         />
 
-                        <Route path="/dashboard" element={
+                        <Route path="/inicio" element={
                             <LayoutDash>
                                 <Inicio />
                             </LayoutDash>

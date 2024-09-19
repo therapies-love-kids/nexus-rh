@@ -111,7 +111,7 @@ export default function Login() {
                     const macPermitido = macResults.some((row: { mac: string }) => row.mac === macAtual);
 
                     if (macPermitido) {
-                        navigate('/dashboard');
+                        navigate('/inicio');
                     } else {
                         navigate('/mac-erro');  // Página de erro de MAC não permitido
                     }
