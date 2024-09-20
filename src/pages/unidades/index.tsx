@@ -69,7 +69,7 @@ export default function Unidades() {
 
             const result = await window.ipcRenderer.invoke('move-records-postgres', {
                 sourceTable: 'profissionais_unidade',
-                destinationTable: 'profissionais_unidade_excluidas',
+                destinationTable: 'profissionais_unidade_inativas',
                 ids: selectedUnidades,
                 idColumn: 'id' // Definindo a coluna de ID
             });
@@ -103,15 +103,15 @@ export default function Unidades() {
                                     </div>
                                     <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                         <li>
-                                            <Link to={"/unidades/excluidos"}>
+                                            <Link to={"/unidades/inativos"}>
                                                 <button>
-                                                    Visualizar excluidos
+                                                    Visualizar inativos
                                                 </button>
                                             </Link>
                                         </li>
                                         <li>
                                             <button onClick={handleMoveToExcluded}>
-                                                Mover para Excluídos
+                                                Mover para Inativos
                                             </button>
                                         </li>
                                         <li>

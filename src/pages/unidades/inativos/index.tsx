@@ -22,7 +22,7 @@ export default function Unidades() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, unidade, endereco, cep FROM profissionais_unidade_excluidas'
+                'SELECT id, unidade, endereco, cep FROM profissionais_unidade_inativas'
             );
             setUnidades(result as Unidade[]);
         } catch (error) {
@@ -68,7 +68,7 @@ export default function Unidades() {
             setNotification({ type: 'info', message: 'Movendo unidades para excluídos...' });
 
             const result = await window.ipcRenderer.invoke('move-records-postgres', {
-                sourceTable: 'profissionais_unidade_excluidas',
+                sourceTable: 'profissionais_unidade_inativas',
                 destinationTable: 'profissionais_unidade',
                 ids: selectedUnidades,
                 idColumn: 'id' // Definindo a coluna de ID

@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout, { LayoutDash } from './Layout';
-import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos, ProfissionaisDemitidos, EditarProfissional, Unidades, UnidadesNovo, UnidadesExcluidos, EditarUnidade } from './pages';
+import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos, ProfissionaisDemitidos, EditarProfissional, Unidades, UnidadesNovo, UnidadesInativos, EditarUnidade } from './pages';
 import { Suspense } from 'react';
 import MacErro from './pages/Login/MacErro';
 import { PrivateRoute } from './components';  // Importando o PrivateRoute
@@ -63,9 +63,9 @@ export default function App() {
                             </PrivateRoute>
                         } />
 
-                        <Route path="/unidades/excluidos" element={
+                        <Route path="/unidades/inativos" element={
                             <PrivateRoute>
-                                <LayoutDash><UnidadesExcluidos /></LayoutDash>
+                                <LayoutDash><UnidadesInativos /></LayoutDash>
                             </PrivateRoute>
                         } />
 
