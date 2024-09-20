@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Notification } from '@/components';
 
 interface Unidade {
@@ -85,35 +85,40 @@ export default function Login() {
             setLoginStatus({ type: 'error', message: 'Por favor, preencha todos os campos' });
             return;
         }
-
+    
         try {
             // Verificar a senha do profissional
-            const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_senha FROM profissionais WHERE profissional_id = $1', [selectedProfissional]);
-
+            const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_senha, profissional_foto FROM profissionais WHERE profissional_id = $1', [selectedProfissional]);
+    
             if (result.length === 0) {
                 setLoginStatus({ type: 'error', message: 'Profissional não encontrado' });
                 return;
             }
-
-            const { profissional_senha } = result[0];
-
+    
+            const { profissional_senha, profissional_foto, profissional_nome } = result[0];
+    
             if (senha === profissional_senha) {
+                // Armazenar o ID e a foto do profissional no localStorage
+                localStorage.setItem('profissional_id', selectedProfissional.toString());
+                localStorage.setItem('profissional_foto', profissional_foto);
+                localStorage.setItem('profissional_nome', profissional_nome);
+    
                 // Buscar os MACs permitidos para o profissional na nova tabela
                 const macResults = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT mac FROM profissionais_mac WHERE profissional_id = $1', [selectedProfissional]);
-                
+    
                 const macAtual = await window.ipcRenderer.invoke('get-mac-address');
-                
+    
                 // Se não há MAC registrado para o profissional
                 if (macResults.length === 0) {
                     navigate(`/primeiros-passos/${selectedProfissional}`);
                 } else {
                     // Verificar se o MAC atual está entre os MACs permitidos
                     const macPermitido = macResults.some((row: { mac: string }) => row.mac === macAtual);
-
+    
                     if (macPermitido) {
                         navigate('/inicio');
                     } else {
-                        navigate('/mac-erro');  // Página de erro de MAC não permitido
+                        navigate('/mac-erro'); // Página de erro de MAC não permitido
                     }
                 }
             } else {
@@ -124,6 +129,7 @@ export default function Login() {
             setLoginStatus({ type: 'error', message: 'Erro durante o login' });
         }
     };
+    
 
     const handleNotificationClose = () => {
         setLoginStatus(null);
@@ -218,6 +224,12 @@ export default function Login() {
                 >
                     Entrar
                 </button>
+
+                <div className="tooltip text-center w-full mt-5" data-tip="Entre em contato com um administrador para recuperar a senha">
+                    <a className="cursor-pointer">Esqueci a senha</a>
+                </div>
+
+                <Link to={"/inicio"}>Entrar temporário</Link>
 
                 {loginStatus && (
                     <Notification

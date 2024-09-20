@@ -9,6 +9,7 @@ export default function PrimeirosPassos() {
     const [step, setStep] = useState(1);
     const [senha, setSenha] = useState("");
     const [foto, setFoto] = useState<File | null>(null);
+    const [fotoPreview, setFotoPreview] = useState<string | null>(null); // Novo estado para pré-visualização da imagem
     const [horaEntrada, setHoraEntrada] = useState("");
     const [horaSaida, setHoraSaida] = useState("");
     const [dataNascimento, setDataNascimento] = useState<Date | null>(null);
@@ -21,7 +22,6 @@ export default function PrimeirosPassos() {
         const fotoNome = `profissional_${id}.${fileExt}`;
         
         try {
-            // Chama o IPC para obter o endereço MAC
             const macAddress = await window.ipcRenderer.invoke('get-mac-address');
             console.log('MAC Address:', macAddress);
             
@@ -33,13 +33,16 @@ export default function PrimeirosPassos() {
                 profissional_datanascimento: dataNascimento,
             };
     
-            // Atualiza a tabela 'profissionais'
-            const response = await window.ipcRenderer.invoke('update-records-postgres', 'profissionais', updates, [id]);
+            const response = await window.ipcRenderer.invoke('update-records-postgres', {
+                table: 'profissionais',
+                updates,
+                ids: [id],
+                idColumn: 'profissional_id' // Passando o nome da coluna de identificação
+            });
     
             if (response.success) {
                 setNotification({ type: 'success', message: 'Informações atualizadas com sucesso!' });
     
-                // Envia o MAC para a tabela 'profissionais_mac'
                 if (typeof macAddress === 'string' && macAddress && id) {
                     const macInsertResponse = await window.ipcRenderer.invoke('insert-records-postgres', {
                         table: 'profissionais_mac',
@@ -57,11 +60,9 @@ export default function PrimeirosPassos() {
                 }
                 
                 if (foto) {
-                    // Usa o caminho do arquivo local em vez de usar buffer
                     const localFilePath = foto.path;
                     const remoteFileName = fotoNome;
     
-                    // Envia o caminho local e o nome remoto para o upload via FTP
                     const ftpResponse = await window.ipcRenderer.invoke('upload-ftp', { localFilePath, remoteFileName });
     
                     if (ftpResponse.success) {
@@ -78,7 +79,6 @@ export default function PrimeirosPassos() {
             setNotification({ type: 'error', message: 'Erro ao enviar dados.' });
         }
     }
-    
 
     function validateStep() {
         if (step === 1 && !senha) {
@@ -104,9 +104,19 @@ export default function PrimeirosPassos() {
 
     useEffect(() => {
         if (step === 4) {
-            handleFinalSubmit(); // Envia as informações automaticamente ao chegar na etapa 4
+            handleFinalSubmit(); 
         }
     }, [step]);
+
+    // Atualize a pré-visualização da imagem quando a foto for carregada
+    useEffect(() => {
+        if (foto) {
+            const previewUrl = URL.createObjectURL(foto);
+            setFotoPreview(previewUrl);
+
+            return () => URL.revokeObjectURL(previewUrl); // Limpeza do URL temporário
+        }
+    }, [foto]);
 
     return (
         <div className='bg-base-200 min-h-screen'>
@@ -149,9 +159,12 @@ export default function PrimeirosPassos() {
 
                         {step === 2 && (
                             <div className="form-control mt-4">
+                                <label className="label">
+                                    <span className="label-text">Foto</span>
+                                </label>
                                 <input 
                                     type="file" 
-                                    className="file-input file-input-bordered w-full max-w-xs" 
+                                    className="file-input file-input-bordered w-full" 
                                     onChange={(e) => {
                                         if (e.target.files && e.target.files.length > 0) {
                                             setFoto(e.target.files[0]);
@@ -159,6 +172,17 @@ export default function PrimeirosPassos() {
                                     }} 
                                     required
                                 />
+                                {/* Pré-visualização da imagem */}
+                                {fotoPreview && (
+                                    <div className="mt-4">
+                                        <img
+                                            src={fotoPreview}
+                                            alt="Pré-visualização"
+                                            className="w-40 h-40 object-cover rounded-full"
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="form-control mt-4">
                                     <label className="label">
                                         <span className="label-text">Data de Nascimento</span>
@@ -215,33 +239,20 @@ export default function PrimeirosPassos() {
                             <div className="flex flex-col items-center mt-4">
                                 <h2 className="text-2xl font-bold mt-4">Cadastro Completo!</h2>
                                 <p className="text-center mt-2">Parabéns, suas informações foram registradas com sucesso.</p>
-                                <Link to="/inicio">
-                                    <button className="btn btn-success mt-6">Ir para o Aplicativo</button>
-                                </Link>
                             </div>
                         )}
 
-                        <div className="card-actions justify-between mt-6">
-                            {step < 4 && (
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={handleNextStep}
-                                >
-                                    Próximo
-                                </button>
+                        <div className='flex justify-between mt-10'>
+                            {step <= 3 ? (
+                                <button className="btn btn-primary" onClick={handleNextStep}>Próximo</button>
+                            ) : (
+                                <Link to="/" className="btn btn-success">Finalizar</Link>
                             )}
                         </div>
                     </div>
                 </div>
             </div>
-
-            {notification && (
-                <Notification
-                    type={notification.type}
-                    message={notification.message}
-                    onClose={() => setNotification(null)}
-                />
-            )}
+            {notification && <Notification type={notification.type} message={notification.message} onClose={() => setNotification(null)} />}
         </div>
     );
 }

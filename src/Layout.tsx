@@ -3,6 +3,7 @@ import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
 import { IoBrush, IoEnter, IoMenu, IoMoon, IoSunny } from "react-icons/io5";
 import { Link } from 'react-router-dom';
+import { fetchImageFromFtp } from './utils/imageUtils';
 
 // Register the overscroll plugin
 Scrollbar.use(OverscrollPlugin);
@@ -56,15 +57,26 @@ export default function Layout({ children }: LayoutProps) {
 export function LayoutDash({ children }: LayoutProps) {
     const scrollbarRef = useRef(null);
     const [scrollY, setScrollY] = useState(0);
+    const [userImage, setUserImage] = useState<string | null>(null);
 
     useEffect(() => {
+        // Pega o nome do arquivo da foto do profissional do localStorage
+        const foto = localStorage.getItem('profissional_foto');
+        
+        if (foto) {
+            // Busca a URL da imagem a partir do nome do arquivo
+            fetchImageFromFtp(foto)
+                .then((imageUrl) => setUserImage(imageUrl))
+                .catch((err) => console.error('Erro ao buscar a imagem:', err));
+        }
+
         let scrollbarInstance: Scrollbar;
         
         if (scrollbarRef.current) {
             scrollbarInstance = Scrollbar.init(scrollbarRef.current, {
                 plugins: {
                     overscroll: {
-                        effect: "bounce",
+                        effect: 'bounce',
                     },
                 },
             });
@@ -73,7 +85,7 @@ export function LayoutDash({ children }: LayoutProps) {
                 setScrollY(status.offset.y);
             });
         }
-        
+
         return () => {
             if (scrollbarInstance) {
                 scrollbarInstance.destroy();
@@ -105,7 +117,7 @@ export function LayoutDash({ children }: LayoutProps) {
                                 </li>
                                 <li><Link to={""}>Agenda</Link></li>
                                 <li><Link to={""}>Pacientes</Link></li>
-                                <li><Link to={""}>Responsáveis</Link></li>
+                                <li><Link to={"/unidades"}>Unidades</Link></li>
                                 <li><Link to={"/profissionais"}>Profissionais</Link></li>
                                 <div className="divider"></div>
                                 <li><Link to={"/style"}>Estilo</Link></li>
@@ -113,37 +125,29 @@ export function LayoutDash({ children }: LayoutProps) {
                             </ul>
                         </div>
                     </div>
-                    
                 </div>
                 <div className="flex-none">
                     <div className="dropdown dropdown-end relative">
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar z-0">
-                            <div className="w-10 rounded-full">
-                            <img
-                                alt="Tailwind CSS Navbar component"
-                                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                            <div className="w-10 rounded-full z-0">
+                                {userImage ? (
+                                    <img alt="Foto do profissional" src={userImage} />
+                                ) : (
+                                    <img
+                                        alt="Avatar padrão"
+                                        src="/public/default.png"
+                                    />
+                                )}
                             </div>
                         </div>
                         <ul
                             tabIndex={0}
                             className="menu menu-sm dropdown-content bg-base-100 rounded-box mt-3 w-52 p-2 shadow">
-                            <li>
-                                <a className="justify-between">
-                                    Profile
-                                    <span className="badge">New</span>
-                                </a>
-                            </li>
-                            <li><a>Settings</a></li>
-                            <li><a>Logout</a></li>
+                            <li><Link to={"/"}>Sair</Link></li>
                             <li>
                                 <label className="swap swap-rotate">
-                                    {/* this hidden checkbox controls the state */}
                                     <input type="checkbox" className="theme-controller" value="OrbyDark" />
-
-                                    {/* sun icon */}
                                     <IoSunny className='swap-on h-8 w-8 fill-current'/>
-
-                                    {/* moon icon */}
                                     <IoMoon className='swap-off h-8 w-8 fill-current'/>
                                 </label>
                             </li>
@@ -153,17 +157,13 @@ export function LayoutDash({ children }: LayoutProps) {
             </div>
             <div className='w-screen h-screen bg-base-200' ref={scrollbarRef}>
                 <div>
-
                     {children}
                     <div className='text-neutral/50 flex justify-between px-8 w-full'>
                         <h6>© 2024 Therapies Love Kids. Todos os direitos reservados.</h6>
                         <h6>Desenvolvido por Pedro Laurenti</h6>
                     </div>
-
                 </div>
-                
             </div>
-
         </div>
     );
 }

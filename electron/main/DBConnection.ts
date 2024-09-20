@@ -51,11 +51,15 @@ export const insertRecord = async (table: string, columns: string[], values: (st
     }
 };
 
-export const deleteRecords = async (table: string, ids: number[]): Promise<void> => {
+export const deleteRecords = async (table: string, ids: number[], idColumn: string): Promise<void> => {
+    if (!table || !idColumn || ids.length === 0) {
+        throw new Error('Tabela, coluna de ID ou IDs não podem ser indefinidos ou vazios.');
+    }
+
     const client = await pool.connect();
     
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
-    const query = `DELETE FROM ${table} WHERE profissional_id IN (${placeholders})`;
+    const query = `DELETE FROM ${table} WHERE ${idColumn} IN (${placeholders})`;
 
     try {
         await client.query(query, ids);
@@ -70,17 +74,18 @@ export const deleteRecords = async (table: string, ids: number[]): Promise<void>
     }
 };
 
-export const updateRecords = async (table: string, updates: Record<string, unknown>, ids: number[]): Promise<void> => {
+export const updateRecords = async (table: string, updates: Record<string, unknown>, ids: number[], idColumn: string): Promise<void> => {
     const client = await pool.connect();
 
-    if (!table || !updates || !ids || ids.length === 0) {
+    if (!table || !updates || !ids || ids.length === 0 || !idColumn) {
         throw new Error('Parâmetros inválidos para atualização.');
     }
 
     const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 1}`).join(', ');
     const values = [...Object.values(updates), ...ids];
 
-    const query = `UPDATE ${table} SET ${setClause} WHERE profissional_id = $${Object.keys(updates).length + 1}`;
+    const idPlaceholders = ids.map((_, i) => `$${Object.keys(updates).length + 1 + i}`).join(', ');
+    const query = `UPDATE ${table} SET ${setClause} WHERE ${idColumn} IN (${idPlaceholders})`;
 
     try {
         await client.query(query, values);
@@ -95,8 +100,7 @@ export const updateRecords = async (table: string, updates: Record<string, unkno
     }
 };
 
-
-export const moveRecords = async (sourceTable: string, destinationTable: string, ids: number[]): Promise<void> => {
+export const moveRecords = async (sourceTable: string, destinationTable: string, ids: number[], idColumn: string): Promise<void> => {
     const client = await pool.connect();
     
     try {
@@ -118,11 +122,11 @@ export const moveRecords = async (sourceTable: string, destinationTable: string,
         const idPlaceholders = idValues.map((_, i) => `$${i + 1}`).join(', ');
 
         // Insert records into destination table
-        const insertQuery = `INSERT INTO ${destinationTable} (${columnsString}) SELECT ${columnsString} FROM ${sourceTable} WHERE profissional_id IN (${idPlaceholders})`;
+        const insertQuery = `INSERT INTO ${destinationTable} (${columnsString}) SELECT ${columnsString} FROM ${sourceTable} WHERE ${idColumn} IN (${idPlaceholders})`;
         await client.query(insertQuery, idValues);
 
         // Delete records from source table
-        const deleteQuery = `DELETE FROM ${sourceTable} WHERE profissional_id IN (${idPlaceholders})`;
+        const deleteQuery = `DELETE FROM ${sourceTable} WHERE ${idColumn} IN (${idPlaceholders})`;
         await client.query(deleteQuery, idValues);
 
         // Commit transaction
@@ -138,6 +142,7 @@ export const moveRecords = async (sourceTable: string, destinationTable: string,
         client.release();
     }
 };
+
 
 export const setupDatabaseIpcHandlers = () => {
     
@@ -158,9 +163,9 @@ export const setupDatabaseIpcHandlers = () => {
         }
     });
 
-    ipcMain.handle('delete-records-postgres', async (event, ids: number[]) => {
+    ipcMain.handle('delete-records-postgres', async (event, { table, ids, idColumn }: { table: string; ids: number[]; idColumn: string }) => {
         try {
-            await deleteRecords('profissionais', ids);
+            await deleteRecords(table, ids, idColumn);
             return { success: true };
         } catch (error) {
             if (error instanceof Error) {
@@ -171,9 +176,9 @@ export const setupDatabaseIpcHandlers = () => {
         }
     });
 
-    ipcMain.handle('update-records-postgres', async (event, table, updates, ids) => {
+    ipcMain.handle('update-records-postgres', async (event, { table, updates, ids, idColumn }) => {
         try {
-            await updateRecords(table, updates, ids);
+            await updateRecords(table, updates, ids, idColumn);
             return { success: true };
         } catch (error) {
             if (error instanceof Error) {
@@ -184,9 +189,9 @@ export const setupDatabaseIpcHandlers = () => {
         }
     });
 
-    ipcMain.handle('move-records-postgres', async (event, { sourceTable, destinationTable, ids }) => {
+    ipcMain.handle('move-records-postgres', async (event, { sourceTable, destinationTable, ids, idColumn }) => {
         try {
-            await moveRecords(sourceTable, destinationTable, ids);
+            await moveRecords(sourceTable, destinationTable, ids, idColumn);
             return { success: true };
         } catch (error) {
             if (error instanceof Error) {

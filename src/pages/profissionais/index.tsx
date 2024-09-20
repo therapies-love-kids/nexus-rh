@@ -3,7 +3,7 @@ import { Breadcrumbs } from "@/components";
 import { fetchImageFromFtp } from '@/utils/imageUtils';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
-import {Notification} from "@/components"; // Importando o componente Notification
+import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Profissional {
     profissional_id: number;
@@ -22,7 +22,7 @@ export default function Profissionais() {
     const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
-    const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null); // Estado para a notificação
+    const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
     const fetchProfissionais = async () => {
         try {
@@ -102,6 +102,7 @@ export default function Profissionais() {
                     sourceTable: status === 'Demitido' ? 'profissionais' : 'profissionais_demitidos',
                     destinationTable: status === 'Demitido' ? 'profissionais_demitidos' : 'profissionais',
                     ids: selectedProfissionais,
+                    idColumn: 'profissional_id' // Adicionando o parâmetro idColumn
                 });
     
                 if (result.success) {
@@ -119,7 +120,7 @@ export default function Profissionais() {
             setNotification({ type: 'error', message: 'Nenhum profissional selecionado.' });
         }
     };
-
+    
     const handleCheckboxChange = (id: number): void => {
         setSelectedProfissionais(prevSelected =>
             prevSelected.includes(id)
@@ -171,7 +172,7 @@ export default function Profissionais() {
                                                     onClick={handleEdit}
                                                     disabled={selectedProfissionais.length !== 1}
                                                 >
-                                                    Editar informações
+                                                    Editar
                                                 </button>
                                             </div>
                                         </li>

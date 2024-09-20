@@ -64,7 +64,11 @@ export default function AtualizarProfissional() {
         try {
             await window.ipcRenderer.invoke(
                 'delete-records-postgres',
-                { table: 'profissionais_mac', column: 'mac', value: macToDelete }
+                { 
+                    table: 'profissionais_mac', 
+                    ids: [macToDelete], // Considerando que você usará a coluna 'mac' como ID
+                    idColumn: 'mac' // Passando a coluna como parâmetro
+                }
             );
             setMacs(macs.filter(mac => mac !== macToDelete)); // Atualizar a lista de MACs
         } catch (error) {
@@ -168,12 +172,17 @@ export default function AtualizarProfissional() {
                 profissional_senha: senha,
                 profissional_dataingressoempresa: dataIngressoEmpresa.toISOString().split('T')[0] // Convertendo para formato YYYY-MM-DD
             };
-        
+    
             if (id) {
                 const ids = [parseInt(id, 10)];
-            
-                const result = await window.ipcRenderer.invoke('update-records-postgres', table, updates, ids);
-            
+                
+                const result = await window.ipcRenderer.invoke('update-records-postgres', {
+                    table,
+                    updates,
+                    ids,
+                    idColumn: 'profissional_id' // Passando o nome da coluna de identificação
+                });
+                
                 if (result.success) {
                     setModalMessage('Profissional atualizado com sucesso!');
                 } else {
@@ -188,7 +197,7 @@ export default function AtualizarProfissional() {
             setIsModalOpen(true);
         }
     };
-
+    
     return (
         <div className='bg-base-200 min-h-screen'>
             <Breadcrumbs />

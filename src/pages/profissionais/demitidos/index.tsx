@@ -102,6 +102,7 @@ export default function ProfissionaisDemitidos() {
                     sourceTable: 'profissionais_demitidos',
                     destinationTable: 'profissionais',
                     ids: selectedProfissionais,
+                    idColumn: 'profissional_id',
                     clearDemissaoData: true // Passa a flag para limpar a data de demissão
                 });
 
