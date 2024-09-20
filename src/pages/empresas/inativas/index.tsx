@@ -22,7 +22,7 @@ export default function Unidades() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, unidade, endereco, cep FROM profissionais_unidade'
+                'SELECT id, unidade, endereco, cep FROM profissionais_unidade_inativas'
             );
             setUnidades(result as Unidade[]);
         } catch (error) {
@@ -68,8 +68,8 @@ export default function Unidades() {
             setNotification({ type: 'info', message: 'Movendo unidades para excluídos...' });
 
             const result = await window.ipcRenderer.invoke('move-records-postgres', {
-                sourceTable: 'profissionais_unidade',
-                destinationTable: 'profissionais_unidade_inativas',
+                sourceTable: 'profissionais_unidade_inativas',
+                destinationTable: 'profissionais_unidade',
                 ids: selectedUnidades,
                 idColumn: 'id' // Definindo a coluna de ID
             });
@@ -103,27 +103,25 @@ export default function Unidades() {
                                     </div>
                                     <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                         <li>
-                                            <Link to={"/unidades/inativas"}>
+                                            <button
+                                                className={` ${selectedUnidades.length !== 1 ? 'tooltip text-base-300' : ''}`}
+                                                onClick={handleEdit}
+                                                disabled={selectedUnidades.length !== 1}
+                                            >
+                                                Editar
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <Link to={"/unidades"}>
                                                 <button>
-                                                    Visualizar inativas
+                                                    Visualizar Ativos
                                                 </button>
                                             </Link>
                                         </li>
                                         <li>
                                             <button onClick={handleMoveToExcluded}>
-                                                Mover para Inativas
+                                                Mover para Ativos
                                             </button>
-                                        </li>
-                                        <li>
-                                            <div className={` ${selectedUnidades.length !== 1 ? 'tooltip text-base-300' : ''}`} data-tip={selectedUnidades.length !== 1 ? 'Selecione apenas uma unidade para editar.' : ''}>
-                                                <button
-                                                    className={` ${selectedUnidades.length !== 1 ? '' : ''}`}
-                                                    onClick={handleEdit}
-                                                    disabled={selectedUnidades.length !== 1}
-                                                >
-                                                    Editar
-                                                </button>
-                                            </div>
                                         </li>
                                     </ul>
                                 </div>

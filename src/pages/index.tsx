@@ -12,5 +12,5 @@ export { default as EditarProfissional} from './profissionais/editar'
 
 export { default as Unidades} from './unidades'
 export { default as UnidadesNovo} from './unidades/novo'
-export { default as UnidadesInativos} from './unidades/inativos'
+export { default as UnidadesInativas} from './unidades/inativas'
 export { default as EditarUnidade} from './unidades/editar'
