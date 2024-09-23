@@ -116,7 +116,7 @@ export function LayoutDash({ children }: LayoutProps) {
                                     </Link>
                                 </li>
                                 <li><Link to={""}>Agenda</Link></li>
-                                <li><Link to={""}>Pacientes</Link></li>
+                                <li><Link to={"/empresas"}>Empresas</Link></li>
                                 <li><Link to={"/unidades"}>Unidades</Link></li>
                                 <li><Link to={"/profissionais"}>Profissionais</Link></li>
                                 <div className="divider"></div>

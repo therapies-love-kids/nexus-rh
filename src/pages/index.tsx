@@ -11,6 +11,11 @@ export { default as NovoProfissional} from './profissionais/novo'
 export { default as EditarProfissional} from './profissionais/editar'
 
 export { default as Unidades} from './unidades'
-export { default as UnidadesNovo} from './unidades/novo'
+export { default as UnidadesNova} from './unidades/nova'
 export { default as UnidadesInativas} from './unidades/inativas'
 export { default as EditarUnidade} from './unidades/editar'
+
+export { default as Empresas} from './empresas'
+export { default as EmpresasNova} from './empresas/nova'
+export { default as EmpresasInativas} from './empresas/inativas'
+export { default as EditarEmpresa} from './empresas/editar'

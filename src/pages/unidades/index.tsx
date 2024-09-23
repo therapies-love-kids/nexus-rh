@@ -69,7 +69,7 @@ export default function Unidades() {
 
             const result = await window.ipcRenderer.invoke('move-records-postgres', {
                 sourceTable: 'profissionais_unidade',
-                destinationTable: 'profissionais_unidade_inativas',
+                destinationTable: 'profissionais_unidades_inativas',
                 ids: selectedUnidades,
                 idColumn: 'id' // Definindo a coluna de ID
             });
@@ -115,15 +115,14 @@ export default function Unidades() {
                                             </button>
                                         </li>
                                         <li>
-                                            <div className={` ${selectedUnidades.length !== 1 ? 'tooltip text-base-300' : ''}`} data-tip={selectedUnidades.length !== 1 ? 'Selecione apenas uma unidade para editar.' : ''}>
-                                                <button
-                                                    className={` ${selectedUnidades.length !== 1 ? '' : ''}`}
-                                                    onClick={handleEdit}
-                                                    disabled={selectedUnidades.length !== 1}
-                                                >
-                                                    Editar
-                                                </button>
-                                            </div>
+                                            <button
+                                                className={` ${selectedUnidades.length !== 1 ? 'tooltip text-base-300' : ''}`}
+                                                data-tip={selectedUnidades.length !== 1 ? 'Selecione apenas uma unidade para editar.' : ''}
+                                                onClick={handleEdit}
+                                                disabled={selectedUnidades.length !== 1}
+                                            >
+                                                Editar
+                                            </button>
                                         </li>
                                     </ul>
                                 </div>

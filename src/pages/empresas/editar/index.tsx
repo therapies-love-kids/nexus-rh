@@ -2,51 +2,47 @@ import { useState, useEffect } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { Link, useParams } from 'react-router-dom';
 import { IoArrowBack, IoClose } from 'react-icons/io5';
-import MaskedInput from 'react-text-mask';
 
-export default function AtualizarUnidade() {
-    const { id } = useParams<string>(); // Obter ID da unidade via parâmetros da URL
-    const [unidadeNome, setUnidadeNome] = useState<string>('');
-    const [endereco, setEndereco] = useState<string>('');
-    const [cep, setCep] = useState<string>('');
+export default function AtualizarEmpresa() {
+    const { id } = useParams<string>(); // Obter ID da empresa via parâmetros da URL
+    const [empresaNome, setEmpresaNome] = useState<string>('');
+    const [cnpj, setCnpj] = useState<string>('');
     const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-    // Carregar os dados da unidade existente
+    // Carregar os dados da empresa existente
     useEffect(() => {
-        const fetchUnidadeData = async () => {
+        const fetchEmpresaData = async () => {
             try {
                 if (id) {
                     const result = await window.ipcRenderer.invoke(
                         'query-database-postgres',
-                        `SELECT unidade, endereco, cep FROM profissionais_unidade WHERE id = ${id}`
+                        `SELECT empresa, cnpj FROM profissionais_empresa WHERE id = ${id}`
                     );
-                    const unidade = result[0];
-                    setUnidadeNome(unidade.unidade ?? '');
-                    setEndereco(unidade.endereco ?? '');
-                    setCep(unidade.cep ?? '');
+                    const empresa = result[0];
+                    setEmpresaNome(empresa.empresa ?? '');
+                    setCnpj(empresa.cnpj ?? '');
                 }
             } catch (error) {
                 console.log(error);
             }
         };
 
-        fetchUnidadeData();
+        fetchEmpresaData();
     }, [id]);
 
     const handleSubmit = async () => {
-        if (!unidadeNome || !endereco || !cep) {
-            setModalMessage('Preencha todos os campos obrigatórios: unidade, endereço e CEP.');
+        if (!empresaNome || !cnpj) {
+            setModalMessage('Preencha todos os campos obrigatórios: empresa e CNPJ.');
             setIsModalOpen(true);
             return;
         }
     
         try {
-            const table = 'profissionais_unidade';
+            const table = 'profissionais_empresa';
             const updates = {
-                unidade: unidadeNome,
-                endereco: endereco,
-                cep: cep
+                empresa: empresaNome,
+                cnpj: cnpj
             };
     
             if (id) {
@@ -60,15 +56,15 @@ export default function AtualizarUnidade() {
                 });
     
                 if (result.success) {
-                    setModalMessage('Unidade atualizada com sucesso!');
+                    setModalMessage('Empresa atualizada com sucesso!');
                 } else {
-                    setModalMessage(`Erro ao atualizar unidade: ${result.message}`);
+                    setModalMessage(`Erro ao atualizar empresa: ${result.message}`);
                 }
             } else {
-                setModalMessage('ID da unidade não encontrado.');
+                setModalMessage('ID da empresa não encontrado.');
             }
         } catch (error) {
-            setModalMessage(`Erro ao atualizar unidade: ${error}`);
+            setModalMessage(`Erro ao atualizar empresa: ${error}`);
         } finally {
             setIsModalOpen(true);
         }
@@ -82,52 +78,37 @@ export default function AtualizarUnidade() {
                 <div className="card bg-base-100 shadow-xl w-full my-10">
                     <div className="card-body">
                         <div className='flex flex-row items-center gap-2'>
-                            <Link to={'/profissionais/unidades'}>
+                            <Link to={'/profissionais/empresas'}>
                                 <button className="btn btn-ghost w-full"><IoArrowBack /></button>
                             </Link>
                             <p className="card-title m-0 p-0">
-                                Atualizar Unidade
+                                Atualizar Empresa
                             </p>
                         </div>
 
                         <div className="form-control mt-4">
                             <label className="label">
-                                <span className="label-text">Nome da Unidade</span>
+                                <span className="label-text">Nome da Empresa</span>
                             </label>
                             <input 
                                 type="text" 
-                                placeholder="Nome da unidade" 
+                                placeholder="Nome da empresa" 
                                 className="input input-bordered" 
-                                value={unidadeNome}
-                                onChange={(e) => setUnidadeNome(e.target.value)} 
+                                value={empresaNome}
+                                onChange={(e) => setEmpresaNome(e.target.value)} 
                             />
                         </div>
 
                         <div className="form-control mt-4">
                             <label className="label">
-                                <span className="label-text">Endereço</span>
+                                <span className="label-text">CNPJ</span>
                             </label>
                             <input 
                                 type="text" 
-                                placeholder="Endereço da unidade" 
-                                className="input input-bordered" 
-                                value={endereco}
-                                onChange={(e) => setEndereco(e.target.value)} 
-                            />
-                        </div>
-
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">CEP</span>
-                            </label>
-                            <MaskedInput
-                                type="text"
-                                placeholder="CEP (00000-000)"
+                                placeholder="CNPJ (00.000.000/0000-00)" 
                                 className="input input-bordered"
-                                value={cep}
-                                onChange={(e) => setCep(e.target.value)}
-                                mask={[/\d/, /\d/, /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/]} // Máscara para o CEP
-                                guide={false}
+                                value={cnpj}
+                                onChange={(e) => setCnpj(e.target.value)}
                             />
                         </div>
 
@@ -135,7 +116,7 @@ export default function AtualizarUnidade() {
                             className="btn btn-primary mt-6" 
                             onClick={handleSubmit}
                         >
-                            Atualizar Unidade
+                            Atualizar Empresa
                         </button>
                     </div>
                 </div>

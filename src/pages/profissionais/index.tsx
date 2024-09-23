@@ -166,15 +166,14 @@ export default function Profissionais() {
                                             </a>
                                         </li>
                                         <li>
-                                            <div className={` ${selectedProfissionais.length !== 1 ? 'tooltip text-base-300' : ''}`} data-tip={selectedProfissionais.length !== 1 ? 'Selecione apenas um profissional para editar.' : ''}>
-                                                <button
-                                                    className={` ${selectedProfissionais.length !== 1 ? '' : ''}`}
-                                                    onClick={handleEdit}
-                                                    disabled={selectedProfissionais.length !== 1}
-                                                >
-                                                    Editar
-                                                </button>
-                                            </div>
+                                            <button
+                                                className={` ${selectedProfissionais.length !== 1 ? 'tooltip text-base-300' : ''}`}
+                                                data-tip={selectedProfissionais.length !== 1 ? 'Selecione apenas um profissional para editar.' : ''}
+                                                onClick={handleEdit}
+                                                disabled={selectedProfissionais.length !== 1}
+                                            >
+                                                Editar
+                                            </button>
                                         </li>
                                     </ul>
                                 </div>

@@ -4,43 +4,42 @@ import { Link, useNavigate } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
-interface Unidade {
+interface Empresa {
     id: number;
-    unidade: string;
-    endereco: string;
-    cep: string;
+    empresa: string;
+    cnpj: string;
 }
 
-export default function Unidades() {
-    const [unidades, setUnidades] = useState<Unidade[]>([]);
-    const [selectedUnidades, setSelectedUnidades] = useState<number[]>([]);
+export default function Empresas() {
+    const [empresas, setEmpresas] = useState<Empresa[]>([]);
+    const [selectedEmpresas, setSelectedEmpresas] = useState<number[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
-    const fetchUnidades = async () => {
+    const fetchEmpresas = async () => {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, unidade, endereco, cep FROM profissionais_unidade_inativas'
+                'SELECT id, empresa, cnpj FROM profissionais_empresas_inativas'
             );
-            setUnidades(result as Unidade[]);
+            setEmpresas(result as Empresa[]);
         } catch (error) {
-            console.error('Erro ao buscar unidades:', error);
+            console.error('Erro ao buscar empresas:', error);
         }
     };
 
     useEffect(() => {
-        fetchUnidades();
+        fetchEmpresas();
     }, []);
 
     const indexOfLastRecord = currentPage * recordsPerPage;
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const currentRecords = unidades.slice(indexOfFirstRecord, indexOfLastRecord);
-    const totalPages = Math.ceil(unidades.length / recordsPerPage);
+    const currentRecords = empresas.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(empresas.length / recordsPerPage);
 
     const handleCheckboxChange = (id: number): void => {
-        setSelectedUnidades(prevSelected =>
+        setSelectedEmpresas(prevSelected =>
             prevSelected.includes(id)
                 ? prevSelected.filter(selectedId => selectedId !== id)
                 : [...prevSelected, id]
@@ -50,40 +49,40 @@ export default function Unidades() {
     const navigate = useNavigate();
 
     const handleEdit = () => {
-        if (selectedUnidades.length === 1) {
-            const [selectedId] = selectedUnidades;
-            navigate(`/unidades/editar/${selectedId}`);
+        if (selectedEmpresas.length === 1) {
+            const [selectedId] = selectedEmpresas;
+            navigate(`/empresas/editar/${selectedId}`);
         } else {
-            setNotification({ type: 'error', message: 'Selecione apenas uma unidade para editar.' });
+            setNotification({ type: 'error', message: 'Selecione apenas uma empresa para editar.' });
         }
     };
 
     const handleMoveToExcluded = async () => {
-        if (selectedUnidades.length === 0) {
-            setNotification({ type: 'error', message: 'Nenhuma unidade selecionada.' });
+        if (selectedEmpresas.length === 0) {
+            setNotification({ type: 'error', message: 'Nenhuma empresa selecionada.' });
             return;
         }
 
         try {
-            setNotification({ type: 'info', message: 'Movendo unidades para excluídos...' });
+            setNotification({ type: 'info', message: 'Movendo empresas para excluídas...' });
 
             const result = await window.ipcRenderer.invoke('move-records-postgres', {
-                sourceTable: 'profissionais_unidade_inativas',
-                destinationTable: 'profissionais_unidade',
-                ids: selectedUnidades,
+                sourceTable: 'profissionais_empresas_inativas',
+                destinationTable: 'profissionais_empresa',
+                ids: selectedEmpresas,
                 idColumn: 'id' // Definindo a coluna de ID
             });
 
             if (result.success) {
-                await fetchUnidades(); // Atualiza a lista de unidades
-                setSelectedUnidades([]); // Limpa as seleções
-                setNotification({ type: 'success', message: 'Unidades movidas para excluídos com sucesso!' });
+                await fetchEmpresas(); // Atualiza a lista de empresas
+                setSelectedEmpresas([]); // Limpa as seleções
+                setNotification({ type: 'success', message: 'Empresas movidas para excluídas com sucesso!' });
             } else {
-                setNotification({ type: 'error', message: result.message || 'Erro ao mover unidades.' });
+                setNotification({ type: 'error', message: result.message || 'Erro ao mover empresas.' });
             }
         } catch (error) {
-            console.error('Erro ao mover unidades:', error);
-            setNotification({ type: 'error', message: 'Erro ao mover unidades.' });
+            console.error('Erro ao mover empresas:', error);
+            setNotification({ type: 'error', message: 'Erro ao mover empresas.' });
         }
     };
 
@@ -95,7 +94,7 @@ export default function Unidades() {
                 <div className='card bg-base-100 shadow-xl w-full mb-10'>
                     <div className="card-body">
                         <div className='flex justify-between'>
-                            <h2 className="card-title">Unidades</h2>
+                            <h2 className="card-title">Empresas</h2>
                             <div className='flex gap-2 justify-between'>
                                 <div className="dropdown dropdown-end">
                                     <div tabIndex={1} role="button" className="btn">
@@ -103,16 +102,7 @@ export default function Unidades() {
                                     </div>
                                     <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                         <li>
-                                            <button
-                                                className={` ${selectedUnidades.length !== 1 ? 'tooltip text-base-300' : ''}`}
-                                                onClick={handleEdit}
-                                                disabled={selectedUnidades.length !== 1}
-                                            >
-                                                Editar
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <Link to={"/unidades"}>
+                                            <Link to={"/empresas"}>
                                                 <button>
                                                     Visualizar Ativos
                                                 </button>
@@ -133,7 +123,7 @@ export default function Unidades() {
                                     <option value="50">50</option>
                                 </select>
 
-                                <Link to={'/unidades/novo'}>
+                                <Link to={'/empresas/nova'}>
                                     <button className="btn btn-primary">Adicionar</button>
                                 </Link>
                             </div>
@@ -149,38 +139,36 @@ export default function Unidades() {
                                                 className="checkbox"
                                                 onChange={(e) => {
                                                     if (e.target.checked) {
-                                                        setSelectedUnidades(currentRecords.map(u => u.id));
+                                                        setSelectedEmpresas(currentRecords.map(e => e.id));
                                                     } else {
-                                                        setSelectedUnidades([]);
+                                                        setSelectedEmpresas([]);
                                                     }
                                                 }}
-                                                checked={selectedUnidades.length === currentRecords.length}
+                                                checked={selectedEmpresas.length === currentRecords.length}
                                             />
                                         </label>
                                     </th>
                                     <th>ID</th>
-                                    <th>Nome da Unidade</th>
-                                    <th>Endereço</th>
-                                    <th>CEP</th>
+                                    <th>Nome da Empresa</th>
+                                    <th>CNPJ</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {currentRecords.map((unidade) => (
-                                    <tr key={unidade.id}>
+                                {currentRecords.map((empresa) => (
+                                    <tr key={empresa.id}>
                                         <th>
                                             <label>
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
-                                                    checked={selectedUnidades.includes(unidade.id)}
-                                                    onChange={() => handleCheckboxChange(unidade.id)}
+                                                    checked={selectedEmpresas.includes(empresa.id)}
+                                                    onChange={() => handleCheckboxChange(empresa.id)}
                                                 />
                                             </label>
                                         </th>
-                                        <td>{unidade.id}</td>
-                                        <td>{unidade.unidade}</td>
-                                        <td>{unidade.endereco}</td>
-                                        <td>{unidade.cep}</td>
+                                        <td>{empresa.id}</td>
+                                        <td>{empresa.empresa}</td>
+                                        <td>{empresa.cnpj}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -206,7 +194,7 @@ export default function Unidades() {
                             </div>
 
                             <div className="text-sm text-gray-600">
-                                Mostrando {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, unidades.length)} de {unidades.length} registros
+                                Mostrando {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, empresas.length)} de {empresas.length} registros
                             </div>
                         </div>
                     </div>

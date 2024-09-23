@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
@@ -22,7 +22,7 @@ export default function Unidades() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, unidade, endereco, cep FROM profissionais_unidade_inativas'
+                'SELECT id, unidade, endereco, cep FROM profissionais_unidades_inativas'
             );
             setUnidades(result as Unidade[]);
         } catch (error) {
@@ -47,17 +47,6 @@ export default function Unidades() {
         );
     };
 
-    const navigate = useNavigate();
-
-    const handleEdit = () => {
-        if (selectedUnidades.length === 1) {
-            const [selectedId] = selectedUnidades;
-            navigate(`/unidades/editar/${selectedId}`);
-        } else {
-            setNotification({ type: 'error', message: 'Selecione apenas uma unidade para editar.' });
-        }
-    };
-
     const handleMoveToExcluded = async () => {
         if (selectedUnidades.length === 0) {
             setNotification({ type: 'error', message: 'Nenhuma unidade selecionada.' });
@@ -68,7 +57,7 @@ export default function Unidades() {
             setNotification({ type: 'info', message: 'Movendo unidades para excluídos...' });
 
             const result = await window.ipcRenderer.invoke('move-records-postgres', {
-                sourceTable: 'profissionais_unidade_inativas',
+                sourceTable: 'profissionais_unidades_inativas',
                 destinationTable: 'profissionais_unidade',
                 ids: selectedUnidades,
                 idColumn: 'id' // Definindo a coluna de ID
@@ -103,15 +92,6 @@ export default function Unidades() {
                                     </div>
                                     <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                         <li>
-                                            <button
-                                                className={` ${selectedUnidades.length !== 1 ? 'tooltip text-base-300' : ''}`}
-                                                onClick={handleEdit}
-                                                disabled={selectedUnidades.length !== 1}
-                                            >
-                                                Editar
-                                            </button>
-                                        </li>
-                                        <li>
                                             <Link to={"/unidades"}>
                                                 <button>
                                                     Visualizar Ativos
@@ -133,7 +113,7 @@ export default function Unidades() {
                                     <option value="50">50</option>
                                 </select>
 
-                                <Link to={'/unidades/novo'}>
+                                <Link to={'/unidades/nova'}>
                                     <button className="btn btn-primary">Adicionar</button>
                                 </Link>
                             </div>
