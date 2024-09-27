@@ -47,7 +47,7 @@ export default function App() {
                                 </PrivateRoute>
                             } />
 
-                            <Route path="/profissionais/editar/:id" element={
+                            <Route path="/profissionais/:id" element={
                                 <PrivateRoute>
                                     <LayoutDash><EditarProfissional /></LayoutDash>
                                 </PrivateRoute>
@@ -80,7 +80,7 @@ export default function App() {
                                 </PrivateRoute>
                             } />
 
-                            <Route path="/unidades/editar/:id" element={
+                            <Route path="/unidades/:id" element={
                                 <PrivateRoute>
                                     <LayoutDash><EditarUnidade /></LayoutDash>
                                 </PrivateRoute>
@@ -107,7 +107,7 @@ export default function App() {
                                 </PrivateRoute>
                             } />
 
-                            <Route path="/empresas/editar/:id" element={
+                            <Route path="/empresas/:id" element={
                                 <PrivateRoute>
                                     <LayoutDash><EditarEmpresa /></LayoutDash>
                                 </PrivateRoute>

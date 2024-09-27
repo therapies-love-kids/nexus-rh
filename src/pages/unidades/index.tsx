@@ -52,7 +52,7 @@ export default function Unidades() {
     const handleEdit = () => {
         if (selectedUnidades.length === 1) {
             const [selectedId] = selectedUnidades;
-            navigate(`/unidades/editar/${selectedId}`);
+            navigate(`/unidades/${selectedId}`);
         } else {
             setNotification({ type: 'error', message: 'Selecione apenas uma unidade para editar.' });
         }

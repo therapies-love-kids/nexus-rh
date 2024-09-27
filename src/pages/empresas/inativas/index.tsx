@@ -51,7 +51,7 @@ export default function Empresas() {
     const handleEdit = () => {
         if (selectedEmpresas.length === 1) {
             const [selectedId] = selectedEmpresas;
-            navigate(`/empresas/editar/${selectedId}`);
+            navigate(`/empresas/${selectedId}`);
         } else {
             setNotification({ type: 'error', message: 'Selecione apenas uma empresa para editar.' });
         }

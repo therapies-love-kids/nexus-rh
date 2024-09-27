@@ -143,7 +143,7 @@ export default function Profissionais() {
     const handleEdit = () => {
         if (selectedProfissionais.length === 1) {
             const [selectedId] = selectedProfissionais;
-            navigate(`/profissionais/editar/${selectedId}`);
+            navigate(`/profissionais/${selectedId}`);
         } else {
             setNotification({ type: 'error', message: 'Selecione apenas um profissional para editar.' });
         }
