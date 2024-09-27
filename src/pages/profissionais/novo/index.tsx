@@ -20,12 +20,14 @@ export default function NovoProfissional() {
     const [senha, setSenha] = useState('123');
     const [dataIngressoEmpresa, setDataIngressoEmpresa] = useState<Date | null>(null);
 
+    const [cpf, setCpf] = useState('');
+
     const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [unidades, setUnidades] = useState<Unidade[]>([]);
-    const [unidadeId, setUnidadeId] = useState<number | null>(null);
-    const [unidadeNome, setUnidadeNome] = useState<string | null>(null);
+    const [unidadeIds, setUnidadeIds] = useState<number[]>([]); // Mudança para permitir múltiplos IDs
+    const [unidadeNomes, setUnidadeNomes] = useState<string[]>([]); // Para armazenar os nomes das unidades selecionadas
 
     const [funcoes, setFuncoes] = useState<Funcao[]>([]);
     const [funcaoId, setFuncaoId] = useState<number | null>(null);
@@ -36,21 +38,18 @@ export default function NovoProfissional() {
     useEffect(() => {
         const fetchOptions = async () => {
             try {
-                // Fetch unidades
                 const unidadeResult = await window.ipcRenderer.invoke(
                     'query-database-postgres',
                     'SELECT id, unidade FROM profissionais_unidade'
                 );
                 setUnidades(unidadeResult);
-    
-                // Fetch funções
+
                 const funcaoResult = await window.ipcRenderer.invoke(
                     'query-database-postgres',
                     'SELECT id, funcao FROM profissionais_funcao'
                 );
                 setFuncoes(funcaoResult);
-    
-                // Fetch empresas
+
                 const empresaResult = await window.ipcRenderer.invoke(
                     'query-database-postgres',
                     'SELECT id, empresa FROM profissionais_empresa'
@@ -64,28 +63,64 @@ export default function NovoProfissional() {
     }, []);
 
     useEffect(() => {
-        if (unidadeId !== null) {
-            const unidade = unidades.find((u) => u.id === unidadeId);
-            setUnidadeNome(unidade ? unidade.unidade : null);
-        }
-    }, [unidadeId, unidades]);
+        const selectedUnidades = unidades.filter(u => unidadeIds.includes(u.id));
+        setUnidadeNomes(selectedUnidades.map(u => u.unidade));
+    }, [unidadeIds, unidades]);
 
     const handleSubmit = async () => {
-        if (unidadeId === null || funcaoId === null || empresaId === null || !senha || !dataIngressoEmpresa) {
-            setModalMessage('Preencha todos os campos obrigatórios: unidade, função, empresa, senha e data de ingresso.');
+        if (unidadeIds.length === 0 || funcaoId === null || empresaId === null || !senha || !dataIngressoEmpresa || !cpf ) {
+            setModalMessage('Preencha todos os campos obrigatórios: unidade(s), função, empresa, senha, data de ingresso, CPF e número do conselho.');
             setIsModalOpen(true);
             return;
         }
     
         try {
             const table = 'profissionais';
-            const columns = ['profissional_nome', 'profissional_unidade_id', 'profissional_funcao_id', 'profissional_empresa_id', 'profissional_senha', 'profissional_dataingressoempresa'];
-            const values = [nome, unidadeId, funcaoId, empresaId, senha, dataIngressoEmpresa];
+            const columns = [
+                'profissional_nome',
+                'profissional_funcao_id',
+                'profissional_empresa_id',
+                'profissional_senha',
+                'profissional_dataingressoempresa',
+                'profissional_cpf',
+                'profissional_crp'
+            ];
+            const values = [
+                nome,
+                funcaoId,
+                empresaId,
+                senha,
+                dataIngressoEmpresa,
+                cpf
+            ];
     
+            // Insere o profissional
             const result = await window.ipcRenderer.invoke('insert-records-postgres', { table, columns, values });
     
             if (result.success) {
-                setModalMessage('Usuário criado com sucesso!');
+                // Busca o ID do profissional inserido com base no nome
+                const query = `SELECT profissional_id FROM profissionais WHERE profissional_nome = $1`;
+                const searchResult = await window.ipcRenderer.invoke('query-database-postgres', query, [nome]);
+    
+                if (searchResult.length > 0) {
+                    const profissionalId = searchResult[0].profissional_id;
+    
+                    // Aqui, vamos usar Promise.all para inserir as unidades de forma simultânea
+                    const insertPromises = unidadeIds.map((unidadeId) => {
+                        return window.ipcRenderer.invoke('insert-records-postgres', {
+                            table: 'profissionais_unidade_associacao',
+                            columns: ['profissional_id', 'unidade_id'],
+                            values: [profissionalId, unidadeId], // Preenche com o profissional_id encontrado
+                        });
+                    });
+    
+                    // Espera todas as inserções de unidade completarem
+                    const associationResults = await Promise.all(insertPromises);
+    
+                    setModalMessage('Usuário criado com sucesso!');
+                } else {
+                    setModalMessage('Erro: Não foi possível encontrar o ID do profissional inserido.');
+                }
             } else {
                 setModalMessage(`Erro ao adicionar profissional: ${result.message}`);
             }
@@ -96,13 +131,13 @@ export default function NovoProfissional() {
             setIsModalOpen(true);
         }
     };
-
+    
     const handleCopyToClipboard = () => {
         const funcaoSelecionada = funcoes.find((f) => f.id === funcaoId);
         const funcaoNome = funcaoSelecionada ? funcaoSelecionada.funcao : '';
     
         const text = `
-            Unidade: ${unidadeNome}
+            Unidades: ${unidadeNomes.join(', ')}
             Função: ${funcaoNome}
             Login: ${nome}
             Senha provisória: ${senha}
@@ -190,21 +225,45 @@ export default function NovoProfissional() {
 
                         <div className="form-control mt-4">
                             <label className="label">
-                                <span className="label-text">Unidade</span>
+                                <span className="label-text">CPF</span>
                             </label>
-                            <select
-                                className="select select-bordered"
-                                value={unidadeId || ''}
-                                onChange={(e) => setUnidadeId(Number(e.target.value))}
-                            >
-                                <option value="" disabled>Selecione a unidade</option>
-                                {unidades.map((unidadeOption) => (
-                                    <option key={unidadeOption.id} value={unidadeOption.id}>
-                                        {unidadeOption.unidade}
-                                    </option>
-                                ))}
-                            </select>
+                            <label className="input input-bordered flex items-center gap-2">
+                                <input 
+                                    type="text" 
+                                    placeholder="CPF do profissional" 
+                                    value={cpf}
+                                    onChange={(e) => setCpf(e.target.value)} 
+                                />
+                            </label>
                         </div>
+
+                        <div className="form-control mt-4">
+                            <label className="label">
+                                <span className="label-text">Unidade(s)</span>
+                            </label>
+                            <div className="flex flex-col">
+                                {unidades.map(unidade => (
+                                    <label key={unidade.id} className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            value={unidade.id}
+                                            checked={unidadeIds.includes(unidade.id)}
+                                            onChange={() => {
+                                                if (unidadeIds.includes(unidade.id)) {
+                                                    setUnidadeIds(unidadeIds.filter(id => id !== unidade.id));
+                                                } else {
+                                                    setUnidadeIds([...unidadeIds, unidade.id]);
+                                                }
+                                            }}
+                                            className="checkbox"
+                                        />
+                                        <span className="ml-2">{unidade.unidade}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+
 
                         <div className="form-control mt-4">
                             <label className="label">
@@ -264,7 +323,7 @@ export default function NovoProfissional() {
                     {modalMessage?.includes('sucesso') && (
                         <>
                             <div className="mockup-code relative w-full my-10">
-                                <pre data-prefix="1">Unidade: {unidadeNome}</pre>
+                                <pre data-prefix="1">Unidade: {unidadeNomes} </pre>
                                 <pre data-prefix="2">Função: {funcoes.find((f) => f.id === funcaoId)?.funcao}</pre>
                                 <pre data-prefix="3">Login: {nome}</pre>
                                 <pre data-prefix="4">Senha provisória: {senha}</pre>

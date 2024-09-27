@@ -29,7 +29,7 @@ export default function AtualizarProfissional() {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
     const [unidades, setUnidades] = useState<Unidade[]>([]);
-    const [unidadeId, setUnidadeId] = useState<number | null>(null);
+    const [selectedUnidades, setSelectedUnidades] = useState<number[]>([]); // Lista de unidades selecionadas
 
     const [funcoes, setFuncoes] = useState<Funcao[]>([]);
     const [funcaoId, setFuncaoId] = useState<number | null>(null);
@@ -99,6 +99,20 @@ export default function AtualizarProfissional() {
         }
     };
 
+    const fetchAssociatedUnits = async () => {
+        try {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                `SELECT unidade_id FROM profissionais_unidade_associacao WHERE profissional_id = ${id}`
+            );
+            const associatedIds = result.map((row: any) => row.unidade_id);
+            // console.log('IDs das unidades associadas:', associatedIds); // Log dos IDs das unidades
+            setSelectedUnidades(associatedIds); // Atualiza o estado com as unidades associadas
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     // Carregar os dados do profissional existente
     useEffect(() => {
         const fetchProfissionalData = async () => {
@@ -106,23 +120,27 @@ export default function AtualizarProfissional() {
                 if (id) {
                     const result = await window.ipcRenderer.invoke(
                         'query-database-postgres',
-                        `SELECT profissional_nome, profissional_unidade_id, profissional_funcao_id, profissional_empresa_id, profissional_senha, profissional_dataingressoempresa FROM profissionais WHERE profissional_id = ${id}`
+                        `SELECT profissional_nome, profissional_funcao_id, profissional_empresa_id, profissional_senha, profissional_dataingressoempresa FROM profissionais WHERE profissional_id = ${id}`
                     );                
                     const profissional = result[0];
                     setNome(profissional.profissional_nome ?? '');
                     setSenha(profissional.profissional_senha ?? '');
-                    setUnidadeId(profissional.profissional_unidade_id ?? null);
                     setFuncaoId(profissional.profissional_funcao_id ?? null);
                     setEmpresaId(profissional.profissional_empresa_id ?? null);
                     setDataIngressoEmpresa(profissional.profissional_dataingressoempresa ? new Date(profissional.profissional_dataingressoempresa) : null);
+
+                    // Carregar unidades associadas após obter os dados do profissional
+                    await fetchAssociatedUnits();
                 }
             } catch (error) {
-                console.log(error)
+                console.log(error);
             }
         };
 
         fetchProfissionalData();
+        fetchMacs(); // Certifique-se de buscar os MACs também
     }, [id]);
+
 
     // Carregar as opções de unidade, função e empresa
     useEffect(() => {
@@ -149,14 +167,23 @@ export default function AtualizarProfissional() {
                 );
                 setEmpresas(empresaResult);
             } catch (error) {
-                console.log(error)
+                console.log(error);
             }
         };
         fetchOptions();
     }, []);
 
+    // Função para lidar com a seleção de unidades
+    const handleUnidadeChange = (id: number) => {
+        if (selectedUnidades.includes(id)) {
+            handleDeleteUnit(id); // Se já estiver selecionada, remover
+        } else {
+            setSelectedUnidades([...selectedUnidades, id]); // Se não estiver, adicionar
+        }
+    };
+
     const handleSubmit = async () => {
-        if (nome === '' || senha === '' || unidadeId === null || funcaoId === null || empresaId === null || dataIngressoEmpresa === null) {
+        if (nome === '' || senha === '' || funcaoId === null || empresaId === null || dataIngressoEmpresa === null) {
             setModalMessage('Preencha todos os campos obrigatórios.');
             setIsModalOpen(true);
             return;
@@ -166,7 +193,6 @@ export default function AtualizarProfissional() {
             const table = 'profissionais';
             const updates = {
                 profissional_nome: nome,
-                profissional_unidade_id: unidadeId,
                 profissional_funcao_id: funcaoId,
                 profissional_empresa_id: empresaId,
                 profissional_senha: senha,
@@ -180,10 +206,11 @@ export default function AtualizarProfissional() {
                     table,
                     updates,
                     ids,
-                    idColumn: 'profissional_id' // Passando o nome da coluna de identificação
+                    idColumn: 'profissional_id'
                 });
-                
+
                 if (result.success) {
+                    await updateUnitAssociations(id, selectedUnidades);
                     setModalMessage('Profissional atualizado com sucesso!');
                 } else {
                     setModalMessage(`Erro ao atualizar profissional: ${result.message}`);
@@ -197,7 +224,61 @@ export default function AtualizarProfissional() {
             setIsModalOpen(true);
         }
     };
+
+    // Função para atualizar as unidades associadas
+    const updateUnitAssociations = async (profissionalId: string, unidadeIds: number[]) => {
+        try {
+            // Obter unidades atualmente associadas
+            const currentUnitsResult = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                `SELECT unidade_id FROM profissionais_unidade_associacao WHERE profissional_id = ${profissionalId}`
+            );
+            const currentUnitIds = currentUnitsResult.map((row: any) => row.unidade_id);
     
+            // Unidades a serem removidas
+            const unitsToRemove = currentUnitIds.filter((id: number) => !unidadeIds.includes(id));
+            // Unidades a serem adicionadas
+            const unitsToAdd = unidadeIds.filter(id => !currentUnitIds.includes(id));
+    
+            // Remover unidades
+            for (const unidadeId of unitsToRemove) {
+                await handleDeleteUnit(unidadeId); // Usa a função de deleção separada
+            }
+    
+            // Adicionar unidades
+            for (const unidadeId of unitsToAdd) {
+                await window.ipcRenderer.invoke('insert-records-postgres', {
+                    table: 'profissionais_unidade_associacao',
+                    columns: ['profissional_id', 'unidade_id'],
+                    values: [profissionalId, unidadeId]
+                });
+            }
+        } catch (error) {
+            console.log(`Erro ao atualizar associações de unidades: ${error}`);
+            setModalMessage(`Erro ao atualizar associações de unidades: ${error}`);
+            setIsModalOpen(true);
+        }
+    };
+
+    const handleDeleteUnit = async (unidadeId: number) => {
+        try {
+            const querydeletion = `
+                DELETE FROM profissionais_unidade_associacao
+                WHERE unidade_id = $1 AND profissional_id = $2
+            `;
+    
+            await window.ipcRenderer.invoke('query-database-postgres', {
+                text: querydeletion,
+                values: [unidadeId, id],
+            });
+    
+            setSelectedUnidades(selectedUnidades.filter((selectedId) => selectedId !== unidadeId));
+        } catch (error) {
+            console.log(`Erro ao remover unidade: ${error}`);
+        }
+    };
+    
+
     return (
         <div className='bg-base-200 min-h-screen'>
             <Breadcrumbs />
@@ -270,22 +351,23 @@ export default function AtualizarProfissional() {
                             </label>
                         </div>
 
-                        <div className="form-control mt-4">
+                        <div className="form-control">
                             <label className="label">
-                                <span className="label-text">Unidade</span>
+                                <span className="label-text">Unidades</span>
                             </label>
-                            <select
-                                className="select select-bordered"
-                                value={unidadeId ?? ''}
-                                onChange={(e) => setUnidadeId(Number(e.target.value))}
-                            >
-                                <option value="" disabled>Selecione a unidade</option>
-                                {unidades.map((unidadeOption) => (
-                                    <option key={unidadeOption.id} value={unidadeOption.id}>
-                                        {unidadeOption.unidade}
-                                    </option>
+                            <div className="flex flex-col gap-2">
+                                {unidades.map(unidade => (
+                                    <label key={unidade.id} className="label cursor-pointer gap-4 w-fit">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedUnidades.includes(unidade.id)}
+                                            onChange={() => handleUnidadeChange(unidade.id)}
+                                            className="checkbox"
+                                        />
+                                        <span className="label-text">{unidade.unidade}</span>
+                                    </label>
                                 ))}
-                            </select>
+                            </div>
                         </div>
 
                         <div className="form-control mt-4">

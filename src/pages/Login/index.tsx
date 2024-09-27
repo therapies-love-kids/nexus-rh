@@ -2,11 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Notification } from '@/components';
 
-interface Unidade {
-    id: number;
-    unidade: string;
-}
-
 interface Funcao {
     id: number;
     funcao: string;
@@ -19,10 +14,8 @@ interface Profissional {
 }
 
 export default function Login() {
-    const [unidades, setUnidades] = useState<Unidade[]>([]);
     const [funcoes, setFuncoes] = useState<Funcao[]>([]);
     const [profissionais, setProfissionais] = useState<Profissional[]>([]);
-    const [selectedUnidade, setSelectedUnidade] = useState<number | string>('');
     const [selectedFuncao, setSelectedFuncao] = useState<number | string>('');
     const [selectedProfissional, setSelectedProfissional] = useState<number | string>('');
     const [senha, setSenha] = useState<string>('');
@@ -30,43 +23,23 @@ export default function Login() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchUnidades = async () => {
+        const fetchFuncoes = async () => {
             try {
-                const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT id, unidade FROM profissionais_unidade');
-                setUnidades(result as Unidade[]);
+                const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT id, funcao FROM profissionais_funcao');
+                setFuncoes(result as Funcao[]);
             } catch (error) {
-                console.error('Erro ao buscar unidades:', error);
+                console.error('Erro ao buscar funções:', error);
             }
         };
 
-        fetchUnidades();
+        fetchFuncoes();
     }, []);
 
     useEffect(() => {
-        if (selectedUnidade) {
-            const fetchFuncoes = async () => {
-                try {
-                    const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT id, funcao FROM profissionais_funcao WHERE id >= $1', [selectedUnidade]);
-                    setFuncoes(result as Funcao[]);
-                } catch (error) {
-                    console.error('Erro ao buscar funções:', error);
-                }
-            };
-
-            fetchFuncoes();
-        } else {
-            setFuncoes([]);
-            setSelectedFuncao('');
-            setProfissionais([]);
-            setSelectedProfissional('');
-        }
-    }, [selectedUnidade]);
-
-    useEffect(() => {
-        if (selectedUnidade && selectedFuncao) {
+        if (selectedFuncao) {
             const fetchProfissionais = async () => {
                 try {
-                    const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_id, profissional_nome, profissional_senha FROM profissionais WHERE profissional_unidade_id = $1 AND profissional_funcao_id = $2', [selectedUnidade, selectedFuncao]);
+                    const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_id, profissional_nome, profissional_senha FROM profissionais WHERE profissional_funcao_id = $1', [selectedFuncao]);
                     setProfissionais(result as Profissional[]);
                 } catch (error) {
                     console.error('Erro ao buscar profissionais:', error);
@@ -78,43 +51,50 @@ export default function Login() {
             setProfissionais([]);
             setSelectedProfissional('');
         }
-    }, [selectedUnidade, selectedFuncao]);
+    }, [selectedFuncao]);
 
     const handleLogin = async () => {
         if (!selectedProfissional || !senha) {
             setLoginStatus({ type: 'error', message: 'Por favor, preencha todos os campos' });
             return;
         }
-    
+
         try {
             // Verificar a senha do profissional
-            const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_senha, profissional_foto FROM profissionais WHERE profissional_id = $1', [selectedProfissional]);
-    
+            const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_senha, profissional_foto, profissional_nome FROM profissionais WHERE profissional_id = $1', [selectedProfissional]);
+
             if (result.length === 0) {
                 setLoginStatus({ type: 'error', message: 'Profissional não encontrado' });
                 return;
             }
-    
+
             const { profissional_senha, profissional_foto, profissional_nome } = result[0];
-    
+
             if (senha === profissional_senha) {
                 // Armazenar o ID e a foto do profissional no localStorage
                 localStorage.setItem('profissional_id', selectedProfissional.toString());
                 localStorage.setItem('profissional_foto', profissional_foto);
                 localStorage.setItem('profissional_nome', profissional_nome);
-    
-                // Buscar os MACs permitidos para o profissional na nova tabela
+
+                // Buscar as unidades associadas ao profissional
+                const unidadesResult = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT unidade_id FROM profissionais_unidade_associacao WHERE profissional_id = $1', [selectedProfissional]);
+
+                // Armazenar as unidades no localStorage
+                const unidades = unidadesResult.map((row: { unidade_id: number }) => row.unidade_id);
+                localStorage.setItem('unidades', JSON.stringify(unidades));
+
+                // Buscar os MACs permitidos para o profissional
                 const macResults = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT mac FROM profissionais_mac WHERE profissional_id = $1', [selectedProfissional]);
-    
+
                 const macAtual = await window.ipcRenderer.invoke('get-mac-address');
-    
+
                 // Se não há MAC registrado para o profissional
                 if (macResults.length === 0) {
                     navigate(`/primeiros-passos/${selectedProfissional}`);
                 } else {
                     // Verificar se o MAC atual está entre os MACs permitidos
                     const macPermitido = macResults.some((row: { mac: string }) => row.mac === macAtual);
-    
+
                     if (macPermitido) {
                         navigate('/inicio');
                     } else {
@@ -129,7 +109,6 @@ export default function Login() {
             setLoginStatus({ type: 'error', message: 'Erro durante o login' });
         }
     };
-    
 
     const handleNotificationClose = () => {
         setLoginStatus(null);
@@ -146,23 +125,6 @@ export default function Login() {
                 <h2 className="text-2xl font-bold mb-0">Login</h2>
 
                 <div className='divider divider-primary mt-0 mb-20 w-40'></div>
-                
-                <div className="form-control mt-4">
-                    <label className="label">
-                        <span className="label-text">Unidade</span>
-                    </label>
-                    <select
-                        value={selectedUnidade}
-                        onChange={(e) => setSelectedUnidade(e.target.value)}
-                        className="select select-bordered w-full"
-                    >
-                        <option value="">Selecione uma Unidade</option>
-                        {unidades.map((unidade) => (
-                            <option key={unidade.id} value={unidade.id}>{unidade.unidade}</option>
-                        ))}
-                    </select>
-                </div>
-
 
                 <div className="form-control mt-4">
                     <label className="label">
@@ -173,7 +135,6 @@ export default function Login() {
                         value={selectedFuncao}
                         onChange={(e) => setSelectedFuncao(e.target.value)}
                         className="select select-bordered w-full"
-                        disabled={!selectedUnidade}
                     >
                         <option value="">Selecione uma Função</option>
                         {funcoes.map((funcao) => (
@@ -181,7 +142,6 @@ export default function Login() {
                         ))}
                     </select>
                 </div>
-
 
                 <div className="form-control mt-4">
                     <label className="label">
@@ -200,7 +160,6 @@ export default function Login() {
                     </select>
                 </div>
 
-
                 <div className="form-control mt-4">
                     <label className="label">
                         <span className="label-text">Senha</span>
@@ -215,8 +174,6 @@ export default function Login() {
                         disabled={!selectedProfissional}
                     />
                 </div>
-
-                
 
                 <button
                     onClick={handleLogin}
