@@ -22,7 +22,7 @@ export default function Unidades() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, unidade, endereco, cep FROM profissionais_unidade'
+                'SELECT id, unidade, endereco, cep FROM profissionais_unidade WHERE unidade_status1 = \'ativo\''
             );
             setUnidades(result as Unidade[]);
         } catch (error) {
@@ -58,33 +58,38 @@ export default function Unidades() {
         }
     };
 
-    const handleMoveToExcluded = async () => {
-        if (selectedUnidades.length === 0) {
-            setNotification({ type: 'error', message: 'Nenhuma unidade selecionada.' });
-            return;
-        }
+    const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
+        if (selectedUnidades.length > 0) {
+            try {
+                setNotification({ type: 'info', message: `Alterando status da unidade para ${status}...`});
+                
+                const updates = {
+                    unidade_status1: status.toLowerCase(), // Definindo o status
+                };
+                
+                const result = await window.ipcRenderer.invoke('update-records-postgres', {
+                    table: 'profissionais_unidade',
+                    updates,
+                    ids: selectedUnidades,
+                    idColumn: 'id',
+                });
 
-        try {
-            setNotification({ type: 'info', message: 'Movendo unidades para excluídos...' });
-
-            const result = await window.ipcRenderer.invoke('move-records-postgres', {
-                sourceTable: 'profissionais_unidade',
-                destinationTable: 'profissionais_unidades_inativas',
-                ids: selectedUnidades,
-                idColumn: 'id' // Definindo a coluna de ID
-            });
-
-            if (result.success) {
-                await fetchUnidades(); // Atualiza a lista de unidades
-                setSelectedUnidades([]); // Limpa as seleções
-                setNotification({ type: 'success', message: 'Unidades movidas para excluídos com sucesso!' });
-            } else {
-                setNotification({ type: 'error', message: result.message || 'Erro ao mover unidades.' });
+                if (result.success) {
+                    await fetchUnidades();
+                    setSelectedUnidades([]);
+                    setNotification({ type: 'success', message: `Status dos profissionais alterado para ${status} com sucesso!` });
+                } else {
+                    setNotification({ type: 'error', message: result.message || 'Erro ao alterar status dos profissionais.' });
+                }
+            } catch (error) {
+                console.error('Erro ao alterar status dos profissionais:', error);
+                setNotification({ type: 'error', message: 'Erro ao alterar status dos profissionais.' });
             }
-        } catch (error) {
-            console.error('Erro ao mover unidades:', error);
-            setNotification({ type: 'error', message: 'Erro ao mover unidades.' });
+        } else {
+            setNotification({ type: 'error', message: 'Nenhum profissional selecionado.' });
         }
+
+
     };
 
     return (
@@ -110,9 +115,9 @@ export default function Unidades() {
                                             </Link>
                                         </li>
                                         <li>
-                                            <button onClick={handleMoveToExcluded}>
-                                                Mover para Inativas
-                                            </button>
+                                            <a onClick={() => handleChangeStatus('Inativo')}>
+                                                Mover para Inativos
+                                            </a>
                                         </li>
                                         <li>
                                             <button

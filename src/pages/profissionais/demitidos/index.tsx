@@ -33,7 +33,7 @@ export default function ProfissionaisDemitidos() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                `SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id FROM profissionais_demitidos`
+                'SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id FROM profissionais WHERE profissional_status1 = \'demitido\''
             );
             
             setProfissionais(result as Profissional[]);
@@ -105,29 +105,32 @@ export default function ProfissionaisDemitidos() {
     const currentRecords = filteredProfissionais.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(filteredProfissionais.length / recordsPerPage);
 
-    const handleChangeStatus = async () => {
+    const handleChangeStatus = async (status: 'Demitido' | 'Ativo') => {
         if (selectedProfissionais.length > 0) {
             try {
-                setNotification({ type: 'info', message: 'Reativando profissionais...' });
-
-                const result = await window.ipcRenderer.invoke('move-records-postgres', {
-                    sourceTable: 'profissionais_demitidos',
-                    destinationTable: 'profissionais',
-                    ids: selectedProfissionais,
-                    idColumn: 'profissional_id',
-                    clearDemissaoData: true // Passa a flag para limpar a data de demissão
+                setNotification({ type: 'info', message: `Alterando status dos profissionais para ${status}...` });
+    
+                const updates = {
+                    profissional_status1: status.toLowerCase(), // Definindo o status
+                };
+    
+                const result = await window.ipcRenderer.invoke('update-records-postgres', {
+                    table: 'profissionais',
+                    updates,
+                    ids: selectedProfissionais, // IDs dos profissionais selecionados
+                    idColumn: 'profissional_id', // Coluna de identificação
                 });
-
+    
                 if (result.success) {
-                    await fetchProfissionais(); // Recarrega a lista de profissionais
-                    setSelectedProfissionais([]); // Limpa seleção
-                    setNotification({ type: 'success', message: 'Profissionais reativados com sucesso!' });
+                    await fetchProfissionais();
+                    setSelectedProfissionais([]);
+                    setNotification({ type: 'success', message: `Status dos profissionais alterado para ${status} com sucesso!` });
                 } else {
-                    setNotification({ type: 'error', message: result.message || 'Erro ao reativar profissionais.' });
+                    setNotification({ type: 'error', message: result.message || 'Erro ao alterar status dos profissionais.' });
                 }
             } catch (error) {
-                console.error('Erro ao reativar profissionais:', error);
-                setNotification({ type: 'error', message: 'Erro ao reativar profissionais.' });
+                console.error('Erro ao alterar status dos profissionais:', error);
+                setNotification({ type: 'error', message: 'Erro ao alterar status dos profissionais.' });
             }
         } else {
             setNotification({ type: 'error', message: 'Nenhum profissional selecionado.' });
@@ -163,8 +166,8 @@ export default function ProfissionaisDemitidos() {
                                             </Link>
                                         </li>
                                         <li>
-                                            <a onClick={handleChangeStatus}>
-                                                Mover para Ativo
+                                            <a onClick={() => handleChangeStatus('Ativo')}>
+                                                Mover para Ativos
                                             </a>
                                         </li>
                                     </ul>
