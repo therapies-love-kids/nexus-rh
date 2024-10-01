@@ -19,3 +19,8 @@ export { default as Empresas} from './empresas'
 export { default as EmpresasNova} from './empresas/nova'
 export { default as EmpresasInativas} from './empresas/inativas'
 export { default as EditarEmpresa} from './empresas/editar'
+
+export { default as Departamentos} from './departamentos'
+export { default as DepartamentosNovo} from './departamentos/nova'
+export { default as DepartamentosInativos} from './departamentos/inativas'
+export { default as EditarDepartamentos} from './departamentos/editar'

@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout, { LayoutDash } from './Layout';
-import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos, ProfissionaisDemitidos, EditarProfissional, Unidades, UnidadesNova, UnidadesInativas, EditarUnidade, Empresas, EmpresasNova, EmpresasInativas, EditarEmpresa } from './pages';
+import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos, ProfissionaisDemitidos, EditarProfissional, Unidades, UnidadesNova, UnidadesInativas, EditarUnidade, Empresas, EmpresasNova, EmpresasInativas, EditarEmpresa, Departamentos, DepartamentosNovo, DepartamentosInativos, EditarDepartamentos } from './pages';
 import { Suspense } from 'react';
 import MacErro from './pages/Login/MacErro';
 import { PrivateRoute } from './components';  // Importando o PrivateRoute
@@ -110,6 +110,34 @@ export default function App() {
                             <Route path="/empresas/:id" element={
                                 <PrivateRoute>
                                     <LayoutDash><EditarEmpresa /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                        </>
+
+                        {/* DEPARTAMENTOS */}
+                        <>
+                            <Route path="/departamentos" element={
+                                <PrivateRoute>
+                                    <LayoutDash><Departamentos /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/departamentos/novo" element={
+                                <PrivateRoute>
+                                    <LayoutDash><DepartamentosNovo /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/departamentos/inativos" element={
+                                <PrivateRoute>
+                                    <LayoutDash><DepartamentosInativos /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/departamentos/:id" element={
+                                <PrivateRoute>
+                                    <LayoutDash><EditarDepartamentos /></LayoutDash>
                                 </PrivateRoute>
                             } />
 
