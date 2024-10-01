@@ -77,16 +77,16 @@ export default function Unidades() {
                 if (result.success) {
                     await fetchUnidades();
                     setSelectedUnidades([]);
-                    setNotification({ type: 'success', message: `Status dos profissionais alterado para ${status} com sucesso!` });
+                    setNotification({ type: 'success', message: `Status das unidades alterado para ${status} com sucesso!` });
                 } else {
-                    setNotification({ type: 'error', message: result.message || 'Erro ao alterar status dos profissionais.' });
+                    setNotification({ type: 'error', message: result.message || 'Erro ao alterar status das unidades.' });
                 }
             } catch (error) {
                 console.error('Erro ao alterar status dos profissionais:', error);
-                setNotification({ type: 'error', message: 'Erro ao alterar status dos profissionais.' });
+                setNotification({ type: 'error', message: 'Erro ao alterar status das unidades.' });
             }
         } else {
-            setNotification({ type: 'error', message: 'Nenhum profissional selecionado.' });
+            setNotification({ type: 'error', message: 'Nenhuma unidade selecionada.' });
         }
 
 
@@ -121,7 +121,7 @@ export default function Unidades() {
                                         </li>
                                         <li>
                                             <button
-                                                className={` ${selectedUnidades.length !== 1 ? 'tooltip text-base-300' : ''}`}
+                                                className={` ${selectedUnidades.length !== 1 ? 'tooltip text-gray-400 text-start cursor-not-allowed' : ''}`}
                                                 data-tip={selectedUnidades.length !== 1 ? 'Selecione apenas uma unidade para editar.' : ''}
                                                 onClick={handleEdit}
                                                 disabled={selectedUnidades.length !== 1}
@@ -139,7 +139,7 @@ export default function Unidades() {
                                     <option value="50">50</option>
                                 </select>
 
-                                <Link to={'/unidades/novo'}>
+                                <Link to={'/unidades/nova'}>
                                     <button className="btn btn-primary">Adicionar</button>
                                 </Link>
                             </div>

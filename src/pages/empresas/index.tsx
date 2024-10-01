@@ -21,7 +21,7 @@ export default function Empresas() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, empresa, cnpj FROM profissionais_empresa'
+                'SELECT id, empresa, cnpj FROM profissionais_empresa WHERE empresa_status1 = \'ativo\''
             );
             setEmpresas(result as Empresa[]);
         } catch (error) {
@@ -57,32 +57,34 @@ export default function Empresas() {
         }
     };
 
-    const handleMoveToExcluded = async () => {
-        if (selectedEmpresas.length === 0) {
-            setNotification({ type: 'error', message: 'Nenhuma empresa selecionada.' });
-            return;
-        }
+    const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
+        if (selectedEmpresas.length > 0) {
+            try {
+                setNotification({ type: 'info', message: `Alterando status da empresa para ${status}...`});
 
-        try {
-            setNotification({ type: 'info', message: 'Movendo empresas para excluídos...' });
+                const updates = {
+                    empresa_status1: status.toLowerCase(), // Definindo o status
+                };
 
-            const result = await window.ipcRenderer.invoke('move-records-postgres', {
-                sourceTable: 'profissionais_empresa',
-                destinationTable: 'profissionais_empresas_inativas',
-                ids: selectedEmpresas,
-                idColumn: 'id' // Definindo a coluna de ID
-            });
-
-            if (result.success) {
-                await fetchEmpresas(); // Atualiza a lista de empresas
-                setSelectedEmpresas([]); // Limpa as seleções
-                setNotification({ type: 'success', message: 'Empresas movidas para excluídos com sucesso!' });
-            } else {
-                setNotification({ type: 'error', message: result.message || 'Erro ao mover empresas.' });
+                const result = await window.ipcRenderer.invoke('update-records-postgres', {
+                    table: 'profissionais_empresa',
+                    updates,
+                    ids: selectedEmpresas,
+                    idColumn: 'id',
+                });
+                if (result.success) {
+                    await fetchEmpresas();
+                    setSelectedEmpresas([]);
+                    setNotification({ type:'success', message: `Status da empresa alterado para ${status} com sucesso!` });
+                } else {
+                    setNotification({ type: 'error', message: result.message || 'Erro ao alterar o status das empresas.' });
+                }
+            } catch (error) {
+                console.error('Erro ao alterar status das empresas:', error);
+                setNotification({ type: 'error', message: 'Erro ao alterar status das empresas.' });
             }
-        } catch (error) {
-            console.error('Erro ao mover empresas:', error);
-            setNotification({ type: 'error', message: 'Erro ao mover empresas.' });
+        } else {
+            setNotification({ type: 'error', message: 'Nenhuma empresa selecionada.' });
         }
     };
 
@@ -109,13 +111,13 @@ export default function Empresas() {
                                             </Link>
                                         </li>
                                         <li>
-                                            <button onClick={handleMoveToExcluded}>
-                                                Mover para Inativas
-                                            </button>
+                                            <a onClick={() => handleChangeStatus('Inativo')}>
+                                                Mover para Inativos
+                                            </a>
                                         </li>
                                         <li>
                                             <button
-                                                className={`${selectedEmpresas.length !== 1 ? 'tooltip text-base-300' : ''}`}
+                                                className={`${selectedEmpresas.length !== 1 ? 'tooltip text-gray-400 text-start cursor-not-allowed' : ''}`}
                                                 data-tip={selectedEmpresas.length !== 1 ? 'Selecione apenas uma empresa para editar.' : ''}
                                                 onClick={handleEdit}
                                                 disabled={selectedEmpresas.length !== 1}

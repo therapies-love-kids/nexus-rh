@@ -157,7 +157,7 @@ export default function Profissionais() {
         <div className='bg-base-200 min-h-screen'>
             <Breadcrumbs />
 
-            <div className="mt-10 px-24 rounded">zap
+            <div className="mt-10 px-24 rounded">
                 <div className='card bg-base-100 shadow-xl w-full mb-10'>
                     <div className="card-body">
                         <div className='flex justify-between'>
@@ -180,7 +180,7 @@ export default function Profissionais() {
                                         </li>
                                         <li>
                                             <button
-                                                className={` ${selectedProfissionais.length !== 1 ? 'tooltip text-base-300' : ''}`}
+                                                className={` ${selectedProfissionais.length !== 1 ? 'tooltip text-gray-400 text-start cursor-not-allowed' : ''}`}
                                                 data-tip={selectedProfissionais.length !== 1 ? 'Selecione apenas um profissional para editar.' : ''}
                                                 onClick={handleEdit}
                                                 disabled={selectedProfissionais.length !== 1}
