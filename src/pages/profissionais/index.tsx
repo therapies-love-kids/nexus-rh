@@ -9,7 +9,6 @@ interface Profissional {
     profissional_id: number;
     profissional_foto: string;
     profissional_nome: string;
-    profissional_funcao_id: string;
 }
 
 interface Unidade {
@@ -31,7 +30,7 @@ export default function Profissionais() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id FROM profissionais WHERE profissional_status1 = \'ativo\''
+                'SELECT profissional_id, profissional_foto, profissional_nome FROM profissionais WHERE profissional_status1 = \'ativo\''
             );
             setProfissionais(result as Profissional[]);
             setFilteredProfissionais(result as Profissional[]);
@@ -225,7 +224,6 @@ export default function Profissionais() {
                                     <th>ID</th>
                                     <th>Foto</th>
                                     <th>Nome</th>
-                                    <th>Nível de Acesso</th>
                                     <th>Unidades</th>
                                 </tr>
                             </thead>
@@ -247,7 +245,6 @@ export default function Profissionais() {
                                             <img src={imageUrls[prof.profissional_id]} alt={prof.profissional_nome} className="w-16 h-16 rounded-full" />
                                         </td>
                                         <td>{prof.profissional_nome}</td>
-                                        <td>{funcoesMap[prof.profissional_funcao_id] || 'Desconhecido'}</td>
                                         <td>
                                             {unidadesMap[prof.profissional_id]?.map((unidade, index) => (
                                                 <div key={index}>{unidade.unidade}</div>

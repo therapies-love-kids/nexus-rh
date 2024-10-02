@@ -31,12 +31,6 @@ export default function AtualizarProfissional() {
     const [unidades, setUnidades] = useState<Unidade[]>([]);
     const [selectedUnidades, setSelectedUnidades] = useState<number[]>([]); // Lista de unidades selecionadas
 
-    const [funcoes, setFuncoes] = useState<Funcao[]>([]);
-    const [funcaoId, setFuncaoId] = useState<number | null>(null);
-
-    const [empresas, setEmpresas] = useState<Empresa[]>([]);
-    const [empresaId, setEmpresaId] = useState<number | null>(null);
-
     const [macs, setMacs] = useState<string[]>([]);
     const [newMac, setNewMac] = useState<string>('');
 
@@ -120,13 +114,11 @@ export default function AtualizarProfissional() {
                 if (id) {
                     const result = await window.ipcRenderer.invoke(
                         'query-database-postgres',
-                        `SELECT profissional_nome, profissional_funcao_id, profissional_empresa_id, profissional_senha, profissional_dataingressoempresa FROM profissionais WHERE profissional_id = ${id}`
+                        `SELECT profissional_nome, profissional_senha, profissional_dataingressoempresa FROM profissionais WHERE profissional_id = ${id}`
                     );                
                     const profissional = result[0];
                     setNome(profissional.profissional_nome ?? '');
                     setSenha(profissional.profissional_senha ?? '');
-                    setFuncaoId(profissional.profissional_funcao_id ?? null);
-                    setEmpresaId(profissional.profissional_empresa_id ?? null);
                     setDataIngressoEmpresa(profissional.profissional_dataingressoempresa ? new Date(profissional.profissional_dataingressoempresa) : null);
 
                     // Carregar unidades associadas após obter os dados do profissional
@@ -146,26 +138,11 @@ export default function AtualizarProfissional() {
     useEffect(() => {
         const fetchOptions = async () => {
             try {
-                // Fetch unidades
                 const unidadeResult = await window.ipcRenderer.invoke(
                     'query-database-postgres',
                     'SELECT id, unidade FROM profissionais_unidade'
                 );
                 setUnidades(unidadeResult);
-
-                // Fetch funções
-                const funcaoResult = await window.ipcRenderer.invoke(
-                    'query-database-postgres',
-                    'SELECT id, funcao FROM profissionais_funcao'
-                );
-                setFuncoes(funcaoResult);
-
-                // Fetch empresas
-                const empresaResult = await window.ipcRenderer.invoke(
-                    'query-database-postgres',
-                    'SELECT id, empresa FROM profissionais_empresa'
-                );
-                setEmpresas(empresaResult);
             } catch (error) {
                 console.log(error);
             }
@@ -183,7 +160,7 @@ export default function AtualizarProfissional() {
     };
 
     const handleSubmit = async () => {
-        if (nome === '' || senha === '' || funcaoId === null || empresaId === null || dataIngressoEmpresa === null) {
+        if (nome === '' || senha === '' || dataIngressoEmpresa === null) {
             setModalMessage('Preencha todos os campos obrigatórios.');
             setIsModalOpen(true);
             return;
@@ -193,8 +170,6 @@ export default function AtualizarProfissional() {
             const table = 'profissionais';
             const updates = {
                 profissional_nome: nome,
-                profissional_funcao_id: funcaoId,
-                profissional_empresa_id: empresaId,
                 profissional_senha: senha,
                 profissional_dataingressoempresa: dataIngressoEmpresa.toISOString().split('T')[0] // Convertendo para formato YYYY-MM-DD
             };
@@ -351,59 +326,36 @@ export default function AtualizarProfissional() {
                             </label>
                         </div>
 
-                        <div className="form-control">
+                        <div className="form-control my-10">
                             <label className="label">
                                 <span className="label-text">Unidades</span>
                             </label>
-                            <div className="flex flex-col gap-2">
-                                {unidades.map(unidade => (
-                                    <label key={unidade.id} className="label cursor-pointer gap-4 w-fit">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedUnidades.includes(unidade.id)}
-                                            onChange={() => handleUnidadeChange(unidade.id)}
-                                            className="checkbox"
-                                        />
-                                        <span className="label-text">{unidade.unidade}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Função</span>
-                            </label>
-                            <select
-                                className="select select-bordered"
-                                value={funcaoId ?? ''}
-                                onChange={(e) => setFuncaoId(Number(e.target.value))}
-                            >
-                                <option value="" disabled>Selecione a função</option>
-                                {funcoes.map((funcaoOption) => (
-                                    <option key={funcaoOption.id} value={funcaoOption.id}>
-                                        {funcaoOption.funcao}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-control my-4">
-                            <label className="label">
-                                <span className="label-text">Empresa</span>
-                            </label>
-                            <select
-                                className="select select-bordered"
-                                value={empresaId ?? ''}
-                                onChange={(e) => setEmpresaId(Number(e.target.value))}
-                            >
-                                <option value="" disabled>Selecione a empresa</option>
-                                {empresas.map((empresaOption) => (
-                                    <option key={empresaOption.id} value={empresaOption.id}>
-                                        {empresaOption.empresa}
-                                    </option>
-                                ))}
-                            </select>
+                            <table className="table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>ID</th>
+                                        <th>Unidade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {unidades.map(unidade => (
+                                        <tr key={unidade.id}>
+                                            <th>
+                                                <input
+                                                    type="checkbox"
+                                                    value={unidade.id}
+                                                    checked={selectedUnidades.includes(unidade.id)}
+                                                    onChange={() => handleUnidadeChange(unidade.id)}
+                                                    className="checkbox"
+                                                />
+                                            </th>
+                                            <th>{unidade.id}</th>
+                                            <th>{unidade.unidade}</th>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
 
                         <div className="divider mt-8">DISPOSITIVOS AUTORIZADOS</div>

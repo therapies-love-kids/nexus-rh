@@ -1,18 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SetStateAction } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { Link } from 'react-router-dom';
 import { IoArrowBack, IoCalendar, IoClose, IoKey, IoPerson } from 'react-icons/io5';
 import { FaCopy } from 'react-icons/fa';
 import DatePicker from 'react-date-picker';
+import MaskedInput from 'react-text-mask';
 
 interface Unidade {
     id: number;
     unidade: string;
 }
 
-interface Funcao {
+interface Empresa {
+    cnpj: string;
     id: number;
-    funcao: string;
+    empresa: string;
+}
+
+interface Departamento {
+    id: number;
+    departamento: string;
 }
 
 export default function NovoProfissional() {
@@ -20,6 +27,7 @@ export default function NovoProfissional() {
     const [senha, setSenha] = useState('123');
     const [dataIngressoEmpresa, setDataIngressoEmpresa] = useState<Date | null>(null);
 
+    const [selectedProfissionais, setSelectedProfissionais] = useState<number[]>([]);
     const [cpf, setCpf] = useState('');
 
     const [modalMessage, setModalMessage] = useState<string | null>(null);
@@ -29,33 +37,39 @@ export default function NovoProfissional() {
     const [unidadeIds, setUnidadeIds] = useState<number[]>([]); // Mudança para permitir múltiplos IDs
     const [unidadeNomes, setUnidadeNomes] = useState<string[]>([]); // Para armazenar os nomes das unidades selecionadas
 
-    const [funcoes, setFuncoes] = useState<Funcao[]>([]);
-    const [funcaoId, setFuncaoId] = useState<number | null>(null);
+    const [empresas, setEmpresas] = useState<Empresa[]>([]);
+    const [empresaIds, setEmpresasIds] = useState<number[]>([]);
+    const [empresaNomes, setEmpresaNomes] = useState<string[]>([]);
 
-    const [empresas, setEmpresas] = useState<{ id: number; empresa: string }[]>([]);
-    const [empresaId, setEmpresaId] = useState<number | null>(null);
+    const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
+    const [departamentoIds, setDepartamentosIds] = useState<number[]>([]);
+    const [departamentoNomes, setDepartamentoNomes] = useState<string[]>([]);
 
     useEffect(() => {
         const fetchOptions = async () => {
             try {
                 const unidadeResult = await window.ipcRenderer.invoke(
                     'query-database-postgres',
-                    'SELECT id, unidade FROM profissionais_unidade'
+                    'SELECT id, unidade FROM profissionais_unidade WHERE unidade_status1 = \'ativo\''
                 );
                 setUnidades(unidadeResult);
-
-                const funcaoResult = await window.ipcRenderer.invoke(
-                    'query-database-postgres',
-                    'SELECT id, funcao FROM profissionais_funcao'
-                );
-                setFuncoes(funcaoResult);
+                
 
                 const empresaResult = await window.ipcRenderer.invoke(
                     'query-database-postgres',
-                    'SELECT id, empresa FROM profissionais_empresa'
+                    'SELECT id, empresa, cnpj FROM profissionais_empresa WHERE empresa_status1 = \'ativo\''
                 );
                 setEmpresas(empresaResult);
-            } catch (error) {
+
+                const departamentoResult = await window.ipcRenderer.invoke(
+                    'query-database-postgres',
+                    'SELECT id, departamento FROM profissionais_departamento WHERE departamento_status1 = \'ativo\''
+                );
+                setDepartamentos(departamentoResult);
+
+            }
+            
+            catch (error) {
                 console.error('Erro ao buscar opções:', error);
             }
         };
@@ -65,11 +79,18 @@ export default function NovoProfissional() {
     useEffect(() => {
         const selectedUnidades = unidades.filter(u => unidadeIds.includes(u.id));
         setUnidadeNomes(selectedUnidades.map(u => u.unidade));
-    }, [unidadeIds, unidades]);
+
+        const selectedEmpresas = empresas.filter(e => empresaIds.includes(e.id));
+        setEmpresaNomes(selectedEmpresas.map(e => e.empresa));
+
+        const selectedDepartamentos = departamentos.filter(d => departamentoIds.includes(d.id));
+        setDepartamentoNomes(selectedDepartamentos.map(d => d.departamento));
+
+    }, [unidadeIds, unidades, empresaIds, empresas, departamentoIds, departamentos]);
 
     const handleSubmit = async () => {
-        if (unidadeIds.length === 0 || funcaoId === null || empresaId === null || !senha || !dataIngressoEmpresa || !cpf ) {
-            setModalMessage('Preencha todos os campos obrigatórios: unidade(s), função, empresa, senha, data de ingresso, CPF e número do conselho.');
+        if (unidadeIds.length === 0 || empresaIds.length === 0 || departamentoIds.length === 0 || !senha || !dataIngressoEmpresa || !cpf ) {
+            setModalMessage('Preencha todos os campos obrigatórios: unidade(s), função, empresa, departamento senha, data de ingresso, CPF e número do conselho.');
             setIsModalOpen(true);
             return;
         }
@@ -78,17 +99,12 @@ export default function NovoProfissional() {
             const table = 'profissionais';
             const columns = [
                 'profissional_nome',
-                'profissional_funcao_id',
-                'profissional_empresa_id',
                 'profissional_senha',
                 'profissional_dataingressoempresa',
                 'profissional_cpf',
-                'profissional_crp'
             ];
             const values = [
                 nome,
-                funcaoId,
-                empresaId,
                 senha,
                 dataIngressoEmpresa,
                 cpf
@@ -106,16 +122,36 @@ export default function NovoProfissional() {
                     const profissionalId = searchResult[0].profissional_id;
     
                     // Aqui, vamos usar Promise.all para inserir as unidades de forma simultânea
-                    const insertPromises = unidadeIds.map((unidadeId) => {
+                    const insertPromisesUnidades = unidadeIds.map((unidadeId) => {
                         return window.ipcRenderer.invoke('insert-records-postgres', {
                             table: 'profissionais_unidade_associacao',
                             columns: ['profissional_id', 'unidade_id'],
                             values: [profissionalId, unidadeId], // Preenche com o profissional_id encontrado
                         });
                     });
+
+                    const insertPromisesEmpresas = empresaIds.map((empresaId) => {
+                        return window.ipcRenderer.invoke('insert-records-postgres', {
+                            table: 'profissionais_empresa_associacao',
+                            columns: ['profissional_id', 'empresa_id'],
+                            values: [profissionalId, empresaId], // Preenche com o profissional_id encontrado
+                        });
+                    });
+
+                    const insertPromisesDepartamentos = departamentoIds.map((departamentoId) => {
+                        return window.ipcRenderer.invoke('insert-records-postgres', {
+                            table: 'profissionais_departamento_associacao',
+                            columns: ['profissional_id', 'departamento_id'],
+                            values: [profissionalId, departamentoId], // Preenche com o profissional_id encontrado
+                        });
+                    });
     
                     // Espera todas as inserções de unidade completarem
-                    const associationResults = await Promise.all(insertPromises);
+                    const associationResults = await Promise.all([
+                        ...insertPromisesUnidades,
+                        ...insertPromisesEmpresas,
+                        ...insertPromisesDepartamentos,
+                    ]);
     
                     setModalMessage('Usuário criado com sucesso!');
                 } else {
@@ -133,12 +169,8 @@ export default function NovoProfissional() {
     };
     
     const handleCopyToClipboard = () => {
-        const funcaoSelecionada = funcoes.find((f) => f.id === funcaoId);
-        const funcaoNome = funcaoSelecionada ? funcaoSelecionada.funcao : '';
-    
         const text = `
             Unidades: ${unidadeNomes.join(', ')}
-            Função: ${funcaoNome}
             Login: ${nome}
             Senha provisória: ${senha}
         `;
@@ -227,79 +259,140 @@ export default function NovoProfissional() {
                             <label className="label">
                                 <span className="label-text">CPF</span>
                             </label>
-                            <label className="input input-bordered flex items-center gap-2">
-                                <input 
-                                    type="text" 
-                                    placeholder="CPF do profissional" 
-                                    value={cpf}
-                                    onChange={(e) => setCpf(e.target.value)} 
-                                />
-                            </label>
+                            <MaskedInput
+                                type="text"
+                                placeholder="CPF (000.000.000-00)"
+                                className="input input-bordered"
+                                value={cpf}
+                                onChange={(e: { target: { value: SetStateAction<string>; }; }) => setCpf(e.target.value)}
+                                mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]}
+                                guide={false}
+                            />
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Unidade(s)</span>
-                            </label>
-                            <div className="flex flex-col">
-                                {unidades.map(unidade => (
-                                    <label key={unidade.id} className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            value={unidade.id}
-                                            checked={unidadeIds.includes(unidade.id)}
-                                            onChange={() => {
-                                                if (unidadeIds.includes(unidade.id)) {
-                                                    setUnidadeIds(unidadeIds.filter(id => id !== unidade.id));
-                                                } else {
-                                                    setUnidadeIds([...unidadeIds, unidade.id]);
-                                                }
-                                            }}
-                                            className="checkbox"
-                                        />
-                                        <span className="ml-2">{unidade.unidade}</span>
-                                    </label>
-                                ))}
+                        <div className='flex gap-10'>
+                            <div className="form-control mt-4">
+                                <label className="label">
+                                    <span className="label-text">Unidades</span>
+                                </label>
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>ID</th>
+                                            <th>Departamento</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {unidades.map(unidade => (
+                                            <tr key={unidade.id}>
+
+                                                <th>
+                                                    <input
+                                                        type="checkbox"
+                                                        value={unidade.id}
+                                                        checked={unidadeIds.includes(unidade.id)}
+                                                        onChange={() => {
+                                                            if (unidadeIds.includes(unidade.id)) {
+                                                                setUnidadeIds(unidadeIds.filter(id => id !== unidade.id));
+                                                            } else {
+                                                                setUnidadeIds([...unidadeIds, unidade.id]);
+                                                            }
+                                                        }}
+                                                        className="checkbox"
+                                                    />
+                                                </th>
+                                                <th>{unidade.id}</th>
+                                                <th>{unidade.unidade}</th>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="form-control mt-4">
+                                <label className="label">
+                                    <span className="label-text">Departamentos</span>
+                                </label>
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>ID</th>
+                                            <th>Departamento</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {departamentos.map(departamento => (
+                                            <tr key={departamento.id}>
+
+                                                <th>
+                                                    <input
+                                                        type="checkbox"
+                                                        value={departamento.id}
+                                                        checked={departamentoIds.includes(departamento.id)}
+                                                        onChange={() => {
+                                                            if (departamentoIds.includes(departamento.id)) {
+                                                                setDepartamentosIds(departamentoIds.filter(id => id !== departamento.id));
+                                                            } else {
+                                                                setDepartamentosIds([...departamentoIds, departamento.id]);
+                                                            }
+                                                        }}
+                                                        className="checkbox"
+                                                    />
+                                                </th>
+                                                <th>{departamento.id}</th>
+                                                <th>{departamento.departamento}</th>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                
                             </div>
                         </div>
 
 
-
+                        
                         <div className="form-control mt-4">
                             <label className="label">
-                                <span className="label-text">Função</span>
+                                <span className="label-text">Empresas</span>
                             </label>
-                            <select
-                                className="select select-bordered"
-                                value={funcaoId || ''}
-                                onChange={(e) => setFuncaoId(Number(e.target.value))}
-                            >
-                                <option value="" disabled>Selecione a função</option>
-                                {funcoes.map((funcaoOption) => (
-                                    <option key={funcaoOption.id} value={funcaoOption.id}>
-                                        {funcaoOption.funcao}
-                                    </option>
-                                ))}
-                            </select>
+                            <table className="table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>ID</th>
+                                        <th>Empresa</th>
+                                        <th>CNPJ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {empresas.map(empresa => (
+                                        <tr key={empresa.id}>
+                                            <th>
+                                                <input
+                                                    type="checkbox"
+                                                    value={empresa.id}
+                                                    checked={empresaIds.includes(empresa.id)}
+                                                    onChange={() => {
+                                                        if (empresaIds.includes(empresa.id)) {
+                                                            setEmpresasIds(empresaIds.filter(id => id !== empresa.id));
+                                                        } else {
+                                                            setEmpresasIds([...empresaIds, empresa.id]);
+                                                        }
+                                                    }}
+                                                    className="checkbox"
+                                                />
+                                            </th>
+                                            <th>{empresa.id}</th>
+                                            <th>{empresa.empresa}</th>
+                                            <th>{empresa.cnpj}</th>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Empresa</span>
-                            </label>
-                            <select
-                                className="select select-bordered"
-                                value={empresaId || ''}
-                                onChange={(e) => setEmpresaId(Number(e.target.value))}
-                            >
-                                <option value="" disabled>Selecione a empresa</option>
-                                {empresas.map((empresaOption) => (
-                                    <option key={empresaOption.id} value={empresaOption.id}>
-                                        {empresaOption.empresa}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
 
                         <button 
                             className="btn btn-primary mt-6" 
@@ -324,7 +417,7 @@ export default function NovoProfissional() {
                         <>
                             <div className="mockup-code relative w-full my-10">
                                 <pre data-prefix="1">Unidade: {unidadeNomes} </pre>
-                                <pre data-prefix="2">Função: {funcoes.find((f) => f.id === funcaoId)?.funcao}</pre>
+                                <pre data-prefix="2"></pre>
                                 <pre data-prefix="3">Login: {nome}</pre>
                                 <pre data-prefix="4">Senha provisória: {senha}</pre>
                                 <button
