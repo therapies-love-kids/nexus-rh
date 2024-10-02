@@ -4,77 +4,86 @@ import { Link, useNavigate } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
-interface Empresa {
+interface Departamento {
     id: number;
-    empresa: string;
-    cnpj: string;
+    departamento: string;
 }
 
-export default function Empresas() {
-    const [empresas, setEmpresas] = useState<Empresa[]>([]);
-    const [selectedEmpresas, setSelectedEmpresas] = useState<number[]>([]);
+export default function Departamentos() {
+    const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
+    const [selectedDepartamentos, setSelectedDepartamentos] = useState<number[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
-    const fetchEmpresas = async () => {
+    const fetchDepartamentos = async () => {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, empresa, cnpj FROM profissionais_empresa WHERE empresa_status1 = \'inativo\''
+                'SELECT id, departamento FROM profissionais_departamento WHERE departamento_status1 = \'ativo\''
             );
-            setEmpresas(result as Empresa[]);
+            setDepartamentos(result as Departamento[]);
         } catch (error) {
-            console.error('Erro ao buscar empresas:', error);
+            console.error('Erro ao buscar departamentos:', error);
         }
     };
 
     useEffect(() => {
-        fetchEmpresas();
+        fetchDepartamentos();
     }, []);
 
     const indexOfLastRecord = currentPage * recordsPerPage;
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const currentRecords = empresas.slice(indexOfFirstRecord, indexOfLastRecord);
-    const totalPages = Math.ceil(empresas.length / recordsPerPage);
+    const currentRecords = departamentos.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(departamentos.length / recordsPerPage);
 
     const handleCheckboxChange = (id: number): void => {
-        setSelectedEmpresas(prevSelected =>
+        setSelectedDepartamentos(prevSelected =>
             prevSelected.includes(id)
                 ? prevSelected.filter(selectedId => selectedId !== id)
                 : [...prevSelected, id]
         );
     };
 
-    const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
-        if (selectedEmpresas.length > 0) {
+    const navigate = useNavigate();
 
+    const handleEdit = () => {
+        if (selectedDepartamentos.length === 1) {
+            const [selectedId] = selectedDepartamentos;
+            navigate(`/departamentos/${selectedId}`);
+        } else {
+            setNotification({ type: 'error', message: 'Selecione apenas uma departamento para editar.' });
+        }
+    };
+
+    const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
+        if (selectedDepartamentos.length > 0) {
             try {
-                setNotification({ type: 'info', message: `Alterando status da empresa para ${status}...`});
+                setNotification({ type: 'info', message: `Alterando status do departamento para ${status}...`});
 
                 const updates = {
-                    empresa_status1: status.toLowerCase(), // Definindo o status
+                    departamento_status1: status.toLowerCase(), // Definindo o status
                 };
 
                 const result = await window.ipcRenderer.invoke('update-records-postgres', {
-                    table: 'profissionais_empresa',
+                    table: 'profissionais_departamento',
                     updates,
-                    ids: selectedEmpresas,
+                    ids: selectedDepartamentos,
                     idColumn: 'id',
                 });
                 if (result.success) {
-                    await fetchEmpresas();
-                    setSelectedEmpresas([]);
-                    setNotification({ type:'success', message: `Status da empresa alterado para ${status} com sucesso!` });
+                    await fetchDepartamentos();
+                    setSelectedDepartamentos([]);
+                    setNotification({ type:'success', message: `Status do departamento alterado para ${status} com sucesso!` });
                 } else {
-                    setNotification({ type: 'error', message: result.message || 'Erro ao alterar o status das empresas.' });
+                    setNotification({ type: 'error', message: result.message || 'Erro ao alterar o status dos departamentos.' });
                 }
             } catch (error) {
-                console.error('Erro ao alterar status das empresas:', error);
-                setNotification({ type: 'error', message: 'Erro ao alterar status das empresas.' });
+                console.error('Erro ao alterar status dos departamentos:', error);
+                setNotification({ type: 'error', message: 'Erro ao alterar status dos departamentos.' });
             }
         } else {
-            setNotification({ type: 'error', message: 'Nenhuma empresa selecionada.' });
+            setNotification({ type: 'error', message: 'Nenhum departamento selecionado.' });
         }
     };
 
@@ -86,7 +95,7 @@ export default function Empresas() {
                 <div className='card bg-base-100 shadow-xl w-full mb-10'>
                     <div className="card-body">
                         <div className='flex justify-between'>
-                            <h2 className="card-title">Empresas</h2>
+                            <h2 className="card-title">Departamentos</h2>
                             <div className='flex gap-2 justify-between'>
                                 <div className="dropdown dropdown-end">
                                     <div tabIndex={1} role="button" className="btn">
@@ -94,16 +103,26 @@ export default function Empresas() {
                                     </div>
                                     <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                         <li>
-                                            <Link to={"/empresas"}>
+                                            <Link to={"/departamentos/inativos"}>
                                                 <button>
-                                                    Visualizar Ativos
+                                                    Visualizar inativos
                                                 </button>
                                             </Link>
                                         </li>
                                         <li>
-                                            <a onClick={() => handleChangeStatus('Ativo')}>
-                                                Mover para Ativos
+                                            <a onClick={() => handleChangeStatus('Inativo')}>
+                                                Mover para Inativos
                                             </a>
+                                        </li>
+                                        <li>
+                                            <button
+                                                className={`${selectedDepartamentos.length !== 1 ? 'tooltip text-gray-400 text-start cursor-not-allowed' : ''}`}
+                                                data-tip={selectedDepartamentos.length !== 1 ? 'Selecione apenas um departamento para editar.' : ''}
+                                                onClick={handleEdit}
+                                                disabled={selectedDepartamentos.length !== 1}
+                                            >
+                                                Editar
+                                            </button>
                                         </li>
                                     </ul>
                                 </div>
@@ -115,7 +134,7 @@ export default function Empresas() {
                                     <option value="50">50</option>
                                 </select>
 
-                                <Link to={'/empresas/nova'}>
+                                <Link to={'/departamentos/nova'}>
                                     <button className="btn btn-primary">Adicionar</button>
                                 </Link>
                             </div>
@@ -131,36 +150,34 @@ export default function Empresas() {
                                                 className="checkbox"
                                                 onChange={(e) => {
                                                     if (e.target.checked) {
-                                                        setSelectedEmpresas(currentRecords.map(e => e.id));
+                                                        setSelectedDepartamentos(currentRecords.map(e => e.id));
                                                     } else {
-                                                        setSelectedEmpresas([]);
+                                                        setSelectedDepartamentos([]);
                                                     }
                                                 }}
-                                                checked={selectedEmpresas.length === currentRecords.length}
+                                                checked={selectedDepartamentos.length === currentRecords.length}
                                             />
                                         </label>
                                     </th>
                                     <th>ID</th>
-                                    <th>Nome da Empresa</th>
-                                    <th>CNPJ</th>
+                                    <th>Nome do Departamento</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {currentRecords.map((empresa) => (
-                                    <tr key={empresa.id}>
+                                {currentRecords.map((departamento) => (
+                                    <tr key={departamento.id}>
                                         <th>
                                             <label>
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
-                                                    checked={selectedEmpresas.includes(empresa.id)}
-                                                    onChange={() => handleCheckboxChange(empresa.id)}
+                                                    checked={selectedDepartamentos.includes(departamento.id)}
+                                                    onChange={() => handleCheckboxChange(departamento.id)}
                                                 />
                                             </label>
                                         </th>
-                                        <td>{empresa.id}</td>
-                                        <td>{empresa.empresa}</td>
-                                        <td>{empresa.cnpj}</td>
+                                        <td>{departamento.id}</td>
+                                        <td>{departamento.departamento}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -186,7 +203,7 @@ export default function Empresas() {
                             </div>
 
                             <div className="text-sm text-gray-600">
-                                Mostrando {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, empresas.length)} de {empresas.length} registros
+                                Mostrando {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, departamentos.length)} de {departamentos.length} registros
                             </div>
                         </div>
                     </div>

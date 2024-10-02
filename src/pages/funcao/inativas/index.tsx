@@ -1,45 +1,44 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
-interface Empresa {
+interface Funcao {
     id: number;
-    empresa: string;
-    cnpj: string;
+    funcao: string;
 }
 
-export default function Empresas() {
-    const [empresas, setEmpresas] = useState<Empresa[]>([]);
-    const [selectedEmpresas, setSelectedEmpresas] = useState<number[]>([]);
+export default function FuncoesInativos() {
+    const [funcoes, setFuncoes] = useState<Funcao[]>([]);
+    const [selectedFuncoes, setSelectedFuncoes] = useState<number[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
-    const fetchEmpresas = async () => {
+    const fetchFuncoes = async () => {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, empresa, cnpj FROM profissionais_empresa WHERE empresa_status1 = \'inativo\''
+                'SELECT id, funcao FROM profissionais_funcao WHERE funcao_status1 = \'inativo\''
             );
-            setEmpresas(result as Empresa[]);
+            setFuncoes(result as Funcao[]);
         } catch (error) {
-            console.error('Erro ao buscar empresas:', error);
+            console.error('Erro ao buscar funcoes:', error);
         }
     };
 
     useEffect(() => {
-        fetchEmpresas();
+        fetchFuncoes();
     }, []);
 
     const indexOfLastRecord = currentPage * recordsPerPage;
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const currentRecords = empresas.slice(indexOfFirstRecord, indexOfLastRecord);
-    const totalPages = Math.ceil(empresas.length / recordsPerPage);
+    const currentRecords = funcoes.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(funcoes.length / recordsPerPage);
 
     const handleCheckboxChange = (id: number): void => {
-        setSelectedEmpresas(prevSelected =>
+        setSelectedFuncoes(prevSelected =>
             prevSelected.includes(id)
                 ? prevSelected.filter(selectedId => selectedId !== id)
                 : [...prevSelected, id]
@@ -47,34 +46,34 @@ export default function Empresas() {
     };
 
     const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
-        if (selectedEmpresas.length > 0) {
+        if (selectedFuncoes.length > 0) {
 
             try {
-                setNotification({ type: 'info', message: `Alterando status da empresa para ${status}...`});
+                setNotification({ type: 'info', message: `Alterando status da função para ${status}...`});
 
                 const updates = {
-                    empresa_status1: status.toLowerCase(), // Definindo o status
+                    funcao_status1: status.toLowerCase(), // Definindo o status
                 };
 
                 const result = await window.ipcRenderer.invoke('update-records-postgres', {
-                    table: 'profissionais_empresa',
+                    table: 'profissionais_funcao',
                     updates,
-                    ids: selectedEmpresas,
+                    ids: selectedFuncoes,
                     idColumn: 'id',
                 });
                 if (result.success) {
-                    await fetchEmpresas();
-                    setSelectedEmpresas([]);
-                    setNotification({ type:'success', message: `Status da empresa alterado para ${status} com sucesso!` });
+                    await fetchFuncoes();
+                    setSelectedFuncoes([]);
+                    setNotification({ type:'success', message: `Status da função alterado para ${status} com sucesso!` });
                 } else {
-                    setNotification({ type: 'error', message: result.message || 'Erro ao alterar o status das empresas.' });
+                    setNotification({ type: 'error', message: result.message || 'Erro ao alterar o status das funções.' });
                 }
             } catch (error) {
-                console.error('Erro ao alterar status das empresas:', error);
-                setNotification({ type: 'error', message: 'Erro ao alterar status das empresas.' });
+                console.error('Erro ao alterar status das funções:', error);
+                setNotification({ type: 'error', message: 'Erro ao alterar status das funções.' });
             }
         } else {
-            setNotification({ type: 'error', message: 'Nenhuma empresa selecionada.' });
+            setNotification({ type: 'error', message: 'Nenhuma função selecionado.' });
         }
     };
 
@@ -86,7 +85,7 @@ export default function Empresas() {
                 <div className='card bg-base-100 shadow-xl w-full mb-10'>
                     <div className="card-body">
                         <div className='flex justify-between'>
-                            <h2 className="card-title">Empresas</h2>
+                            <h2 className="card-title">Funções</h2>
                             <div className='flex gap-2 justify-between'>
                                 <div className="dropdown dropdown-end">
                                     <div tabIndex={1} role="button" className="btn">
@@ -94,7 +93,7 @@ export default function Empresas() {
                                     </div>
                                     <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                         <li>
-                                            <Link to={"/empresas"}>
+                                            <Link to={"/funcoes"}>
                                                 <button>
                                                     Visualizar Ativos
                                                 </button>
@@ -115,7 +114,7 @@ export default function Empresas() {
                                     <option value="50">50</option>
                                 </select>
 
-                                <Link to={'/empresas/nova'}>
+                                <Link to={'/funcoes/novo'}>
                                     <button className="btn btn-primary">Adicionar</button>
                                 </Link>
                             </div>
@@ -131,36 +130,34 @@ export default function Empresas() {
                                                 className="checkbox"
                                                 onChange={(e) => {
                                                     if (e.target.checked) {
-                                                        setSelectedEmpresas(currentRecords.map(e => e.id));
+                                                        setSelectedFuncoes(currentRecords.map(e => e.id));
                                                     } else {
-                                                        setSelectedEmpresas([]);
+                                                        setSelectedFuncoes([]);
                                                     }
                                                 }}
-                                                checked={selectedEmpresas.length === currentRecords.length}
+                                                checked={selectedFuncoes.length === currentRecords.length}
                                             />
                                         </label>
                                     </th>
                                     <th>ID</th>
-                                    <th>Nome da Empresa</th>
-                                    <th>CNPJ</th>
+                                    <th>Nome da Função</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {currentRecords.map((empresa) => (
-                                    <tr key={empresa.id}>
+                                {currentRecords.map((funcao) => (
+                                    <tr key={funcao.id}>
                                         <th>
                                             <label>
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
-                                                    checked={selectedEmpresas.includes(empresa.id)}
-                                                    onChange={() => handleCheckboxChange(empresa.id)}
+                                                    checked={selectedFuncoes.includes(funcao.id)}
+                                                    onChange={() => handleCheckboxChange(funcao.id)}
                                                 />
                                             </label>
                                         </th>
-                                        <td>{empresa.id}</td>
-                                        <td>{empresa.empresa}</td>
-                                        <td>{empresa.cnpj}</td>
+                                        <td>{funcao.id}</td>
+                                        <td>{funcao.funcao}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -186,7 +183,7 @@ export default function Empresas() {
                             </div>
 
                             <div className="text-sm text-gray-600">
-                                Mostrando {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, empresas.length)} de {empresas.length} registros
+                                Mostrando {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, funcoes.length)} de {funcoes.length} registros
                             </div>
                         </div>
                     </div>

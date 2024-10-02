@@ -31,7 +31,7 @@ export default function Profissionais() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id FROM profissionais'
+                'SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id FROM profissionais WHERE profissional_status1 = \'ativo\''
             );
             setProfissionais(result as Profissional[]);
             setFilteredProfissionais(result as Profissional[]);
@@ -105,25 +105,29 @@ export default function Profissionais() {
     const handleChangeStatus = async (status: 'Demitido' | 'Ativo') => {
         if (selectedProfissionais.length > 0) {
             try {
-                setNotification({ type: 'info', message: `Movendo profissionais para ${status}...` });
+                setNotification({ type: 'info', message: `Alterando status dos profissionais para ${status}...` });
     
-                const result = await window.ipcRenderer.invoke('move-records-postgres', {
-                    sourceTable: status === 'Demitido' ? 'profissionais' : 'profissionais_demitidos',
-                    destinationTable: status === 'Demitido' ? 'profissionais_demitidos' : 'profissionais',
-                    ids: selectedProfissionais,
-                    idColumn: 'profissional_id' // Adicionando o parâmetro idColumn
+                const updates = {
+                    profissional_status1: status.toLowerCase(), // Definindo o status
+                };
+    
+                const result = await window.ipcRenderer.invoke('update-records-postgres', {
+                    table: 'profissionais',
+                    updates,
+                    ids: selectedProfissionais, // IDs dos profissionais selecionados
+                    idColumn: 'profissional_id', // Coluna de identificação
                 });
     
                 if (result.success) {
                     await fetchProfissionais();
                     setSelectedProfissionais([]);
-                    setNotification({ type: 'success', message: `Profissionais movidos para ${status} com sucesso!` });
+                    setNotification({ type: 'success', message: `Status dos profissionais alterado para ${status} com sucesso!` });
                 } else {
-                    setNotification({ type: 'error', message: result.message || 'Erro ao mover profissionais.' });
+                    setNotification({ type: 'error', message: result.message || 'Erro ao alterar status dos profissionais.' });
                 }
             } catch (error) {
-                console.error('Erro ao mover profissionais:', error);
-                setNotification({ type: 'error', message: 'Erro ao mover profissionais.' });
+                console.error('Erro ao alterar status dos profissionais:', error);
+                setNotification({ type: 'error', message: 'Erro ao alterar status dos profissionais.' });
             }
         } else {
             setNotification({ type: 'error', message: 'Nenhum profissional selecionado.' });
@@ -176,7 +180,7 @@ export default function Profissionais() {
                                         </li>
                                         <li>
                                             <button
-                                                className={` ${selectedProfissionais.length !== 1 ? 'tooltip text-base-300' : ''}`}
+                                                className={` ${selectedProfissionais.length !== 1 ? 'tooltip text-gray-400 text-start cursor-not-allowed' : ''}`}
                                                 data-tip={selectedProfissionais.length !== 1 ? 'Selecione apenas um profissional para editar.' : ''}
                                                 onClick={handleEdit}
                                                 disabled={selectedProfissionais.length !== 1}

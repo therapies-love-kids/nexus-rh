@@ -1,6 +1,30 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout, { LayoutDash } from './Layout';
-import { StylePage, Login, Inicio, Profissionais, NovoProfissional, PrimeirosPassos, ProfissionaisDemitidos, EditarProfissional, Unidades, UnidadesNova, UnidadesInativas, EditarUnidade, Empresas, EmpresasNova, EmpresasInativas, EditarEmpresa } from './pages';
+import { StylePage,
+        Login,
+        Inicio,
+        Profissionais,
+        ProfissionaisNovo,
+        PrimeirosPassos,
+        ProfissionaisDemitidos,
+        ProfissionaisEditar,
+        Unidades,
+        UnidadesNova,
+        UnidadesInativas,
+        UnidadesEditar,
+        Empresas,
+        EmpresasNova,
+        EmpresasInativas,
+        EmpresasEditar,
+        Departamentos,
+        DepartamentosNovo,
+        DepartamentosInativos,
+        DepartamentosEditar,
+        Funcoes,
+        FuncoesNova,
+        FuncoesInativos,
+        FuncoesEditar
+    } from './pages';
 import { Suspense } from 'react';
 import MacErro from './pages/Login/MacErro';
 import { PrivateRoute } from './components';  // Importando o PrivateRoute
@@ -49,13 +73,13 @@ export default function App() {
 
                             <Route path="/profissionais/:id" element={
                                 <PrivateRoute>
-                                    <LayoutDash><EditarProfissional /></LayoutDash>
+                                    <LayoutDash><ProfissionaisEditar /></LayoutDash>
                                 </PrivateRoute>
                             } />
 
                             <Route path="/profissionais/novo" element={
                                 <PrivateRoute>
-                                    <LayoutDash><NovoProfissional /></LayoutDash>
+                                    <LayoutDash><ProfissionaisNovo /></LayoutDash>
                                 </PrivateRoute>
                             } />
                         </>
@@ -82,7 +106,7 @@ export default function App() {
 
                             <Route path="/unidades/:id" element={
                                 <PrivateRoute>
-                                    <LayoutDash><EditarUnidade /></LayoutDash>
+                                    <LayoutDash><UnidadesEditar /></LayoutDash>
                                 </PrivateRoute>
                             } />
                         </>
@@ -109,7 +133,63 @@ export default function App() {
 
                             <Route path="/empresas/:id" element={
                                 <PrivateRoute>
-                                    <LayoutDash><EditarEmpresa /></LayoutDash>
+                                    <LayoutDash><EmpresasEditar /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                        </>
+
+                        {/* DEPARTAMENTOS */}
+                        <>
+                            <Route path="/departamentos" element={
+                                <PrivateRoute>
+                                    <LayoutDash><Departamentos /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/departamentos/novo" element={
+                                <PrivateRoute>
+                                    <LayoutDash><DepartamentosNovo /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/departamentos/inativos" element={
+                                <PrivateRoute>
+                                    <LayoutDash><DepartamentosInativos /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/departamentos/:id" element={
+                                <PrivateRoute>
+                                    <LayoutDash><DepartamentosEditar /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                        </>
+
+                        {/* FUNÇÕES */}
+                        <>
+                            <Route path="/funcoes" element={
+                                <PrivateRoute>
+                                    <LayoutDash><Funcoes /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/funcoes/nova" element={
+                                <PrivateRoute>
+                                    <LayoutDash><FuncoesNova /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/funcoes/inativos" element={
+                                <PrivateRoute>
+                                    <LayoutDash><FuncoesInativos /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/funcoes/:id" element={
+                                <PrivateRoute>
+                                    <LayoutDash><FuncoesEditar /></LayoutDash>
                                 </PrivateRoute>
                             } />
 
