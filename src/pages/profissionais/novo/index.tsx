@@ -7,19 +7,24 @@ import DatePicker from 'react-date-picker';
 import MaskedInput from 'react-text-mask';
 
 interface Unidade {
-    id: number;
+    unidade_id: number;
     unidade: string;
 }
 
 interface Empresa {
     cnpj: string;
-    id: number;
+    empresa_id: number;
     empresa: string;
 }
 
 interface Departamento {
-    id: number;
+    departamento_id: number;
     departamento: string;
+}
+
+interface Funcao {
+    funcao_id: number;
+    funcao: string;
 }
 
 export default function NovoProfissional() {
@@ -45,30 +50,39 @@ export default function NovoProfissional() {
     const [departamentoIds, setDepartamentosIds] = useState<number[]>([]);
     const [departamentoNomes, setDepartamentoNomes] = useState<string[]>([]);
 
+    const [funcoes, setFuncoes] = useState<Funcao[]>([]);
+    const [funcaoIds, setFuncoesIds] = useState<number[]>([]);
+    const [funcaoNomes, setFuncaoNomes] = useState<string[]>([]);
+    const [funcoesPermissoes, setFuncoesPermissoes] = useState<{ [key: number]: { perm_editar: boolean; perm_criar: boolean; perm_inativar: boolean; perm_excluir: boolean } }>({});
+
     useEffect(() => {
         const fetchOptions = async () => {
             try {
                 const unidadeResult = await window.ipcRenderer.invoke(
                     'query-database-postgres',
-                    'SELECT id, unidade FROM profissionais_unidade WHERE unidade_status1 = \'ativo\''
+                    'SELECT unidade_id, unidade FROM profissionais_unidade WHERE unidade_status1 = \'ativo\''
                 );
                 setUnidades(unidadeResult);
-                
 
                 const empresaResult = await window.ipcRenderer.invoke(
                     'query-database-postgres',
-                    'SELECT id, empresa, cnpj FROM profissionais_empresa WHERE empresa_status1 = \'ativo\''
+                    'SELECT empresa_id, empresa, cnpj FROM profissionais_empresa WHERE empresa_status1 = \'ativo\''
                 );
                 setEmpresas(empresaResult);
 
                 const departamentoResult = await window.ipcRenderer.invoke(
                     'query-database-postgres',
-                    'SELECT id, departamento FROM profissionais_departamento WHERE departamento_status1 = \'ativo\''
+                    'SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = \'ativo\''
                 );
                 setDepartamentos(departamentoResult);
 
+                const funcaoResult = await window.ipcRenderer.invoke(
+                    'query-database-postgres',
+                    'SELECT funcao_id, funcao FROM profissionais_funcao WHERE funcao_status1 = \'ativo\''
+                );
+                setFuncoes(funcaoResult);
+
             }
-            
             catch (error) {
                 console.error('Erro ao buscar opções:', error);
             }
@@ -77,20 +91,46 @@ export default function NovoProfissional() {
     }, []);
 
     useEffect(() => {
-        const selectedUnidades = unidades.filter(u => unidadeIds.includes(u.id));
+        const selectedUnidades = unidades.filter(u => unidadeIds.includes(u.unidade_id));
         setUnidadeNomes(selectedUnidades.map(u => u.unidade));
 
-        const selectedEmpresas = empresas.filter(e => empresaIds.includes(e.id));
+        const selectedEmpresas = empresas.filter(e => empresaIds.includes(e.empresa_id));
         setEmpresaNomes(selectedEmpresas.map(e => e.empresa));
 
-        const selectedDepartamentos = departamentos.filter(d => departamentoIds.includes(d.id));
+        const selectedDepartamentos = departamentos.filter(d => departamentoIds.includes(d.departamento_id));
         setDepartamentoNomes(selectedDepartamentos.map(d => d.departamento));
 
-    }, [unidadeIds, unidades, empresaIds, empresas, departamentoIds, departamentos]);
+        const selectedFuncoes = funcoes.filter(f => funcaoIds.includes(f.funcao_id));
+        setFuncaoNomes(selectedFuncoes.map(f => f.funcao));
+
+    }, [unidadeIds, unidades, empresaIds, empresas, departamentoIds, departamentos, funcaoIds, funcoes]);
+
+    // Função de Reset
+    const resetForm = () => {
+        setNome('');
+        setSenha('123');
+        setDataIngressoEmpresa(null);
+        setCpf('');
+        setUnidadeIds([]);
+        setEmpresasIds([]);
+        setDepartamentosIds([]);
+        setFuncoesIds([]);
+        setFuncoesPermissoes({});
+        // Opcional: se necessário resetar outros estados
+        // setSelectedProfissionais([]);
+    };
 
     const handleSubmit = async () => {
-        if (unidadeIds.length === 0 || empresaIds.length === 0 || departamentoIds.length === 0 || !senha || !dataIngressoEmpresa || !cpf ) {
-            setModalMessage('Preencha todos os campos obrigatórios: unidade(s), função, empresa, departamento senha, data de ingresso, CPF e número do conselho.');
+        if (
+            unidadeIds.length === 0 ||
+            empresaIds.length === 0 ||
+            departamentoIds.length === 0 ||
+            funcaoIds.length === 0 ||
+            !senha ||
+            !dataIngressoEmpresa ||
+            !cpf
+        ) {
+            setModalMessage('Preencha todos os campos obrigatórios: unidade(s), função, empresa, departamento, função, senha, data de ingresso e CPF.');
             setIsModalOpen(true);
             return;
         }
@@ -121,12 +161,12 @@ export default function NovoProfissional() {
                 if (searchResult.length > 0) {
                     const profissionalId = searchResult[0].profissional_id;
     
-                    // Aqui, vamos usar Promise.all para inserir as unidades de forma simultânea
+                    // Inserções das associações
                     const insertPromisesUnidades = unidadeIds.map((unidadeId) => {
                         return window.ipcRenderer.invoke('insert-records-postgres', {
                             table: 'profissionais_unidade_associacao',
                             columns: ['profissional_id', 'unidade_id'],
-                            values: [profissionalId, unidadeId], // Preenche com o profissional_id encontrado
+                            values: [profissionalId, unidadeId],
                         });
                     });
 
@@ -134,7 +174,7 @@ export default function NovoProfissional() {
                         return window.ipcRenderer.invoke('insert-records-postgres', {
                             table: 'profissionais_empresa_associacao',
                             columns: ['profissional_id', 'empresa_id'],
-                            values: [profissionalId, empresaId], // Preenche com o profissional_id encontrado
+                            values: [profissionalId, empresaId],
                         });
                     });
 
@@ -142,17 +182,50 @@ export default function NovoProfissional() {
                         return window.ipcRenderer.invoke('insert-records-postgres', {
                             table: 'profissionais_departamento_associacao',
                             columns: ['profissional_id', 'departamento_id'],
-                            values: [profissionalId, departamentoId], // Preenche com o profissional_id encontrado
+                            values: [profissionalId, departamentoId],
+                        });
+                    });
+
+                    const insertPromisesFuncoes = funcaoIds.map((funcaoId) => {
+                        const permissoes = funcoesPermissoes[funcaoId] || {
+                            perm_editar: false,
+                            perm_criar: false,
+                            perm_inativar: false,
+                            perm_excluir: false,
+                        };
+    
+                        return window.ipcRenderer.invoke('insert-records-postgres', {
+                            table: 'profissionais_funcao_associacao',
+                            columns: [
+                                'profissional_id',
+                                'funcao_id',
+                                'perm_editar',
+                                'perm_criar',
+                                'perm_inativar',
+                                'perm_excluir',
+                            ],
+                            values: [
+                                profissionalId,
+                                funcaoId,
+                                permissoes.perm_editar,
+                                permissoes.perm_criar,
+                                permissoes.perm_inativar,
+                                permissoes.perm_excluir,
+                            ],
                         });
                     });
     
-                    // Espera todas as inserções de unidade completarem
+                    // Espera todas as inserções completarem
                     const associationResults = await Promise.all([
                         ...insertPromisesUnidades,
                         ...insertPromisesEmpresas,
                         ...insertPromisesDepartamentos,
+                        ...insertPromisesFuncoes,
                     ]);
     
+                    // Redefine o formulário após sucesso
+                    resetForm();
+
                     setModalMessage('Usuário criado com sucesso!');
                 } else {
                     setModalMessage('Erro: Não foi possível encontrar o ID do profissional inserido.');
@@ -270,8 +343,10 @@ export default function NovoProfissional() {
                             />
                         </div>
 
-                        <div className='flex gap-10'>
-                            <div className="form-control mt-4">
+                        <div className="divider divider-warning mt-8">ACESSOS</div>
+
+                        <div className='flex gap-10 '>
+                            <div className="form-control mt-4 w-1/2">
                                 <label className="label">
                                     <span className="label-text">Unidades</span>
                                 </label>
@@ -285,24 +360,24 @@ export default function NovoProfissional() {
                                     </thead>
                                     <tbody>
                                         {unidades.map(unidade => (
-                                            <tr key={unidade.id}>
+                                            <tr key={unidade.unidade_id}>
 
                                                 <th>
                                                     <input
                                                         type="checkbox"
-                                                        value={unidade.id}
-                                                        checked={unidadeIds.includes(unidade.id)}
+                                                        value={unidade.unidade_id}
+                                                        checked={unidadeIds.includes(unidade.unidade_id)}
                                                         onChange={() => {
-                                                            if (unidadeIds.includes(unidade.id)) {
-                                                                setUnidadeIds(unidadeIds.filter(id => id !== unidade.id));
+                                                            if (unidadeIds.includes(unidade.unidade_id)) {
+                                                                setUnidadeIds(unidadeIds.filter(unidade_id => unidade_id !== unidade.unidade_id));
                                                             } else {
-                                                                setUnidadeIds([...unidadeIds, unidade.id]);
+                                                                setUnidadeIds([...unidadeIds, unidade.unidade_id]);
                                                             }
                                                         }}
                                                         className="checkbox"
                                                     />
                                                 </th>
-                                                <th>{unidade.id}</th>
+                                                <th>{unidade.unidade_id}</th>
                                                 <th>{unidade.unidade}</th>
                                             </tr>
                                         ))}
@@ -310,7 +385,7 @@ export default function NovoProfissional() {
                                 </table>
                             </div>
 
-                            <div className="form-control mt-4">
+                            <div className="form-control mt-4 w-1/2">
                                 <label className="label">
                                     <span className="label-text">Departamentos</span>
                                 </label>
@@ -324,25 +399,146 @@ export default function NovoProfissional() {
                                     </thead>
                                     <tbody>
                                         {departamentos.map(departamento => (
-                                            <tr key={departamento.id}>
+                                            <tr key={departamento.departamento_id}>
 
                                                 <th>
                                                     <input
                                                         type="checkbox"
-                                                        value={departamento.id}
-                                                        checked={departamentoIds.includes(departamento.id)}
+                                                        value={departamento.departamento_id}
+                                                        checked={departamentoIds.includes(departamento.departamento_id)}
                                                         onChange={() => {
-                                                            if (departamentoIds.includes(departamento.id)) {
-                                                                setDepartamentosIds(departamentoIds.filter(id => id !== departamento.id));
+                                                            if (departamentoIds.includes(departamento.departamento_id)) {
+                                                                setDepartamentosIds(departamentoIds.filter(departamento_id => departamento_id !== departamento.departamento_id));
                                                             } else {
-                                                                setDepartamentosIds([...departamentoIds, departamento.id]);
+                                                                setDepartamentosIds([...departamentoIds, departamento.departamento_id]);
                                                             }
                                                         }}
                                                         className="checkbox"
                                                     />
                                                 </th>
-                                                <th>{departamento.id}</th>
+                                                <th>{departamento.departamento_id}</th>
                                                 <th>{departamento.departamento}</th>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                
+                            </div>
+
+                            <div className="form-control mt-4 w-full">
+                                <label className="label">
+                                    <span className="label-text">Funções</span>
+                                </label>
+                                <table className="table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>ID</th>
+                                            <th>Função</th>
+                                            <th>Editar</th>
+                                            <th>Criar</th>
+                                            <th>Inativar</th>
+                                            <th>Excluir</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {funcoes.map(funcao => (
+                                            <tr key={funcao.funcao_id}>
+                                                <th>
+                                                    <input
+                                                        type="checkbox"
+                                                        value={funcao.funcao_id}
+                                                        checked={funcaoIds.includes(funcao.funcao_id)}
+                                                        onChange={() => {
+                                                            if (funcaoIds.includes(funcao.funcao_id)) {
+                                                                setFuncoesIds(funcaoIds.filter(funcao_id => funcao_id !== funcao.funcao_id));
+                                                                // Remover permissões quando a função for desmarcada
+                                                                const updatedPermissoes = { ...funcoesPermissoes };
+                                                                delete updatedPermissoes[funcao.funcao_id];
+                                                                setFuncoesPermissoes(updatedPermissoes);
+                                                            } else {
+                                                                setFuncoesIds([...funcaoIds, funcao.funcao_id]);
+                                                                // Inicializar permissões padrão quando a função for marcada
+                                                                setFuncoesPermissoes({
+                                                                    ...funcoesPermissoes,
+                                                                    [funcao.funcao_id]: {
+                                                                        perm_editar: false,
+                                                                        perm_criar: false,
+                                                                        perm_inativar: false,
+                                                                        perm_excluir: false,
+                                                                    }
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="checkbox"
+                                                    />
+                                                </th>
+                                                <th>{funcao.funcao_id}</th>
+                                                <th>{funcao.funcao}</th>
+                                                <th>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="checkbox"
+                                                        checked={funcoesPermissoes[funcao.funcao_id]?.perm_editar || false}
+                                                        onChange={(e) => {
+                                                            setFuncoesPermissoes({
+                                                                ...funcoesPermissoes,
+                                                                [funcao.funcao_id]: {
+                                                                    ...funcoesPermissoes[funcao.funcao_id],
+                                                                    perm_editar: e.target.checked,
+                                                                }
+                                                            });
+                                                        }}
+                                                    />
+                                                </th>
+                                                <th>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="checkbox"
+                                                        checked={funcoesPermissoes[funcao.funcao_id]?.perm_criar || false}
+                                                        onChange={(e) => {
+                                                            setFuncoesPermissoes({
+                                                                ...funcoesPermissoes,
+                                                                [funcao.funcao_id]: {
+                                                                    ...funcoesPermissoes[funcao.funcao_id],
+                                                                    perm_criar: e.target.checked,
+                                                                }
+                                                            });
+                                                        }}
+                                                    />
+                                                </th>
+                                                <th>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="checkbox"
+                                                        checked={funcoesPermissoes[funcao.funcao_id]?.perm_inativar || false}
+                                                        onChange={(e) => {
+                                                            setFuncoesPermissoes({
+                                                                ...funcoesPermissoes,
+                                                                [funcao.funcao_id]: {
+                                                                    ...funcoesPermissoes[funcao.funcao_id],
+                                                                    perm_inativar: e.target.checked,
+                                                                }
+                                                            });
+                                                        }}
+                                                    />
+                                                </th>
+                                                <th>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="checkbox"
+                                                        checked={funcoesPermissoes[funcao.funcao_id]?.perm_excluir || false}
+                                                        onChange={(e) => {
+                                                            setFuncoesPermissoes({
+                                                                ...funcoesPermissoes,
+                                                                [funcao.funcao_id]: {
+                                                                    ...funcoesPermissoes[funcao.funcao_id],
+                                                                    perm_excluir: e.target.checked,
+                                                                }
+                                                            });
+                                                        }}
+                                                    />
+                                                </th>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -351,8 +547,6 @@ export default function NovoProfissional() {
                             </div>
                         </div>
 
-
-                        
                         <div className="form-control mt-4">
                             <label className="label">
                                 <span className="label-text">Empresas</span>
@@ -368,23 +562,23 @@ export default function NovoProfissional() {
                                 </thead>
                                 <tbody>
                                     {empresas.map(empresa => (
-                                        <tr key={empresa.id}>
+                                        <tr key={empresa.empresa_id}>
                                             <th>
                                                 <input
                                                     type="checkbox"
-                                                    value={empresa.id}
-                                                    checked={empresaIds.includes(empresa.id)}
+                                                    value={empresa.empresa_id}
+                                                    checked={empresaIds.includes(empresa.empresa_id)}
                                                     onChange={() => {
-                                                        if (empresaIds.includes(empresa.id)) {
-                                                            setEmpresasIds(empresaIds.filter(id => id !== empresa.id));
+                                                        if (empresaIds.includes(empresa.empresa_id)) {
+                                                            setEmpresasIds(empresaIds.filter(empresa_id => empresa_id !== empresa.empresa_id));
                                                         } else {
-                                                            setEmpresasIds([...empresaIds, empresa.id]);
+                                                            setEmpresasIds([...empresaIds, empresa.empresa_id]);
                                                         }
                                                     }}
                                                     className="checkbox"
                                                 />
                                             </th>
-                                            <th>{empresa.id}</th>
+                                            <th>{empresa.empresa_id}</th>
                                             <th>{empresa.empresa}</th>
                                             <th>{empresa.cnpj}</th>
                                         </tr>
@@ -392,7 +586,6 @@ export default function NovoProfissional() {
                                 </tbody>
                             </table>
                         </div>
-
 
                         <button 
                             className="btn btn-primary mt-6" 
@@ -416,7 +609,7 @@ export default function NovoProfissional() {
                     {modalMessage?.includes('sucesso') && (
                         <>
                             <div className="mockup-code relative w-full my-10">
-                                <pre data-prefix="1">Unidade: {unidadeNomes} </pre>
+                                <pre data-prefix="1">Unidade: {unidadeNomes.join(', ')} </pre>
                                 <pre data-prefix="2"></pre>
                                 <pre data-prefix="3">Login: {nome}</pre>
                                 <pre data-prefix="4">Senha provisória: {senha}</pre>

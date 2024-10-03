@@ -37,13 +37,13 @@ export default function Profissionais() {
 
             const imagePromises = (result as Profissional[]).map(async (profissional) => {
                 const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
-                return { id: profissional.profissional_id, imageUrl };
+                return { profissional_id: profissional.profissional_id, imageUrl };
             });
 
             const imageResults = await Promise.all(imagePromises);
             const imageMap: Record<number, string> = {};
             imageResults.forEach(result => {
-                imageMap[result.id] = result.imageUrl;
+                imageMap[result.profissional_id] = result.imageUrl;
             });
 
             setImageUrls(imageMap);
@@ -59,7 +59,7 @@ export default function Profissionais() {
                 'query-database-postgres',
                 `SELECT pu.profissional_id, u.unidade 
                     FROM profissionais_unidade_associacao pu 
-                    JOIN profissionais_unidade u ON pu.unidade_id = u.id`
+                    JOIN profissionais_unidade u ON pu.unidade_id = u.unidade_id`
             );
             const unidadesMapping: Record<number, Unidade[]> = {};
             result.forEach((item: { profissional_id: number, unidade: string }) => {
@@ -74,26 +74,9 @@ export default function Profissionais() {
         }
     };
 
-    const fetchFuncoes = async () => {
-        try {
-            const result = await window.ipcRenderer.invoke(
-                'query-database-postgres',
-                'SELECT id, funcao FROM profissionais_funcao'
-            );
-            const funcoesMapping: Record<string, string> = {};
-            result.forEach((item: { id: string, funcao: string }) => {
-                funcoesMapping[item.id] = item.funcao;
-            });
-            setFuncoesMap(funcoesMapping);
-        } catch (error) {
-            console.error('Erro ao buscar funções:', error);
-        }
-    };
-
     useEffect(() => {
         fetchProfissionais();
         fetchUnidades();
-        fetchFuncoes();
     }, []);
 
     const indexOfLastRecord = currentPage * recordsPerPage;
@@ -133,11 +116,11 @@ export default function Profissionais() {
         }
     };
     
-    const handleCheckboxChange = (id: number): void => {
+    const handleCheckboxChange = (profissional_id: number): void => {
         setSelectedProfissionais(prevSelected =>
-            prevSelected.includes(id)
-                ? prevSelected.filter(selectedId => selectedId !== id)
-                : [...prevSelected, id]
+            prevSelected.includes(profissional_id)
+                ? prevSelected.filter(selectedId => selectedId !== profissional_id)
+                : [...prevSelected, profissional_id]
         );
     };
 

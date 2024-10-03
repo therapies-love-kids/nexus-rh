@@ -5,7 +5,7 @@ import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Empresa {
-    id: number;
+    empresa_id: number;
     empresa: string;
     cnpj: string;
 }
@@ -21,7 +21,7 @@ export default function Empresas() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, empresa, cnpj FROM profissionais_empresa WHERE empresa_status1 = \'inativo\''
+                'SELECT empresa_id, empresa, cnpj FROM profissionais_empresa WHERE empresa_status1 = \'inativo\''
             );
             setEmpresas(result as Empresa[]);
         } catch (error) {
@@ -38,11 +38,11 @@ export default function Empresas() {
     const currentRecords = empresas.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(empresas.length / recordsPerPage);
 
-    const handleCheckboxChange = (id: number): void => {
+    const handleCheckboxChange = (empresa_id: number): void => {
         setSelectedEmpresas(prevSelected =>
-            prevSelected.includes(id)
-                ? prevSelected.filter(selectedId => selectedId !== id)
-                : [...prevSelected, id]
+            prevSelected.includes(empresa_id)
+                ? prevSelected.filter(selectedId => selectedId !== empresa_id)
+                : [...prevSelected, empresa_id]
         );
     };
 
@@ -60,7 +60,7 @@ export default function Empresas() {
                     table: 'profissionais_empresa',
                     updates,
                     ids: selectedEmpresas,
-                    idColumn: 'id',
+                    idColumn: 'empresa_id',
                 });
                 if (result.success) {
                     await fetchEmpresas();
@@ -131,7 +131,7 @@ export default function Empresas() {
                                                 className="checkbox"
                                                 onChange={(e) => {
                                                     if (e.target.checked) {
-                                                        setSelectedEmpresas(currentRecords.map(e => e.id));
+                                                        setSelectedEmpresas(currentRecords.map(e => e.empresa_id));
                                                     } else {
                                                         setSelectedEmpresas([]);
                                                     }
@@ -147,18 +147,18 @@ export default function Empresas() {
                             </thead>
                             <tbody>
                                 {currentRecords.map((empresa) => (
-                                    <tr key={empresa.id}>
+                                    <tr key={empresa.empresa_id}>
                                         <th>
                                             <label>
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
-                                                    checked={selectedEmpresas.includes(empresa.id)}
-                                                    onChange={() => handleCheckboxChange(empresa.id)}
+                                                    checked={selectedEmpresas.includes(empresa.empresa_id)}
+                                                    onChange={() => handleCheckboxChange(empresa.empresa_id)}
                                                 />
                                             </label>
                                         </th>
-                                        <td>{empresa.id}</td>
+                                        <td>{empresa.empresa_id}</td>
                                         <td>{empresa.empresa}</td>
                                         <td>{empresa.cnpj}</td>
                                     </tr>

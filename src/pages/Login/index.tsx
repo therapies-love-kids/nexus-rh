@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Notification } from '@/components';
 
 interface Funcao {
-    id: number;
+    funcao_id: number;
     funcao: string;
 }
 
@@ -25,7 +25,7 @@ export default function Login() {
     useEffect(() => {
         const fetchFuncoes = async () => {
             try {
-                const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT id, funcao FROM profissionais_funcao');
+                const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT funcao_id, funcao FROM profissionais_funcao');
                 setFuncoes(result as Funcao[]);
             } catch (error) {
                 console.error('Erro ao buscar funções:', error);
@@ -138,7 +138,7 @@ export default function Login() {
                     >
                         <option value="">Selecione uma Função</option>
                         {funcoes.map((funcao) => (
-                            <option key={funcao.id} value={funcao.id}>{funcao.funcao}</option>
+                            <option key={funcao.funcao_id} value={funcao.funcao_id}>{funcao.funcao}</option>
                         ))}
                     </select>
                 </div>

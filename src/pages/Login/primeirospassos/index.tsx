@@ -15,11 +15,11 @@ export default function PrimeirosPassos() {
     const [dataNascimento, setDataNascimento] = useState<Date | null>(null);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error', message: string } | null>(null);
 
-    const { id } = useParams();
+    const { profissional_id } = useParams();
 
     async function handleFinalSubmit() {
         const fileExt = foto?.name.split('.').pop();
-        const fotoNome = `profissional_${id}.${fileExt}`;
+        const fotoNome = `profissional_${profissional_id}.${fileExt}`;
         
         try {
             const macAddress = await window.ipcRenderer.invoke('get-mac-address');
@@ -36,18 +36,18 @@ export default function PrimeirosPassos() {
             const response = await window.ipcRenderer.invoke('update-records-postgres', {
                 table: 'profissionais',
                 updates,
-                ids: [id],
+                ids: [profissional_id],
                 idColumn: 'profissional_id' // Passando o nome da coluna de identificação
             });
     
             if (response.success) {
                 setNotification({ type: 'success', message: 'Informações atualizadas com sucesso!' });
     
-                if (typeof macAddress === 'string' && macAddress && id) {
+                if (typeof macAddress === 'string' && macAddress && profissional_id) {
                     const macInsertResponse = await window.ipcRenderer.invoke('insert-records-postgres', {
                         table: 'profissionais_mac',
                         columns: ['profissional_id', 'mac'],
-                        values: [id, macAddress],
+                        values: [profissional_id, macAddress],
                     });
                 
                     if (macInsertResponse.success) {

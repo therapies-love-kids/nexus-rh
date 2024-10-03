@@ -5,7 +5,7 @@ import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Departamento {
-    id: number;
+    departamento_id: number;
     departamento: string;
 }
 
@@ -20,7 +20,7 @@ export default function Departamentos() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, departamento FROM profissionais_departamento WHERE departamento_status1 = \'ativo\''
+                'SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = \'ativo\''
             );
             setDepartamentos(result as Departamento[]);
         } catch (error) {
@@ -37,11 +37,11 @@ export default function Departamentos() {
     const currentRecords = departamentos.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(departamentos.length / recordsPerPage);
 
-    const handleCheckboxChange = (id: number): void => {
+    const handleCheckboxChange = (departamento_id: number): void => {
         setSelectedDepartamentos(prevSelected =>
-            prevSelected.includes(id)
-                ? prevSelected.filter(selectedId => selectedId !== id)
-                : [...prevSelected, id]
+            prevSelected.includes(departamento_id)
+                ? prevSelected.filter(selectedId => selectedId !== departamento_id)
+                : [...prevSelected, departamento_id]
         );
     };
 
@@ -69,7 +69,7 @@ export default function Departamentos() {
                     table: 'profissionais_departamento',
                     updates,
                     ids: selectedDepartamentos,
-                    idColumn: 'id',
+                    idColumn: 'departamento_id',
                 });
                 if (result.success) {
                     await fetchDepartamentos();
@@ -150,7 +150,7 @@ export default function Departamentos() {
                                                 className="checkbox"
                                                 onChange={(e) => {
                                                     if (e.target.checked) {
-                                                        setSelectedDepartamentos(currentRecords.map(e => e.id));
+                                                        setSelectedDepartamentos(currentRecords.map(e => e.departamento_id));
                                                     } else {
                                                         setSelectedDepartamentos([]);
                                                     }
@@ -165,18 +165,18 @@ export default function Departamentos() {
                             </thead>
                             <tbody>
                                 {currentRecords.map((departamento) => (
-                                    <tr key={departamento.id}>
+                                    <tr key={departamento.departamento_id}>
                                         <th>
                                             <label>
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
-                                                    checked={selectedDepartamentos.includes(departamento.id)}
-                                                    onChange={() => handleCheckboxChange(departamento.id)}
+                                                    checked={selectedDepartamentos.includes(departamento.departamento_id)}
+                                                    onChange={() => handleCheckboxChange(departamento.departamento_id)}
                                                 />
                                             </label>
                                         </th>
-                                        <td>{departamento.id}</td>
+                                        <td>{departamento.departamento_id}</td>
                                         <td>{departamento.departamento}</td>
                                     </tr>
                                 ))}

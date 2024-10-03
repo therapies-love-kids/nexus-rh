@@ -5,7 +5,7 @@ import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Funcao {
-    id: number;
+    funcao_id: number;
     funcao: string;
 }
 
@@ -20,7 +20,7 @@ export default function Funcaos() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, funcao FROM profissionais_funcao WHERE funcao_status1 = \'ativo\''
+                'SELECT funcao_id, funcao FROM profissionais_funcao WHERE funcao_status1 = \'ativo\''
             );
             setFuncoes(result as Funcao[]);
         } catch (error) {
@@ -37,11 +37,11 @@ export default function Funcaos() {
     const currentRecords = funcoes.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(funcoes.length / recordsPerPage);
 
-    const handleCheckboxChange = (id: number): void => {
+    const handleCheckboxChange = (funcao_id: number): void => {
         setSelectedFuncoes(prevSelected =>
-            prevSelected.includes(id)
-                ? prevSelected.filter(selectedId => selectedId !== id)
-                : [...prevSelected, id]
+            prevSelected.includes(funcao_id)
+                ? prevSelected.filter(selectedId => selectedId !== funcao_id)
+                : [...prevSelected, funcao_id]
         );
     };
 
@@ -69,7 +69,7 @@ export default function Funcaos() {
                     table: 'profissionais_funcao',
                     updates,
                     ids: selectedFuncoes,
-                    idColumn: 'id',
+                    idColumn: 'funcao_id',
                 });
                 if (result.success) {
                     await fetchFuncoes();
@@ -150,7 +150,7 @@ export default function Funcaos() {
                                                 className="checkbox"
                                                 onChange={(e) => {
                                                     if (e.target.checked) {
-                                                        setSelectedFuncoes(currentRecords.map(e => e.id));
+                                                        setSelectedFuncoes(currentRecords.map(e => e.funcao_id));
                                                     } else {
                                                         setSelectedFuncoes([]);
                                                     }
@@ -165,18 +165,18 @@ export default function Funcaos() {
                             </thead>
                             <tbody>
                                 {currentRecords.map((funcao) => (
-                                    <tr key={funcao.id}>
+                                    <tr key={funcao.funcao_id}>
                                         <th>
                                             <label>
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
-                                                    checked={selectedFuncoes.includes(funcao.id)}
-                                                    onChange={() => handleCheckboxChange(funcao.id)}
+                                                    checked={selectedFuncoes.includes(funcao.funcao_id)}
+                                                    onChange={() => handleCheckboxChange(funcao.funcao_id)}
                                                 />
                                             </label>
                                         </th>
-                                        <td>{funcao.id}</td>
+                                        <td>{funcao.funcao_id}</td>
                                         <td>{funcao.funcao}</td>
                                     </tr>
                                 ))}

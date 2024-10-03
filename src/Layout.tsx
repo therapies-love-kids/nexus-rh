@@ -137,7 +137,7 @@ export function LayoutDash({ children }: LayoutProps) {
                                 ) : (
                                     <img
                                         alt="Avatar padrão"
-                                        src="/public/default.png"
+                                        src="/default.png"
                                     />
                                 )}
                             </div>
