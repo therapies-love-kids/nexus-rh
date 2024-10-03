@@ -45,6 +45,9 @@ export default function AtualizarProfissional() {
 
     const [funcoes, setFuncoes] = useState<Funcao[]>([]);
     const [selectedFuncoes, setSelectedFuncoes] = useState<number[]>([]);
+    const [funcaoNomes, setFuncaoNomes] = useState<string[]>([]);
+    const [funcoesPermissoes, setFuncoesPermissoes] = useState<{ [key: number]: { perm_editar: boolean; perm_criar: boolean; perm_inativar: boolean; perm_excluir: boolean } }>({});
+
 
     const [macs, setMacs] = useState<string[]>([]);
     const [newMac, setNewMac] = useState<string>('');
@@ -152,10 +155,23 @@ export default function AtualizarProfissional() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                `SELECT funcao_id FROM profissionais_funcao_associacao WHERE profissional_id = ${profissional_id}`
+                `SELECT funcao_id, perm_editar, perm_criar, perm_inativar, perm_excluir 
+                FROM profissionais_funcao_associacao 
+                WHERE profissional_id = ${profissional_id}`
             );
             const IdsAssociados = result.map((row: any) => row.funcao_id);
             setSelectedFuncoes(IdsAssociados);
+    
+            const updatedPermissoes = result.reduce((acc: any, row: any) => {
+                acc[row.funcao_id] = {
+                    perm_editar: row.perm_editar,
+                    perm_criar: row.perm_criar,
+                    perm_inativar: row.perm_inativar,
+                    perm_excluir: row.perm_excluir,
+                };
+                return acc;
+            }, {});
+            setFuncoesPermissoes(updatedPermissoes);
         } catch (error) {
             console.log(error);
         }
@@ -247,9 +263,23 @@ export default function AtualizarProfissional() {
 
     const handleFuncaoChange = (funcao_id: number) => {
         if (selectedFuncoes.includes(funcao_id)) {
-            handleDeleteFuncao(funcao_id);
+            setSelectedFuncoes(selectedFuncoes.filter(id => id !== funcao_id));
+            // Remover permissões quando a função for desmarcada
+            const updatedPermissoes = { ...funcoesPermissoes };
+            delete updatedPermissoes[funcao_id];
+            setFuncoesPermissoes(updatedPermissoes);
         } else {
             setSelectedFuncoes([...selectedFuncoes, funcao_id]);
+            // Inicializar permissões padrão quando a função for marcada
+            setFuncoesPermissoes({
+                ...funcoesPermissoes,
+                [funcao_id]: {
+                    perm_editar: false,
+                    perm_criar: false,
+                    perm_inativar: false,
+                    perm_excluir: false,
+                }
+            });
         }
     };
 
@@ -388,27 +418,76 @@ export default function AtualizarProfissional() {
                 `SELECT funcao_id FROM profissionais_funcao_associacao WHERE profissional_id = ${profissionalId}`
             );
             const CurrentFuncoesId = FuncaoResult.map((row: any) => row.funcao_id);
-
+    
             const FuncoesRemove = CurrentFuncoesId.filter((funcao_id: number) => !funcoesId.includes(funcao_id));
             const FuncoesAdd = funcoesId.filter(funcao_id => !CurrentFuncoesId.includes(funcao_id));
+    
+            // Remover funções não selecionadas
             for (const funcaoId of FuncoesRemove) {
                 await handleDeleteFuncao(funcaoId);
             }
-
+    
+            // Adicionar novas funções com permissões
             for (const funcaoId of FuncoesAdd) {
+                const permissoes = funcoesPermissoes[funcaoId] || {
+                    perm_editar: false,
+                    perm_criar: false,
+                    perm_inativar: false,
+                    perm_excluir: false,
+                };
+            
                 await window.ipcRenderer.invoke('insert-records-postgres', {
                     table: 'profissionais_funcao_associacao',
-                    columns: ['profissional_id', 'funcao_id'],
-                    values: [profissionalId, funcaoId]
+                    columns: [
+                        'profissional_id',
+                        'funcao_id',
+                        'perm_editar',
+                        'perm_criar',
+                        'perm_inativar',
+                        'perm_excluir',
+                    ],
+                    values: [
+                        profissionalId,
+                        funcaoId,
+                        permissoes.perm_editar,
+                        permissoes.perm_criar,
+                        permissoes.perm_inativar,
+                        permissoes.perm_excluir,
+                    ],
                 });
             }
+            
+    
+            // Atualizar permissões das funções já existentes
+            for (const funcaoId of funcoesId) {
+                if (CurrentFuncoesId.includes(funcaoId)) {
+                    const permissoes = funcoesPermissoes[funcaoId] || {
+                        perm_editar: false,
+                        perm_criar: false,
+                        perm_inativar: false,
+                        perm_excluir: false,
+                    };
+            
+                    await window.ipcRenderer.invoke('update-records-postgres', {
+                        table: 'profissionais_funcao_associacao',
+                        updates: {
+                            perm_editar: permissoes.perm_editar,
+                            perm_criar: permissoes.perm_criar,
+                            perm_inativar: permissoes.perm_inativar,
+                            perm_excluir: permissoes.perm_excluir,
+                        },
+                        ids: [profissionalId, funcaoId],
+                        idColumn: ['profissional_id', 'funcao_id']
+                    });
+                }
+            }
+    
         } catch (error) {
             console.log(`Erro ao atualizar associações de funções: ${error}`);
             setModalMessage(`Erro ao atualizar associações de funções: ${error}`);
             setIsModalOpen(true);
         }
     };
-
 
     const handleDeleteUnidade = async (unidadeId: number) => {
         try {
@@ -684,24 +763,64 @@ export default function AtualizarProfissional() {
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
+                                                    checked={funcoesPermissoes[funcao.funcao_id]?.perm_editar || false}
+                                                    onChange={(e) => {
+                                                        setFuncoesPermissoes({
+                                                            ...funcoesPermissoes,
+                                                            [funcao.funcao_id]: {
+                                                                ...funcoesPermissoes[funcao.funcao_id],
+                                                                perm_editar: e.target.checked,
+                                                            }
+                                                        });
+                                                    }}
                                                 />
                                             </th>
                                             <th>
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
+                                                    checked={funcoesPermissoes[funcao.funcao_id]?.perm_criar || false}
+                                                    onChange={(e) => {
+                                                        setFuncoesPermissoes({
+                                                            ...funcoesPermissoes,
+                                                            [funcao.funcao_id]: {
+                                                                ...funcoesPermissoes[funcao.funcao_id],
+                                                                perm_criar: e.target.checked,
+                                                            }
+                                                        });
+                                                    }}
                                                 />
                                             </th>
                                             <th>
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
+                                                    checked={funcoesPermissoes[funcao.funcao_id]?.perm_inativar || false}
+                                                    onChange={(e) => {
+                                                        setFuncoesPermissoes({
+                                                            ...funcoesPermissoes,
+                                                            [funcao.funcao_id]: {
+                                                                ...funcoesPermissoes[funcao.funcao_id],
+                                                                perm_inativar: e.target.checked,
+                                                            }
+                                                        });
+                                                    }}
                                                 />
                                             </th>
                                             <th>
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
+                                                    checked={funcoesPermissoes[funcao.funcao_id]?.perm_excluir || false}
+                                                    onChange={(e) => {
+                                                        setFuncoesPermissoes({
+                                                            ...funcoesPermissoes,
+                                                            [funcao.funcao_id]: {
+                                                                ...funcoesPermissoes[funcao.funcao_id],
+                                                                perm_excluir: e.target.checked,
+                                                            }
+                                                        });
+                                                    }}
                                                 />
                                             </th>
                                         </tr>
@@ -709,7 +828,6 @@ export default function AtualizarProfissional() {
                                 </tbody>
                             </table>
                         </div>
-
 
                         <div className="divider mt-8">DISPOSITIVOS AUTORIZADOS</div>
 

@@ -39,8 +39,8 @@ export default function NovoProfissional() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [unidades, setUnidades] = useState<Unidade[]>([]);
-    const [unidadeIds, setUnidadeIds] = useState<number[]>([]); // Mudança para permitir múltiplos IDs
-    const [unidadeNomes, setUnidadeNomes] = useState<string[]>([]); // Para armazenar os nomes das unidades selecionadas
+    const [unidadeIds, setUnidadeIds] = useState<number[]>([]);
+    const [unidadeNomes, setUnidadeNomes] = useState<string[]>([]);
 
     const [empresas, setEmpresas] = useState<Empresa[]>([]);
     const [empresaIds, setEmpresasIds] = useState<number[]>([]);

@@ -15,12 +15,16 @@ interface Unidade {
     unidade: string;
 }
 
+interface Funcao {
+    funcao: string;
+}
+
 export default function Profissionais() {
     const [, setProfissionais] = useState<Profissional[]>([]);
     const [selectedProfissionais, setSelectedProfissionais] = useState<number[]>([]);
     const [filteredProfissionais, setFilteredProfissionais] = useState<Profissional[]>([]);
     const [unidadesMap, setUnidadesMap] = useState<Record<number, Unidade[]>>({});
-    const [funcoesMap, setFuncoesMap] = useState<Record<string, string>>({});
+    const [funcoesMap, setFuncoesMap] = useState<Record<number, Funcao[]>>({});
     const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
@@ -74,9 +78,31 @@ export default function Profissionais() {
         }
     };
 
+    const fetchFuncoes = async () => {
+        try {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                `SELECT pu.profissional_id, u.funcao 
+                    FROM profissionais_funcao_associacao pu 
+                    JOIN profissionais_funcao u ON pu.funcao_id = u.funcao_id`
+            );
+            const funcoesMapping: Record<number, Funcao[]> = {};
+            result.forEach((item: { profissional_id: number, funcao: string }) => {
+                if (!funcoesMapping[item.profissional_id]) {
+                    funcoesMapping[item.profissional_id] = [];
+                }
+                funcoesMapping[item.profissional_id].push({ funcao: item.funcao });
+            });
+            setFuncoesMap(funcoesMapping);
+        } catch (error) {
+            console.error('Erro ao buscar funções:', error);
+        }
+    };
+
     useEffect(() => {
         fetchProfissionais();
         fetchUnidades();
+        fetchFuncoes();
     }, []);
 
     const indexOfLastRecord = currentPage * recordsPerPage;
@@ -208,6 +234,7 @@ export default function Profissionais() {
                                     <th>Foto</th>
                                     <th>Nome</th>
                                     <th>Unidades</th>
+                                    <th>Funções</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -232,6 +259,11 @@ export default function Profissionais() {
                                             {unidadesMap[prof.profissional_id]?.map((unidade, index) => (
                                                 <div key={index}>{unidade.unidade}</div>
                                             )) || 'Nenhuma unidade'}
+                                        </td>
+                                        <td>
+                                            {funcoesMap[prof.profissional_id]?.map((funcao, index) => (
+                                                <div key={index}>{funcao.funcao}</div>
+                                            )) || 'Nenhuma função'}
                                         </td>
                                     </tr>
                                 ))}
