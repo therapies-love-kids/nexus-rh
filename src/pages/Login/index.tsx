@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Notification } from '@/components';
+import "/src/main.scss"
 
 interface Departamento {
     departamento_id: number;
@@ -123,13 +124,14 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen w-screen flex bg-gradient-to-l to-primary/50 from-accent/50">
-            <div className='w-2/5 relative flex items-center justify-center'>
+        <div className="min-h-screen w-screen flex css-gradiente-animado" id='css-gradiente-animado'>
+            <div className='w-1/3 relative flex items-center justify-center'>
                 <img src="/LogoVertical.svg" className='w-1/2 p-5' alt="" />
+                <img src="/public/waves.svg" className='absolute bottom-0' alt="aaa" />
             </div>
     
-            <div className='w-3/5 h-screen flex items-center justify-center py-40 px-40 relative'>
-                <div className="z-10 absolute right-10 w-2/3 h- p-6 bg-base-100 shadow-xl rounded-lg">
+            <div className='w-2/3 h-screen flex items-center justify-center py-40 px-40 relative bg-base-200'>
+                <div className="w-2/3 p-6 bg-base-100 shadow-xl rounded-lg">
                     <h2 className="text-2xl font-bold mb-0">Login</h2>
     
                     <div className='divider divider-primary mt-0 mb-20 w-40'></div>
@@ -189,6 +191,8 @@ export default function Login() {
                     >
                         Entrar
                     </button>
+
+                    <div className='divider mt-10'>OU</div>
     
                     <div className="tooltip text-center w-full mt-5" data-tip="Entre em contato com um administrador para recuperar a senha">
                         <a className="cursor-pointer">Esqueci a senha</a>
@@ -203,14 +207,6 @@ export default function Login() {
                             onClose={handleNotificationClose}
                         />
                     )}
-                </div>
-    
-                <div className='absolute inset-0'>
-                    <img
-                        src="/clouds.svg"
-                        className='h-full w-full object-cover object-left'
-                        alt="Clouds"
-                    />
                 </div>
             </div>
         </div>

@@ -14,6 +14,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
     const scrollbarRef = useRef(null);
+    
 
     useEffect(() => {
         let scrollbarInstance: Scrollbar;
@@ -34,20 +35,37 @@ export default function Layout({ children }: LayoutProps) {
             }
         };
     }, []);
+
+    const [theme, setTheme] = useState('OrbyLight');
+
+    useEffect(() => {
+        // Aplica o tema no root element
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [theme]);
+
+    const handleThemeToggle = () => {
+        // Troca entre CustomLight e CustomDark
+        setTheme((prevTheme) => (prevTheme === 'OrbyLight' ? 'OrbyDark' : 'OrbyLight'));
+    };
+
     
     return (
         <div className='w-full h-full' ref={scrollbarRef}>
             <div>
-                <Link to="/style">
-                    <button className='btn btn-circle btn-ghost fixed right-0 z-10'>
-                        <IoBrush />
-                    </button>
-                </Link>
-                <Link to="/inicio">
-                    <button className='btn btn-circle btn-ghost fixed right-20 z-10'>
-                        <IoEnter />
-                    </button>
-                </Link>
+                <div className='fixed right-0 z-10 flex gap-5 p-5'>
+
+                    <Link to="/">
+                        <button className='btn btn-circle btn-ghost'>
+                            <IoEnter />
+                        </button>
+                    </Link>
+
+                    <label className="swap swap-rotate btn btn-circle btn-ghost">
+                        <input type="checkbox" className="theme-controller" onChange={handleThemeToggle} />
+                        <IoSunny className='swap-on fill-current' />
+                        <IoMoon className='swap-off fill-current' />
+                    </label>
+                </div>
                 {children}
             </div>
         </div>
@@ -93,6 +111,19 @@ export function LayoutDash({ children }: LayoutProps) {
         };
     }, []);
 
+    const [theme, setTheme] = useState('OrbyLight');
+
+    useEffect(() => {
+        // Aplica o tema no root element
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [theme]);
+
+    const handleThemeToggle = () => {
+        // Troca entre CustomLight e CustomDark
+        setTheme((prevTheme) => (prevTheme === 'OrbyLight' ? 'OrbyDark' : 'OrbyLight'));
+    };
+
+
     return (
         <div>
             <div className={`navbar ${scrollY === 0 ? 'bg-transparent' : 'bg-base-100'} z-20 fixed`}>
@@ -100,11 +131,11 @@ export function LayoutDash({ children }: LayoutProps) {
                     <div className="drawer">
                         <input id="my-drawer" type="checkbox" className="drawer-toggle" />
                         <div className="drawer-content">
-                            <label htmlFor="my-drawer" className="btn btn-ghost drawer-button text-xl">
+                            <label htmlFor="my-drawer" className="btn btn-ghost drawer-button text-xl ">
                                 <IoMenu />
                             </label>
-                            <Link to={"/"} className='btn btn-ghost text-xl'>
-                                <img src="/particle.svg" alt="" className='h-2/3' />
+                            <Link to={"/"} className='btn btn-ghost'>
+                                <h2 className='text-xl tracking-[10px]'>NEXUS</h2>
                             </Link>
                         </div>
                         <div className="drawer-side">
@@ -147,10 +178,10 @@ export function LayoutDash({ children }: LayoutProps) {
                             className="menu menu-sm dropdown-content bg-base-100 rounded-box mt-3 w-52 p-2 shadow">
                             <li><Link to={"/"}>Sair</Link></li>
                             <li>
-                                <label className="swap swap-rotate">
-                                    <input type="checkbox" className="theme-controller" value="OrbyDark" />
-                                    <IoSunny className='swap-on h-8 w-8 fill-current'/>
-                                    <IoMoon className='swap-off h-8 w-8 fill-current'/>
+                                <label className="swap swap-rotate btn btn-circle btn-ghost">
+                                    <input type="checkbox" className="theme-controller" onChange={handleThemeToggle} />
+                                    <IoSunny className='swap-on fill-current' />
+                                    <IoMoon className='swap-off fill-current' />
                                 </label>
                             </li>
                         </ul>

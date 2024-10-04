@@ -88,3 +88,35 @@ p, pre, small{
     }
     
 }
+
+
+.css-gradiente-animado {
+    background: linear-gradient(270deg, #94c6e6, #3891c9);
+    background-size: 400% 400%;
+
+    -webkit-animation: AnimationBackground 30s ease infinite;
+    -moz-animation: AnimationBackground 30s ease infinite;
+    -o-animation: AnimationBackground 30s ease infinite;
+    animation: AnimationBackground 30s ease infinite;
+}
+
+@-webkit-keyframes AnimationBackground {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+}
+@-moz-keyframes AnimationBackground {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+}
+@-o-keyframes AnimationBackground {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+}
+@keyframes AnimationBackground {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+}
