@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SetStateAction } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { Link, useParams } from 'react-router-dom';
 import { IoArrowBack, IoCalendar, IoKey, IoPerson, IoClose } from 'react-icons/io5';
 import DatePicker from 'react-date-picker';
+import MaskedInput from 'react-text-mask';
 
 interface Unidade {
     unidade_id: number;
@@ -28,6 +29,7 @@ export default function AtualizarProfissional() {
     const { profissional_id } = useParams<{ profissional_id: string }>();
 
     const [nome, setNome] = useState<string>('');
+    const [cpf, setCPF] = useState<string>('');
     const [senha, setSenha] = useState<string>('');
     const [dataIngressoEmpresa, setDataIngressoEmpresa] = useState<Date | null>(null);
 
@@ -183,10 +185,11 @@ export default function AtualizarProfissional() {
                 if (profissional_id) {
                     const result = await window.ipcRenderer.invoke(
                         'query-database-postgres',
-                        `SELECT profissional_nome, profissional_senha, profissional_dataingressoempresa FROM profissionais WHERE profissional_id = ${profissional_id}`
+                        `SELECT profissional_nome, profissional_cpf, profissional_senha, profissional_dataingressoempresa FROM profissionais WHERE profissional_id = ${profissional_id}`
                     );                
                     const profissional = result[0];
                     setNome(profissional.profissional_nome ?? '');
+                    setCPF(profissional.profissional_cpf ?? '');
                     setSenha(profissional.profissional_senha ?? '');
                     setDataIngressoEmpresa(profissional.profissional_dataingressoempresa ? new Date(profissional.profissional_dataingressoempresa) : null);
 
@@ -294,6 +297,7 @@ export default function AtualizarProfissional() {
             const table = 'profissionais';
             const updates = {
                 profissional_nome: nome,
+                profissional_cpf: cpf,
                 profissional_senha: senha,
                 profissional_dataingressoempresa: dataIngressoEmpresa.toISOString().split('T')[0] // Convertendo para formato YYYY-MM-DD
             };
@@ -560,7 +564,18 @@ export default function AtualizarProfissional() {
             console.log(`Erro ao remover função: ${error}`);
         }
     };
-    
+
+    const [step, setStep] = useState(1); // Controla a etapa atual
+    const totalSteps = 4; // Número total de etapas
+
+    const handleNext = () => {
+        if (step < totalSteps) setStep(step + 1);
+    };
+
+    const handlePrevious = () => {
+        if (step > 1) setStep(step - 1);
+    };
+
     return (
         <div className='bg-base-200 min-h-screen'>
             <Breadcrumbs />
@@ -577,312 +592,355 @@ export default function AtualizarProfissional() {
                             </p>
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Nome do profissional</span>
-                            </label>
-                            <label className="input input-bordered flex items-center gap-2">
-                                <IoPerson />
-                                <input 
-                                    type="text" 
-                                    placeholder="Nome do profissional" 
-                                    className="flex-grow"
-                                    value={nome}
-                                    onChange={(e) => setNome(e.target.value)} 
-                                />
-                            </label>
+                        {/* Step 1: Formulário */}
+                        {step === 1 && (
+                            <div>
+                                <h2 className='card-title mt-5'>Informações Gerais</h2>
+                                <div className="form-control mt-4">
+                                    <label className="label">
+                                        <span className="label-text">Nome do profissional</span>
+                                    </label>
+                                    <label className="input input-bordered flex items-center gap-2">
+                                        <IoPerson />
+                                        <input
+                                            type="text"
+                                            placeholder="Nome do profissional"
+                                            className="flex-grow"
+                                            value={nome}
+                                            onChange={(e) => setNome(e.target.value)}
+                                        />
+                                    </label>
+                                </div>
+
+                                <div className="form-control mt-4">
+                                    <label className="label">
+                                        <span className="label-text">CPF do profissional</span>
+                                    </label>
+                                    <MaskedInput
+                                        type="text"
+                                        placeholder="000.000.000-00"
+                                        className="input input-bordered"
+                                        value={cpf}
+                                        onChange={(e: { target: { value: SetStateAction<string>; }; }) => setCPF(e.target.value)}
+                                        mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]}
+                                        guide={false}
+                                    />
+                                </div>
+                                
+                                <div className="form-control mt-4">
+                                    <label className="label">
+                                        <span className="label-text">Senha provisória</span>
+                                    </label>
+                                    <label className="input input-bordered flex items-center gap-2">
+                                        <IoKey />
+                                        <input
+                                            type="password"
+                                            placeholder="Senha do profissional"
+                                            className="flex-grow"
+                                            value={senha}
+                                            onChange={(e) => setSenha(e.target.value)}
+                                        />
+                                    </label>
+                                </div>
+
+                                <div className="form-control mt-4">
+                                    <label className="label">
+                                        <span className="label-text">Data de Ingresso na Empresa</span>
+                                    </label>
+                                    <label className="input input-bordered flex items-center gap-2">
+                                        <IoCalendar />
+                                        <DatePicker
+                                            onChange={(value) => {
+                                                if (value && !Array.isArray(value)) {
+                                                    setDataIngressoEmpresa(value as Date);
+                                                }
+                                            }}
+                                            value={dataIngressoEmpresa}
+                                            format="dd/MM/yyyy"
+                                            className="w-full custom-datepicker"
+                                            calendarIcon={<IoCalendar />}
+                                            clearIcon={<IoClose />}
+                                            dayPlaceholder="dd"
+                                            monthPlaceholder="mm"
+                                            yearPlaceholder="aaaa"
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Step 2: Tabelas de Acesso */}
+                        {step === 2 && (
+                            <div>
+                                <h2 className='card-title mt-5'>Categorias</h2>
+                                <div className='flex'>
+                                    <div className="form-control my-10 w-1/3">
+                                        <label className="label">
+                                            <span className="label-text">Unidades</span>
+                                        </label>
+                                        <table className="table">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>Unidade</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {unidades.map(unidade => (
+                                                    <tr key={unidade.unidade_id}>
+                                                        <th>
+                                                            <input
+                                                                type="checkbox"
+                                                                value={unidade.unidade_id}
+                                                                checked={selectedUnidades.includes(unidade.unidade_id)}
+                                                                onChange={() => handleUnidadeChange(unidade.unidade_id)}
+                                                                className="checkbox"
+                                                            />
+                                                        </th>
+                                                        <th>{unidade.unidade}</th>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div className="form-control my-10 w-1/3">
+                                        <label className="label">
+                                            <span className="label-text">Departamentos</span>
+                                        </label>
+                                        <table className="table">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>Departamento</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {departamentos.map(departamento => (
+                                                    <tr key={departamento.departamento_id}>
+                                                        <th>
+                                                            <input
+                                                                type="checkbox"
+                                                                value={departamento.departamento_id}
+                                                                checked={selectedDepartamentos.includes(departamento.departamento_id)}
+                                                                onChange={() => handleDepartamentoChange(departamento.departamento_id)}
+                                                                className="checkbox"
+                                                            />
+                                                        </th>
+                                                        <th>{departamento.departamento}</th>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div className="form-control my-10 w-full">
+                                        <label className="label">
+                                            <span className="label-text">Funções</span>
+                                        </label>
+                                        <table className="table">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>Função</th>
+                                                    <th>Editar</th>
+                                                    <th>Criar</th>
+                                                    <th>Inativar</th>
+                                                    <th>Excluir</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {funcoes.map(funcao => (
+                                                    <tr key={funcao.funcao_id}>
+                                                        <th>
+                                                            <input
+                                                                type="checkbox"
+                                                                value={funcao.funcao_id}
+                                                                checked={selectedFuncoes.includes(funcao.funcao_id)}
+                                                                onChange={() => handleFuncaoChange(funcao.funcao_id)}
+                                                                className="checkbox"
+                                                            />
+                                                        </th>
+                                                        <th>{funcao.funcao}</th>
+                                                        <th>
+                                                            <input
+                                                                type="checkbox"
+                                                                className="checkbox"
+                                                                checked={funcoesPermissoes[funcao.funcao_id]?.perm_editar || false}
+                                                                onChange={(e) => {
+                                                                    setFuncoesPermissoes({
+                                                                        ...funcoesPermissoes,
+                                                                        [funcao.funcao_id]: {
+                                                                            ...funcoesPermissoes[funcao.funcao_id],
+                                                                            perm_editar: e.target.checked,
+                                                                        }
+                                                                    });
+                                                                }}
+                                                            />
+                                                        </th>
+                                                        <th>
+                                                            <input
+                                                                type="checkbox"
+                                                                className="checkbox"
+                                                                checked={funcoesPermissoes[funcao.funcao_id]?.perm_criar || false}
+                                                                onChange={(e) => {
+                                                                    setFuncoesPermissoes({
+                                                                        ...funcoesPermissoes,
+                                                                        [funcao.funcao_id]: {
+                                                                            ...funcoesPermissoes[funcao.funcao_id],
+                                                                            perm_criar: e.target.checked,
+                                                                        }
+                                                                    });
+                                                                }}
+                                                            />
+                                                        </th>
+                                                        <th>
+                                                            <input
+                                                                type="checkbox"
+                                                                className="checkbox"
+                                                                checked={funcoesPermissoes[funcao.funcao_id]?.perm_inativar || false}
+                                                                onChange={(e) => {
+                                                                    setFuncoesPermissoes({
+                                                                        ...funcoesPermissoes,
+                                                                        [funcao.funcao_id]: {
+                                                                            ...funcoesPermissoes[funcao.funcao_id],
+                                                                            perm_inativar: e.target.checked,
+                                                                        }
+                                                                    });
+                                                                }}
+                                                            />
+                                                        </th>
+                                                        <th>
+                                                            <input
+                                                                type="checkbox"
+                                                                className="checkbox"
+                                                                checked={funcoesPermissoes[funcao.funcao_id]?.perm_excluir || false}
+                                                                onChange={(e) => {
+                                                                    setFuncoesPermissoes({
+                                                                        ...funcoesPermissoes,
+                                                                        [funcao.funcao_id]: {
+                                                                            ...funcoesPermissoes[funcao.funcao_id],
+                                                                            perm_excluir: e.target.checked,
+                                                                        }
+                                                                    });
+                                                                }}
+                                                            />
+                                                        </th>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 3 && (
+                            <div>
+                                <h2 className='card-title mt-5'>Empresas</h2>
+                                <div className="form-control my-10">
+                                    <table className="table">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>ID</th>
+                                                <th>Empresa</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {empresas.map(empresa => (
+                                                <tr key={empresa.empresa_id}>
+                                                    <th>
+                                                        <input
+                                                            type="checkbox"
+                                                            value={empresa.empresa_id}
+                                                            checked={selectedEmpresas.includes(empresa.empresa_id)}
+                                                            onChange={() => handleEmpresaChange(empresa.empresa_id)}
+                                                            className="checkbox"
+                                                        />
+                                                    </th>
+                                                    <th>{empresa.empresa_id}</th>
+                                                    <th>{empresa.empresa}</th>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 4 && (
+                            <div>
+                                <h2 className='card-title mt-5'>Dispositivos autorizados</h2>
+                                <div className="form-control my-10">
+                                    <table className="table">
+                                        <thead>
+                                            <tr>
+                                                <th>MAC</th>
+                                                <th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {macs.map((mac, index) => (
+                                                <tr key={index}>
+                                                    <td>{mac}</td>
+                                                    <td>
+                                                        <button
+                                                            className="btn btn-error"
+                                                            onClick={() => handleDeleteMac(mac)}
+                                                        >
+                                                            Excluir
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            <tr>
+                                                <td>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Novo MAC"
+                                                        className="input input-bordered w-full"
+                                                        value={newMac}
+                                                        onChange={(e) => setNewMac(e.target.value)}
+                                                    />
+                                                </td>
+                                                <td>
+                                                    <button className="btn btn-primary" onClick={handleAddMac}>
+                                                        Adicionar
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Navegação entre os passos */}
+                        <div className="join join-vertical lg:join-horizontal">
+                            <button
+                                className="btn join-item"
+                                onClick={handlePrevious}
+                                disabled={step === 1}
+                            >
+                                Voltar
+                            </button>
+                            {step < totalSteps ? (
+                                <button
+                                    className="btn join-item"
+                                    onClick={handleNext}
+                                >
+                                    Próximo
+                                </button>
+                            ) : (
+                                <button
+                                    className="btn btn-success join-item"
+                                    onClick={handleSubmit}
+                                >
+                                    Atualizar Profissional
+                                </button>
+                            )}
                         </div>
-                        
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Senha provisória</span>
-                            </label>
-                            <label className="input input-bordered flex items-center gap-2">
-                                <IoKey />
-                                <input
-                                    type="password"
-                                    placeholder="Senha do profissional"
-                                    className="flex-grow"
-                                    value={senha}
-                                    onChange={(e) => setSenha(e.target.value)}
-                                />
-                            </label>
-                        </div>
-
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Data de Ingresso na Empresa</span>
-                            </label>
-                            <label className="input input-bordered flex items-center gap-2">
-                                <IoCalendar />
-                                <DatePicker
-                                    onChange={(value) => {
-                                        if (value && !Array.isArray(value)) {
-                                            setDataIngressoEmpresa(value as Date);
-                                        }
-                                    }}
-                                    value={dataIngressoEmpresa}
-                                    format="dd/MM/yyyy"
-                                    className="w-full custom-datepicker"
-                                    calendarIcon={<IoCalendar />}
-                                    clearIcon={<IoClose />}
-                                    dayPlaceholder="dd"
-                                    monthPlaceholder="mm"
-                                    yearPlaceholder="aaaa"
-                                />
-                            </label>
-                        </div>
-
-                        <div className="form-control my-10">
-                            <label className="label">
-                                <span className="label-text">Unidades</span>
-                            </label>
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>ID</th>
-                                        <th>Unidade</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {unidades.map(unidade => (
-                                        <tr key={unidade.unidade_id}>
-                                            <th>
-                                                <input
-                                                    type="checkbox"
-                                                    value={unidade.unidade_id}
-                                                    checked={selectedUnidades.includes(unidade.unidade_id)}
-                                                    onChange={() => handleUnidadeChange(unidade.unidade_id)}
-                                                    className="checkbox"
-                                                />
-                                            </th>
-                                            <th>{unidade.unidade_id}</th>
-                                            <th>{unidade.unidade}</th>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className="form-control my-10">
-                            <label className="label">
-                                <span className="label-text">Departamentos</span>
-                            </label>
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>ID</th>
-                                        <th>Departamento</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {departamentos.map(departamento => (
-                                        <tr key={departamento.departamento_id}>
-                                            <th>
-                                                <input
-                                                    type="checkbox"
-                                                    value={departamento.departamento_id}
-                                                    checked={selectedDepartamentos.includes(departamento.departamento_id)}
-                                                    onChange={() => handleDepartamentoChange(departamento.departamento_id)}
-                                                    className="checkbox"
-                                                />
-                                            </th>
-                                            <th>{departamento.departamento_id}</th>
-                                            <th>{departamento.departamento}</th>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className="form-control my-10">
-                            <label className="label">
-                                <span className="label-text">Empresas</span>
-                            </label>
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>ID</th>
-                                        <th>Empresa</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {empresas.map(empresa => (
-                                        <tr key={empresa.empresa_id}>
-                                            <th>
-                                                <input
-                                                    type="checkbox"
-                                                    value={empresa.empresa_id}
-                                                    checked={selectedEmpresas.includes(empresa.empresa_id)}
-                                                    onChange={() => handleEmpresaChange(empresa.empresa_id)}
-                                                    className="checkbox"
-                                                />
-                                            </th>
-                                            <th>{empresa.empresa_id}</th>
-                                            <th>{empresa.empresa}</th>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className="form-control my-10">
-                            <label className="label">
-                                <span className="label-text">Funções</span>
-                            </label>
-                            <table className="table">
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>ID</th>
-                                        <th>Função</th>
-                                        <th>Editar</th>
-                                        <th>Criar</th>
-                                        <th>Inativar</th>
-                                        <th>Excluir</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {funcoes.map(funcao => (
-                                        <tr key={funcao.funcao_id}>
-                                            <th>
-                                                <input
-                                                    type="checkbox"
-                                                    value={funcao.funcao_id}
-                                                    checked={selectedFuncoes.includes(funcao.funcao_id)}
-                                                    onChange={() => handleFuncaoChange(funcao.funcao_id)}
-                                                    className="checkbox"
-                                                />
-                                            </th>
-                                            <th>{funcao.funcao_id}</th>
-                                            <th>{funcao.funcao}</th>
-                                            <th>
-                                                <input
-                                                    type="checkbox"
-                                                    className="checkbox"
-                                                    checked={funcoesPermissoes[funcao.funcao_id]?.perm_editar || false}
-                                                    onChange={(e) => {
-                                                        setFuncoesPermissoes({
-                                                            ...funcoesPermissoes,
-                                                            [funcao.funcao_id]: {
-                                                                ...funcoesPermissoes[funcao.funcao_id],
-                                                                perm_editar: e.target.checked,
-                                                            }
-                                                        });
-                                                    }}
-                                                />
-                                            </th>
-                                            <th>
-                                                <input
-                                                    type="checkbox"
-                                                    className="checkbox"
-                                                    checked={funcoesPermissoes[funcao.funcao_id]?.perm_criar || false}
-                                                    onChange={(e) => {
-                                                        setFuncoesPermissoes({
-                                                            ...funcoesPermissoes,
-                                                            [funcao.funcao_id]: {
-                                                                ...funcoesPermissoes[funcao.funcao_id],
-                                                                perm_criar: e.target.checked,
-                                                            }
-                                                        });
-                                                    }}
-                                                />
-                                            </th>
-                                            <th>
-                                                <input
-                                                    type="checkbox"
-                                                    className="checkbox"
-                                                    checked={funcoesPermissoes[funcao.funcao_id]?.perm_inativar || false}
-                                                    onChange={(e) => {
-                                                        setFuncoesPermissoes({
-                                                            ...funcoesPermissoes,
-                                                            [funcao.funcao_id]: {
-                                                                ...funcoesPermissoes[funcao.funcao_id],
-                                                                perm_inativar: e.target.checked,
-                                                            }
-                                                        });
-                                                    }}
-                                                />
-                                            </th>
-                                            <th>
-                                                <input
-                                                    type="checkbox"
-                                                    className="checkbox"
-                                                    checked={funcoesPermissoes[funcao.funcao_id]?.perm_excluir || false}
-                                                    onChange={(e) => {
-                                                        setFuncoesPermissoes({
-                                                            ...funcoesPermissoes,
-                                                            [funcao.funcao_id]: {
-                                                                ...funcoesPermissoes[funcao.funcao_id],
-                                                                perm_excluir: e.target.checked,
-                                                            }
-                                                        });
-                                                    }}
-                                                />
-                                            </th>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className="divider mt-8">DISPOSITIVOS AUTORIZADOS</div>
-
-                        <div className="overflow-x-auto mt-4">
-                            <table className="table">
-                                {/* Cabeçalho */}
-                                <thead>
-                                    <tr>
-                                        <th>MAC</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {/* Exibir MACs */}
-                                    {macs.map((mac, index) => (
-                                        <tr key={index}>
-                                            <td>{mac}</td>
-                                            <td>
-                                                <button
-                                                    className="btn btn-error"
-                                                    onClick={() => handleDeleteMac(mac)}
-                                                >
-                                                    Excluir
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {/* Linha para adicionar novo MAC */}
-                                    <tr>
-                                        <td>
-                                            <input
-                                                type="text"
-                                                placeholder="Novo MAC"
-                                                className="input input-bordered w-full"
-                                                value={newMac}
-                                                onChange={(e) => setNewMac(e.target.value)}
-                                            />
-                                        </td>
-                                        <td>
-                                            <button className="btn btn-primary" onClick={handleAddMac}>
-                                                Adicionar
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <button 
-                            className="btn btn-primary mt-20" 
-                            onClick={handleSubmit}
-                        >
-                            Atualizar Profissional
-                        </button>
-
                     </div>
                 </div>
             </div>

@@ -134,7 +134,7 @@ export default function Departamentos() {
                                     <option value="50">50</option>
                                 </select>
 
-                                <Link to={'/departamentos/nova'}>
+                                <Link to={'/departamentos/novo'}>
                                     <button className="btn btn-primary">Adicionar</button>
                                 </Link>
                             </div>

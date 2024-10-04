@@ -46,6 +46,14 @@ export default defineConfig(({ command }) => {
                                 ],
                             },
                         },
+                        css: {
+                            preprocessorOptions: {
+                                scss: {
+                                    api: 'modern',
+                                    silenceDeprecations: ['legacy-js-api'],
+                                },
+                            },
+                        },                
                     },
                 },
                 preload: {
@@ -59,6 +67,14 @@ export default defineConfig(({ command }) => {
                                 external: Object.keys(pkg.dependencies || {}),
                             },
                         },
+                        css: {
+                            preprocessorOptions: {
+                                scss: {
+                                    api: 'modern', // or 'modern'
+                                    silenceDeprecations: ['legacy-js-api'],
+                                },
+                            },
+                        },  
                     },
                 },
                 renderer: {},

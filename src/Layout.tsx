@@ -43,7 +43,7 @@ export default function Layout({ children }: LayoutProps) {
                         <IoBrush />
                     </button>
                 </Link>
-                <Link to="/">
+                <Link to="/inicio">
                     <button className='btn btn-circle btn-ghost fixed right-20 z-10'>
                         <IoEnter />
                     </button>

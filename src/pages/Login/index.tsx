@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Notification } from '@/components';
 
-interface Funcao {
-    funcao_id: number;
-    funcao: string;
+interface Departamento {
+    departamento_id: number;
+    departamento: string;
 }
 
 interface Profissional {
@@ -14,32 +14,40 @@ interface Profissional {
 }
 
 export default function Login() {
-    const [funcoes, setFuncoes] = useState<Funcao[]>([]);
+    const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
     const [profissionais, setProfissionais] = useState<Profissional[]>([]);
-    const [selectedFuncao, setSelectedFuncao] = useState<number | string>('');
+    const [selectedDepartamento, setSelectedDepartamento] = useState<number | string>('');
     const [selectedProfissional, setSelectedProfissional] = useState<number | string>('');
     const [senha, setSenha] = useState<string>('');
     const [loginStatus, setLoginStatus] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchFuncoes = async () => {
+        const fetchDepartamentos = async () => {
             try {
-                const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT funcao_id, funcao FROM profissionais_funcao');
-                setFuncoes(result as Funcao[]);
+                const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT departamento_id, departamento FROM profissionais_departamento');
+                setDepartamentos(result as Departamento[]);
             } catch (error) {
-                console.error('Erro ao buscar funções:', error);
+                console.error('Erro ao buscar departamentos:', error);
             }
         };
 
-        fetchFuncoes();
+        fetchDepartamentos();
     }, []);
 
     useEffect(() => {
-        if (selectedFuncao) {
+        if (selectedDepartamento) {
             const fetchProfissionais = async () => {
                 try {
-                    const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_id, profissional_nome, profissional_senha FROM profissionais WHERE profissional_funcao_id = $1', [selectedFuncao]);
+                    const result = await window.ipcRenderer.invoke('query-database-postgres', `
+                        SELECT profissional_id, profissional_nome, profissional_senha 
+                        FROM profissionais 
+                        WHERE profissional_id IN (
+                            SELECT profissional_id 
+                            FROM profissionais_departamento_associacao 
+                            WHERE departamento_id = $1
+                        ) AND profissional_status1 = 'ativo'`, 
+                        [selectedDepartamento]);
                     setProfissionais(result as Profissional[]);
                 } catch (error) {
                     console.error('Erro ao buscar profissionais:', error);
@@ -51,7 +59,7 @@ export default function Login() {
             setProfissionais([]);
             setSelectedProfissional('');
         }
-    }, [selectedFuncao]);
+    }, [selectedDepartamento]);
 
     const handleLogin = async () => {
         if (!selectedProfissional || !senha) {
@@ -115,96 +123,96 @@ export default function Login() {
     };
 
     return (
-    <div className="min-h-screen w-screen flex bg-gradient-to-l to-primary/50 from-accent/50">
-        <div className='w-2/5 relative flex items-center justify-center'>
-            <img src="/LogoVertical.svg" className='w-1/2 p-5' alt="" />
-        </div>
-
-        <div className='w-3/5 h-screen flex items-center justify-center py-40 px-40 relative'>
-            <div className="z-10 absolute right-10 w-2/3 h- p-6 bg-base-100 shadow-xl rounded-lg">
-                <h2 className="text-2xl font-bold mb-0">Login</h2>
-
-                <div className='divider divider-primary mt-0 mb-20 w-40'></div>
-
-                <div className="form-control mt-4">
-                    <label className="label">
-                        <span className="label-text">Função</span>
-                    </label>
-
-                    <select
-                        value={selectedFuncao}
-                        onChange={(e) => setSelectedFuncao(e.target.value)}
-                        className="select select-bordered w-full"
+        <div className="min-h-screen w-screen flex bg-gradient-to-l to-primary/50 from-accent/50">
+            <div className='w-2/5 relative flex items-center justify-center'>
+                <img src="/LogoVertical.svg" className='w-1/2 p-5' alt="" />
+            </div>
+    
+            <div className='w-3/5 h-screen flex items-center justify-center py-40 px-40 relative'>
+                <div className="z-10 absolute right-10 w-2/3 h- p-6 bg-base-100 shadow-xl rounded-lg">
+                    <h2 className="text-2xl font-bold mb-0">Login</h2>
+    
+                    <div className='divider divider-primary mt-0 mb-20 w-40'></div>
+    
+                    <div className="form-control mt-4">
+                        <label className="label">
+                            <span className="label-text">Departamento</span>
+                        </label>
+    
+                        <select
+                            value={selectedDepartamento}
+                            onChange={(e) => setSelectedDepartamento(e.target.value)}
+                            className="select select-bordered w-full"
+                        >
+                            <option value="">Selecione um Departamento</option>
+                            {departamentos.map((departamento) => (
+                                <option key={departamento.departamento_id} value={departamento.departamento_id}>{departamento.departamento}</option>
+                            ))}
+                        </select>
+                    </div>
+    
+                    <div className="form-control mt-4">
+                        <label className="label">
+                            <span className="label-text">Profissional</span>
+                        </label>
+                        <select
+                            value={selectedProfissional}
+                            onChange={(e) => setSelectedProfissional(e.target.value)}
+                            className="select select-bordered w-full"
+                            disabled={!selectedDepartamento}
+                        >
+                            <option value="">Selecione um Profissional</option>
+                            {profissionais.map((prof) => (
+                                <option key={prof.profissional_id} value={prof.profissional_id}>{prof.profissional_nome}</option>
+                            ))}
+                        </select>
+                    </div>
+    
+                    <div className="form-control mt-4">
+                        <label className="label">
+                            <span className="label-text">Senha</span>
+                        </label>
+    
+                        <input
+                            type="password"
+                            value={senha}
+                            onChange={(e) => setSenha(e.target.value)}
+                            placeholder="Digite a senha"
+                            className="input input-bordered w-full mb-4"
+                            disabled={!selectedProfissional}
+                        />
+                    </div>
+    
+                    <button
+                        onClick={handleLogin}
+                        className="btn btn-primary w-full mt-20"
                     >
-                        <option value="">Selecione uma Função</option>
-                        {funcoes.map((funcao) => (
-                            <option key={funcao.funcao_id} value={funcao.funcao_id}>{funcao.funcao}</option>
-                        ))}
-                    </select>
+                        Entrar
+                    </button>
+    
+                    <div className="tooltip text-center w-full mt-5" data-tip="Entre em contato com um administrador para recuperar a senha">
+                        <a className="cursor-pointer">Esqueci a senha</a>
+                    </div>
+    
+                    <Link to={"/inicio"}>Entrar temporário</Link>
+    
+                    {loginStatus && (
+                        <Notification
+                            type={loginStatus.type}
+                            message={loginStatus.message}
+                            onClose={handleNotificationClose}
+                        />
+                    )}
                 </div>
-
-                <div className="form-control mt-4">
-                    <label className="label">
-                        <span className="label-text">Profissional</span>
-                    </label>
-                    <select
-                        value={selectedProfissional}
-                        onChange={(e) => setSelectedProfissional(e.target.value)}
-                        className="select select-bordered w-full"
-                        disabled={!selectedFuncao}
-                    >
-                        <option value="">Selecione um Profissional</option>
-                        {profissionais.map((prof) => (
-                            <option key={prof.profissional_id} value={prof.profissional_id}>{prof.profissional_nome}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="form-control mt-4">
-                    <label className="label">
-                        <span className="label-text">Senha</span>
-                    </label>
-
-                    <input
-                        type="password"
-                        value={senha}
-                        onChange={(e) => setSenha(e.target.value)}
-                        placeholder="Digite a senha"
-                        className="input input-bordered w-full mb-4"
-                        disabled={!selectedProfissional}
+    
+                <div className='absolute inset-0'>
+                    <img
+                        src="/clouds.svg"
+                        className='h-full w-full object-cover object-left'
+                        alt="Clouds"
                     />
                 </div>
-
-                <button
-                    onClick={handleLogin}
-                    className="btn btn-primary w-full mt-20"
-                >
-                    Entrar
-                </button>
-
-                <div className="tooltip text-center w-full mt-5" data-tip="Entre em contato com um administrador para recuperar a senha">
-                    <a className="cursor-pointer">Esqueci a senha</a>
-                </div>
-
-                <Link to={"/inicio"}>Entrar temporário</Link>
-
-                {loginStatus && (
-                    <Notification
-                        type={loginStatus.type}
-                        message={loginStatus.message}
-                        onClose={handleNotificationClose}
-                    />
-                )}
-            </div>
-
-            <div className='absolute inset-0'>
-                <img
-                    src="/clouds.svg"
-                    className='h-full w-full object-cover object-left'
-                    alt="Clouds"
-                />
             </div>
         </div>
-    </div>
     );
 }

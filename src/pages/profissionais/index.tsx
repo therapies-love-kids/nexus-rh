@@ -252,7 +252,7 @@ export default function Profissionais() {
                                         </th>
                                         <td>{prof.profissional_id}</td>
                                         <td>
-                                            <img src={imageUrls[prof.profissional_id]} alt={prof.profissional_nome} className="w-16 h-16 rounded-full" />
+                                            <img src={imageUrls[prof.profissional_id]} alt={prof.profissional_nome} className="w-16 h-16 object-cover rounded-full" />
                                         </td>
                                         <td>{prof.profissional_nome}</td>
                                         <td>
