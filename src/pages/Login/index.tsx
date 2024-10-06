@@ -124,15 +124,18 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen w-screen flex css-gradiente-animado" id='css-gradiente-animado'>
-            <div className='w-1/3 relative flex items-center justify-center'>
-                <img src="/LogoVertical.svg" className='w-1/2 p-5' alt="" />
-                <img src="/public/waves.svg" className='absolute bottom-0' alt="aaa" />
+        <div className="min-h-screen w-screen flex">
+            <div className='w-1/2 relative flex items-center justify-center max-h-screen overflow-hidden'>
+                
+                <div className='absolute bottom-0 backdrop-blur-sm backdrop-brightness-110 z-10 h-20 w-full flex justify-center items-center'>
+                    <img src="/public/logo.svg" className='h-10' alt="" />
+                </div>
+                <img src="/backlogin.jpg" alt="" className='relative w-full h-full bg-cover' />
             </div>
     
-            <div className='w-2/3 h-screen flex items-center justify-center py-40 px-40 relative bg-base-200'>
-                <div className="w-2/3 p-6 bg-base-100 shadow-xl rounded-lg">
-                    <h2 className="text-2xl font-bold mb-0">Login</h2>
+            <div className='w-1/2 h-screen flex items-center justify-center py-40 px-40 relative bg-base-200'>
+                <div className="w-full h-full p-6 bg-base-100 shadow-xl rounded-lg">
+                    <h2 className="text-2xl text-primary font-bold mb-0">Boas vindas.</h2>
     
                     <div className='divider divider-primary mt-0 mb-20 w-40'></div>
     
@@ -194,12 +197,14 @@ export default function Login() {
 
                     <div className='divider mt-10'>OU</div>
     
-                    <div className="tooltip text-center w-full mt-5" data-tip="Entre em contato com um administrador para recuperar a senha">
+                    <div className="tooltip text-center w-full mt-5" data-tip="Entre em contato com um administrador para recuperar a conta">
                         <a className="cursor-pointer">Esqueci a senha</a>
                     </div>
-    
-                    <Link to={"/inicio"}>Entrar temporário</Link>
-    
+                    
+                    <button className='btn btn-primary'>
+                        <Link to={"/inicio"}>Entrar temporário</Link>
+                    </button>
+
                     {loginStatus && (
                         <Notification
                             type={loginStatus.type}

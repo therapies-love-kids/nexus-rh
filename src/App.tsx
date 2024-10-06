@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout, { LayoutDash } from './Layout';
-import { StylePage,
+import {
         Login,
         Inicio,
         Profissionais,
@@ -40,9 +40,6 @@ export default function App() {
                     <Routes>
                         {/* Rota de Login */}
                         <Route path="/" element={<Layout><Login /></Layout>} />
-
-                        {/* Página de estilos (temporário) */}
-                        <Route path="/style" element={<Layout><StylePage /></Layout>} />
 
                         {/* Primeiros Passos */}
                         <Route path="/primeiros-passos/:profissional_id" element={<Layout><PrimeirosPassos /></Layout>} />
