@@ -75,6 +75,10 @@ app.whenReady().then(() => {
     setupMacAddressIpcHandler();
 });
 
+ipcMain.handle('app-close', () => {
+    app.quit();  // Fecha o aplicativo
+});
+
 app.on('window-all-closed', () => {
     win = null;
     if (process.platform !== 'darwin') app.quit();

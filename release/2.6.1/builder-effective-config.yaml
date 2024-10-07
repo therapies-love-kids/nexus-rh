@@ -1,0 +1,49 @@
+directories:
+  output: release/${version}
+  buildResources: build
+appId: com.electron.app
+asar: true
+files:
+  - filter:
+      - '!node_modules/electron/dist/locales/*.pak'
+      - dist-electron
+      - dist
+  - from: node_modules/electron/dist/locales
+    filter:
+      - en-US.pak
+      - pt-BR.pak
+extraResources:
+  - from: ./public/
+    to: public
+    filter:
+      - '**/*'
+mac:
+  artifactName: ${productName}_${version}.${ext}
+  target:
+    - dmg
+    - zip
+  icon: public/icon.png
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: ${productName}.${ext}
+  icon: public/icon.png
+linux:
+  target:
+    - deb
+  maintainer: electronjs.org
+  category: Utility
+  artifactName: ${productName}-${version}.${ext}
+  icon: public/icon.png
+nsis:
+  oneClick: false
+  perMachine: true
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true
+publish:
+  provider: github
+  owner: therapies-love-kids
+  repo: nexus-rh
+electronVersion: 29.4.6
