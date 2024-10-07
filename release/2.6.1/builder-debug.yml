@@ -21,8 +21,8 @@ x64:
     - dist
 nsis:
   script: |-
-    !include "/home/pedro/Desktop/DEV/Nexus/nexus-recepcao/node_modules/app-builder-lib/templates/nsis/include/StdUtils.nsh"
-    !addincludedir "/home/pedro/Desktop/DEV/Nexus/nexus-recepcao/node_modules/app-builder-lib/templates/nsis/include"
+    !include "/home/pedro/Desktop/DEV/nexus/nexus-rh/node_modules/app-builder-lib/templates/nsis/include/StdUtils.nsh"
+    !addincludedir "/home/pedro/Desktop/DEV/nexus/nexus-rh/node_modules/app-builder-lib/templates/nsis/include"
     !macro _isUpdated _a _b _t _f
       ${StdUtils.TestParameter} $R9 "updated"
       StrCmp "$R9" "true" `${_t}` `${_f}`
@@ -95,8 +95,8 @@ nsis:
     !macroend
 
     !addplugindir /x86-unicode "/home/pedro/.cache/electron-builder/nsis/nsis-resources-3.4.1/plugins/x86-unicode"
-    !include "/tmp/t-dFaOE3/0-messages.nsh"
-    !include "/tmp/t-dFaOE3/1-messages.nsh"
+    !include "/tmp/t-GVH9bS/0-messages.nsh"
+    !include "/tmp/t-GVH9bS/1-messages.nsh"
 
     Var newStartMenuLink
     Var oldStartMenuLink
