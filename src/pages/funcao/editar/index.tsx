@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { IoArrowBack } from 'react-icons/io5';
 
 export default function AtualizarFuncao() {
-    const { id } = useParams<string>();
+    const { funcao_id } = useParams<string>();
     const [funcaoNome, setFuncaoNome] = useState<string>('');
     const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -12,10 +12,10 @@ export default function AtualizarFuncao() {
     useEffect(() => {
         const fetchFuncaoData = async () => {
             try {
-                if (id) {
+                if (funcao_id) {
                     const result = await window.ipcRenderer.invoke(
                         'query-database-postgres',
-                        `SELECT funcao FROM profissionais_funcao WHERE id = ${id}`
+                        `SELECT funcao FROM profissionais_funcao WHERE funcao_id = ${funcao_id}`
                     );
                     const funcao = result[0];
                     setFuncaoNome(funcao.funcao ?? '');
@@ -26,7 +26,7 @@ export default function AtualizarFuncao() {
         };
 
         fetchFuncaoData();
-    }, [id]);
+    }, [funcao_id]);
 
     const handleSubmit = async () => {
         if (!funcaoNome) {
@@ -41,14 +41,14 @@ export default function AtualizarFuncao() {
                 funcao: funcaoNome,
             };
     
-            if (id) {
-                const ids = [parseInt(id, 10)];
+            if (funcao_id) {
+                const ids = [parseInt(funcao_id, 10)];
                 
                 const result = await window.ipcRenderer.invoke('update-records-postgres', {
                     table,
                     updates,
                     ids,
-                    idColumn: 'id' // Especificando a coluna de identificação
+                    idColumn: 'funcao_id' // Especificando a coluna de identificação
                 });
     
                 if (result.success) {

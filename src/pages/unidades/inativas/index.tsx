@@ -5,7 +5,7 @@ import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Unidade {
-    id: number;
+    unidade_id: number;
     unidade: string;
     endereco: string;
     cep: string;
@@ -22,7 +22,7 @@ export default function Unidades() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, unidade, endereco, cep FROM profissionais_unidade WHERE unidade_status1 = \'inativo\''
+                'SELECT unidade_id, unidade, endereco, cep FROM profissionais_unidade WHERE unidade_status1 = \'inativo\''
             );
             setUnidades(result as Unidade[]);
         } catch (error) {
@@ -39,11 +39,11 @@ export default function Unidades() {
     const currentRecords = unidades.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(unidades.length / recordsPerPage);
 
-    const handleCheckboxChange = (id: number): void => {
+    const handleCheckboxChange = (unidade_id: number): void => {
         setSelectedUnidades(prevSelected =>
-            prevSelected.includes(id)
-                ? prevSelected.filter(selectedId => selectedId !== id)
-                : [...prevSelected, id]
+            prevSelected.includes(unidade_id)
+                ? prevSelected.filter(selectedId => selectedId !== unidade_id)
+                : [...prevSelected, unidade_id]
         );
     };
 
@@ -60,7 +60,7 @@ export default function Unidades() {
                     table: 'profissionais_unidade',
                     updates,
                     ids: selectedUnidades,
-                    idColumn: 'id',
+                    idColumn: 'unidade_id',
                 });
 
                 if (result.success) {
@@ -134,7 +134,7 @@ export default function Unidades() {
                                                 className="checkbox"
                                                 onChange={(e) => {
                                                     if (e.target.checked) {
-                                                        setSelectedUnidades(currentRecords.map(u => u.id));
+                                                        setSelectedUnidades(currentRecords.map(u => u.unidade_id));
                                                     } else {
                                                         setSelectedUnidades([]);
                                                     }
@@ -151,18 +151,18 @@ export default function Unidades() {
                             </thead>
                             <tbody>
                                 {currentRecords.map((unidade) => (
-                                    <tr key={unidade.id}>
+                                    <tr key={unidade.unidade_id}>
                                         <th>
                                             <label>
                                                 <input
                                                     type="checkbox"
                                                     className="checkbox"
-                                                    checked={selectedUnidades.includes(unidade.id)}
-                                                    onChange={() => handleCheckboxChange(unidade.id)}
+                                                    checked={selectedUnidades.includes(unidade.unidade_id)}
+                                                    onChange={() => handleCheckboxChange(unidade.unidade_id)}
                                                 />
                                             </label>
                                         </th>
-                                        <td>{unidade.id}</td>
+                                        <td>{unidade.unidade_id}</td>
                                         <td>{unidade.unidade}</td>
                                         <td>{unidade.endereco}</td>
                                         <td>{unidade.cep}</td>

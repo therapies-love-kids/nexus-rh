@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { Link, useParams } from 'react-router-dom';
-import { IoArrowBack, IoClose } from 'react-icons/io5';
+import { IoArrowBack } from 'react-icons/io5';
 import MaskedInput from 'react-text-mask';
 
 export default function AtualizarUnidade() {
-    const { id } = useParams<string>(); // Obter ID da unidade via parâmetros da URL
+    const { unidade_id } = useParams<string>(); // Obter ID da unidade via parâmetros da URL
     const [unidadeNome, setUnidadeNome] = useState<string>('');
     const [endereco, setEndereco] = useState<string>('');
     const [cep, setCep] = useState<string>('');
@@ -16,10 +16,10 @@ export default function AtualizarUnidade() {
     useEffect(() => {
         const fetchUnidadeData = async () => {
             try {
-                if (id) {
+                if (unidade_id) {
                     const result = await window.ipcRenderer.invoke(
                         'query-database-postgres',
-                        `SELECT unidade, endereco, cep FROM profissionais_unidade WHERE id = ${id}`
+                        `SELECT unidade, endereco, cep FROM profissionais_unidade WHERE unidade_id = ${unidade_id}`
                     );
                     const unidade = result[0];
                     setUnidadeNome(unidade.unidade ?? '');
@@ -32,7 +32,7 @@ export default function AtualizarUnidade() {
         };
 
         fetchUnidadeData();
-    }, [id]);
+    }, [unidade_id]);
 
     const handleSubmit = async () => {
         if (!unidadeNome || !endereco || !cep) {
@@ -49,14 +49,14 @@ export default function AtualizarUnidade() {
                 cep: cep
             };
     
-            if (id) {
-                const ids = [parseInt(id, 10)];
+            if (unidade_id) {
+                const ids = [parseInt(unidade_id, 10)];
                 
                 const result = await window.ipcRenderer.invoke('update-records-postgres', {
                     table,
                     updates,
                     ids,
-                    idColumn: 'id' // Especificando a coluna de identificação
+                    idColumn: 'unidade_id' // Especificando a coluna de identificação
                 });
     
                 if (result.success) {

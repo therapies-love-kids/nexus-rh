@@ -5,7 +5,6 @@
     "typescript.tsc.autoDetect": "off",
     "files.exclude": {
         "**/.vscode": true,
-        "**/dist-electron":true,
     },
     "json.schemas": [{
         "fileMatch": [

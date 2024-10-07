@@ -1,7 +1,6 @@
 import type { ProgressInfo } from 'electron-updater';
 import { useCallback, useEffect, useState } from 'react';
 import Progress from '@/components/update/Progress';
-import './update.css';
 
 interface VersionInfo {
     update: boolean;
@@ -13,7 +12,11 @@ interface ErrorType {
     message: string;
 }
 
-const Update = () => {
+interface UpdateProps {
+    children: React.ReactNode;
+}
+
+const Update: React.FC<UpdateProps> = ({ children }) => {
     const [verificando, setVerificando] = useState(false);
     const [atualizacaoDisponivel, setAtualizacaoDisponivel] = useState(false);
     const [informacoesVersao, setInformacoesVersao] = useState<VersionInfo>();
@@ -37,7 +40,7 @@ const Update = () => {
         const resultado = await window.ipcRenderer.invoke('check-update');
         setInformacoesProgresso({ percent: 0 });
         setVerificando(false);
-        
+
         const modal = document.getElementById('my_modal_5') as HTMLDialogElement;
         if (modal) modal.showModal();
 
@@ -100,7 +103,7 @@ const Update = () => {
         <>
             <dialog id="my_modal_5" className="modal modal-bottom sm:modal-middle">
                 <div className="modal-box">
-                    {erroAtualizacao ? (
+                {erroAtualizacao ? (
                         <div>
                             <h3 className="font-bold text-lg">Erro</h3>
                             <p className="py-4">Erro ao baixar a última versão.</p>
@@ -129,16 +132,22 @@ const Update = () => {
                         </div>
                     )}
                     <div className="modal-action">
-                        <button className="btn" onClick={botoesModal.aoCancelar}>{botoesModal.textoCancelar || 'Fechar'}</button>
+                        <button className="btn" onClick={botoesModal.aoCancelar}>
+                            {botoesModal.textoCancelar || 'Fechar'}
+                        </button>
                         {atualizacaoDisponivel && (
-                            <button className="btn" onClick={botoesModal.aoConfirmar}>{botoesModal.textoConfirmar || 'Ok'}</button>
+                            <button className="btn" onClick={botoesModal.aoConfirmar}>
+                                {botoesModal.textoConfirmar || 'Ok'}
+                            </button>
                         )}
                     </div>
                 </div>
             </dialog>
-            <button disabled={verificando} onClick={verificarAtualizacao}>
-                {verificando ? 'Verificando...' : 'Verificar atualização'}
-            </button>
+
+            {/* O botão passado como children será renderizado aqui */}
+            <div onClick={verificarAtualizacao}>
+                {children}
+            </div>
         </>
     );
 };

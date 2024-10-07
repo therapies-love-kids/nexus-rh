@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { Link, useParams } from 'react-router-dom';
-import { IoArrowBack, IoClose } from 'react-icons/io5';
+import { IoArrowBack } from 'react-icons/io5';
 
 export default function AtualizarEmpresa() {
-    const { id } = useParams<string>(); // Obter ID da empresa via parâmetros da URL
+    const { empresa_id } = useParams<string>(); // Obter ID da empresa via parâmetros da URL
     const [empresaNome, setEmpresaNome] = useState<string>('');
     const [cnpj, setCnpj] = useState<string>('');
     const [modalMessage, setModalMessage] = useState<string | null>(null);
@@ -14,10 +14,10 @@ export default function AtualizarEmpresa() {
     useEffect(() => {
         const fetchEmpresaData = async () => {
             try {
-                if (id) {
+                if (empresa_id) {
                     const result = await window.ipcRenderer.invoke(
                         'query-database-postgres',
-                        `SELECT empresa, cnpj FROM profissionais_empresa WHERE id = ${id}`
+                        `SELECT empresa, cnpj FROM profissionais_empresa WHERE empresa_id = ${empresa_id}`
                     );
                     const empresa = result[0];
                     setEmpresaNome(empresa.empresa ?? '');
@@ -29,7 +29,7 @@ export default function AtualizarEmpresa() {
         };
 
         fetchEmpresaData();
-    }, [id]);
+    }, [empresa_id]);
 
     const handleSubmit = async () => {
         if (!empresaNome || !cnpj) {
@@ -45,14 +45,14 @@ export default function AtualizarEmpresa() {
                 cnpj: cnpj
             };
     
-            if (id) {
-                const ids = [parseInt(id, 10)];
+            if (empresa_id) {
+                const ids = [parseInt(empresa_id, 10)];
                 
                 const result = await window.ipcRenderer.invoke('update-records-postgres', {
                     table,
                     updates,
                     ids,
-                    idColumn: 'id' // Especificando a coluna de identificação
+                    idColumn: 'empresa_id' // Especificando a coluna de identificação
                 });
     
                 if (result.success) {

@@ -12,7 +12,7 @@ export default function Breadcrumbs() {
             <h2 className='text-4xl capitalize mt-10 mb-5'>{currentTitle}</h2>
             <ul>
                 <li>
-                    <Link to="/">Início</Link>
+                    <Link to="/inicio">Início</Link>
                 </li>
                 {pathnames.map((value, index) => {
                     const routeTo = `/${pathnames.slice(0, index + 1).join('/')}`;

@@ -9,7 +9,6 @@ interface Profissional {
     profissional_id: number;
     profissional_foto: string;
     profissional_nome: string;
-    profissional_funcao_id: string;
 }
 
 interface Unidade {
@@ -33,7 +32,7 @@ export default function ProfissionaisDemitidos() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id FROM profissionais WHERE profissional_status1 = \'demitido\''
+                'SELECT profissional_id, profissional_foto, profissional_nome FROM profissionais WHERE profissional_status1 = \'demitido\''
             );
             
             setProfissionais(result as Profissional[]);
@@ -41,13 +40,13 @@ export default function ProfissionaisDemitidos() {
 
             const imagePromises = (result as Profissional[]).map(async (profissional: Profissional) => {
                 const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
-                return { id: profissional.profissional_id, imageUrl };
+                return { profissional_id: profissional.profissional_id, imageUrl };
             });
 
             const imageResults = await Promise.all(imagePromises);
             const imageMap: Record<number, string> = {};
             imageResults.forEach(result => {
-                imageMap[result.id] = result.imageUrl;
+                imageMap[result.profissional_id] = result.imageUrl;
             });
 
             setImageUrls(imageMap);
@@ -63,7 +62,7 @@ export default function ProfissionaisDemitidos() {
                 'query-database-postgres',
                 `SELECT pu.profissional_id, u.unidade 
                     FROM profissionais_unidade_associacao pu 
-                    JOIN profissionais_unidade u ON pu.unidade_id = u.id`
+                    JOIN profissionais_unidade u ON pu.unidade_id = u.unidade_id`
             );
             const unidadesMapping: Record<number, Unidade[]> = {};
             result.forEach((item: { profissional_id: number, unidade: string }) => {
@@ -82,11 +81,11 @@ export default function ProfissionaisDemitidos() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, funcao FROM profissionais_funcao'
+                'SELECT funcao_id, funcao FROM profissionais_funcao'
             );
             const funcoesMapping: Record<string, string> = {};
-            result.forEach((item: { id: string, funcao: string }) => {
-                funcoesMapping[item.id] = item.funcao;
+            result.forEach((item: { funcao_id: string, funcao: string }) => {
+                funcoesMapping[item.funcao_id] = item.funcao;
             });
             setFuncoesMap(funcoesMapping);
         } catch (error) {
@@ -137,11 +136,11 @@ export default function ProfissionaisDemitidos() {
         }
     };
 
-    const handleCheckboxChange = (id: number): void => {
+    const handleCheckboxChange = (profissional_id: number): void => {
         setSelectedProfissionais(prevSelected =>
-            prevSelected.includes(id)
-                ? prevSelected.filter(selectedId => selectedId !== id)
-                : [...prevSelected, id]
+            prevSelected.includes(profissional_id)
+                ? prevSelected.filter(selectedId => selectedId !== profissional_id)
+                : [...prevSelected, profissional_id]
         );
     };
 
@@ -210,7 +209,7 @@ export default function ProfissionaisDemitidos() {
                                     <th>ID</th>
                                     <th>Foto</th>
                                     <th>Nome</th>
-                                    <th>Nível de Acesso</th>
+                                    {/* <th>Nível de Acesso</th> */}
                                     <th>Unidade de Atuação</th>
                                 </tr>
                             </thead>
@@ -232,14 +231,13 @@ export default function ProfissionaisDemitidos() {
                                             <div className="avatar">
                                                 <div className="mask mask-squircle w-12 h-12">
                                                     <img
-                                                        src={imageUrls[prof.profissional_id] || '/images/default.png'}
+                                                        src={imageUrls[prof.profissional_id] || 'default.png'}
                                                         alt={`Foto de ${prof.profissional_nome}`}
                                                     />
                                                 </div>
                                             </div>
                                         </td>
                                         <td>{prof.profissional_nome}</td>
-                                        <td>{funcoesMap[prof.profissional_funcao_id] || 'N/A'}</td>
                                         <td>
                                             {unidadesMap[prof.profissional_id]?.map((unidade, index) => (
                                                 <div key={index}>{unidade.unidade}</div>

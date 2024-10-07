@@ -9,11 +9,14 @@ interface Profissional {
     profissional_id: number;
     profissional_foto: string;
     profissional_nome: string;
-    profissional_funcao_id: string;
 }
 
 interface Unidade {
     unidade: string;
+}
+
+interface Funcao {
+    funcao: string;
 }
 
 export default function Profissionais() {
@@ -21,7 +24,7 @@ export default function Profissionais() {
     const [selectedProfissionais, setSelectedProfissionais] = useState<number[]>([]);
     const [filteredProfissionais, setFilteredProfissionais] = useState<Profissional[]>([]);
     const [unidadesMap, setUnidadesMap] = useState<Record<number, Unidade[]>>({});
-    const [funcoesMap, setFuncoesMap] = useState<Record<string, string>>({});
+    const [funcoesMap, setFuncoesMap] = useState<Record<number, Funcao[]>>({});
     const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
@@ -31,20 +34,20 @@ export default function Profissionais() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT profissional_id, profissional_foto, profissional_nome, profissional_funcao_id FROM profissionais WHERE profissional_status1 = \'ativo\''
+                'SELECT profissional_id, profissional_foto, profissional_nome FROM profissionais WHERE profissional_status1 = \'ativo\''
             );
             setProfissionais(result as Profissional[]);
             setFilteredProfissionais(result as Profissional[]);
 
             const imagePromises = (result as Profissional[]).map(async (profissional) => {
                 const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
-                return { id: profissional.profissional_id, imageUrl };
+                return { profissional_id: profissional.profissional_id, imageUrl };
             });
 
             const imageResults = await Promise.all(imagePromises);
             const imageMap: Record<number, string> = {};
             imageResults.forEach(result => {
-                imageMap[result.id] = result.imageUrl;
+                imageMap[result.profissional_id] = result.imageUrl;
             });
 
             setImageUrls(imageMap);
@@ -60,7 +63,7 @@ export default function Profissionais() {
                 'query-database-postgres',
                 `SELECT pu.profissional_id, u.unidade 
                     FROM profissionais_unidade_associacao pu 
-                    JOIN profissionais_unidade u ON pu.unidade_id = u.id`
+                    JOIN profissionais_unidade u ON pu.unidade_id = u.unidade_id`
             );
             const unidadesMapping: Record<number, Unidade[]> = {};
             result.forEach((item: { profissional_id: number, unidade: string }) => {
@@ -79,11 +82,16 @@ export default function Profissionais() {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                'SELECT id, funcao FROM profissionais_funcao'
+                `SELECT pu.profissional_id, u.funcao 
+                    FROM profissionais_funcao_associacao pu 
+                    JOIN profissionais_funcao u ON pu.funcao_id = u.funcao_id`
             );
-            const funcoesMapping: Record<string, string> = {};
-            result.forEach((item: { id: string, funcao: string }) => {
-                funcoesMapping[item.id] = item.funcao;
+            const funcoesMapping: Record<number, Funcao[]> = {};
+            result.forEach((item: { profissional_id: number, funcao: string }) => {
+                if (!funcoesMapping[item.profissional_id]) {
+                    funcoesMapping[item.profissional_id] = [];
+                }
+                funcoesMapping[item.profissional_id].push({ funcao: item.funcao });
             });
             setFuncoesMap(funcoesMapping);
         } catch (error) {
@@ -134,11 +142,11 @@ export default function Profissionais() {
         }
     };
     
-    const handleCheckboxChange = (id: number): void => {
+    const handleCheckboxChange = (profissional_id: number): void => {
         setSelectedProfissionais(prevSelected =>
-            prevSelected.includes(id)
-                ? prevSelected.filter(selectedId => selectedId !== id)
-                : [...prevSelected, id]
+            prevSelected.includes(profissional_id)
+                ? prevSelected.filter(selectedId => selectedId !== profissional_id)
+                : [...prevSelected, profissional_id]
         );
     };
 
@@ -225,8 +233,8 @@ export default function Profissionais() {
                                     <th>ID</th>
                                     <th>Foto</th>
                                     <th>Nome</th>
-                                    <th>Nível de Acesso</th>
                                     <th>Unidades</th>
+                                    <th>Funções</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -244,14 +252,18 @@ export default function Profissionais() {
                                         </th>
                                         <td>{prof.profissional_id}</td>
                                         <td>
-                                            <img src={imageUrls[prof.profissional_id]} alt={prof.profissional_nome} className="w-16 h-16 rounded-full" />
+                                            <img src={imageUrls[prof.profissional_id]} alt={prof.profissional_nome} className="w-16 h-16 object-cover rounded-full" />
                                         </td>
                                         <td>{prof.profissional_nome}</td>
-                                        <td>{funcoesMap[prof.profissional_funcao_id] || 'Desconhecido'}</td>
                                         <td>
                                             {unidadesMap[prof.profissional_id]?.map((unidade, index) => (
                                                 <div key={index}>{unidade.unidade}</div>
                                             )) || 'Nenhuma unidade'}
+                                        </td>
+                                        <td>
+                                            {funcoesMap[prof.profissional_id]?.map((funcao, index) => (
+                                                <div key={index}>{funcao.funcao}</div>
+                                            )) || 'Nenhuma função'}
                                         </td>
                                     </tr>
                                 ))}

@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout, { LayoutDash } from './Layout';
-import { StylePage,
+import {
         Login,
         Inicio,
         Profissionais,
@@ -41,11 +41,8 @@ export default function App() {
                         {/* Rota de Login */}
                         <Route path="/" element={<Layout><Login /></Layout>} />
 
-                        {/* Página de estilos (temporário) */}
-                        <Route path="/style" element={<Layout><StylePage /></Layout>} />
-
                         {/* Primeiros Passos */}
-                        <Route path="/primeiros-passos/:id" element={<Layout><PrimeirosPassos /></Layout>} />
+                        <Route path="/primeiros-passos/:profissional_id" element={<Layout><PrimeirosPassos /></Layout>} />
 
                         {/* Erro de MAC */}
                         <Route path="/mac-erro" element={<Layout><MacErro /></Layout>} />
@@ -71,15 +68,15 @@ export default function App() {
                                 </PrivateRoute>
                             } />
 
-                            <Route path="/profissionais/:id" element={
-                                <PrivateRoute>
-                                    <LayoutDash><ProfissionaisEditar /></LayoutDash>
-                                </PrivateRoute>
-                            } />
-
                             <Route path="/profissionais/novo" element={
                                 <PrivateRoute>
                                     <LayoutDash><ProfissionaisNovo /></LayoutDash>
+                                </PrivateRoute>
+                            } />
+
+                            <Route path="/profissionais/:profissional_id" element={
+                                <PrivateRoute>
+                                    <LayoutDash><ProfissionaisEditar /></LayoutDash>
                                 </PrivateRoute>
                             } />
                         </>
@@ -104,7 +101,7 @@ export default function App() {
                                 </PrivateRoute>
                             } />
 
-                            <Route path="/unidades/:id" element={
+                            <Route path="/unidades/:unidade_id" element={
                                 <PrivateRoute>
                                     <LayoutDash><UnidadesEditar /></LayoutDash>
                                 </PrivateRoute>
@@ -131,7 +128,7 @@ export default function App() {
                                 </PrivateRoute>
                             } />
 
-                            <Route path="/empresas/:id" element={
+                            <Route path="/empresas/:empresa_id" element={
                                 <PrivateRoute>
                                     <LayoutDash><EmpresasEditar /></LayoutDash>
                                 </PrivateRoute>
@@ -159,7 +156,7 @@ export default function App() {
                                 </PrivateRoute>
                             } />
 
-                            <Route path="/departamentos/:id" element={
+                            <Route path="/departamentos/:departamento_id" element={
                                 <PrivateRoute>
                                     <LayoutDash><DepartamentosEditar /></LayoutDash>
                                 </PrivateRoute>
@@ -187,7 +184,7 @@ export default function App() {
                                 </PrivateRoute>
                             } />
 
-                            <Route path="/funcoes/:id" element={
+                            <Route path="/funcoes/:funcao_id" element={
                                 <PrivateRoute>
                                     <LayoutDash><FuncoesEditar /></LayoutDash>
                                 </PrivateRoute>
