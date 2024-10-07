@@ -5,6 +5,7 @@ import { IoEnter, IoExit, IoMenu, IoMoon, IoRefresh, IoSettingsOutline, IoSunny 
 import { Link } from 'react-router-dom';
 import { fetchImageFromFtp } from './utils/imageUtils';
 import { Update } from './components';
+import { ipcRenderer } from 'electron/renderer';
 
 // Register the overscroll plugin
 Scrollbar.use(OverscrollPlugin);
@@ -61,17 +62,20 @@ export default function Layout({ children }: LayoutProps) {
                         </button>
                     </Update>
 
-                    <Link to="/">
-                        <button className='btn btn-circle btn-ghost'>
-                            <IoEnter />
-                        </button>
-                    </Link>
+                    <button
+                        className='btn btn-circle btn-ghost'
+                        onClick={() => window.ipcRenderer.invoke('app-close')}>
+                        <IoExit />
+                    </button>
+
 
                     <label className="swap swap-rotate btn btn-circle btn-ghost">
                         <input type="checkbox" className="theme-controller" onChange={handleThemeToggle} />
                         <IoSunny className='swap-on fill-current' />
                         <IoMoon className='swap-off fill-current' />
                     </label>
+
+                    <Link className='btn btn-circle' to={"/inicio"}><IoEnter /></Link>
                 </div>
                 {children}
             </div>
@@ -178,12 +182,14 @@ export function LayoutDash({ children }: LayoutProps) {
                                     
                                     <div className='flex gap-5 justify-between items-center'>
                                         <Link to={"/"} className='w-full p-2 rounded-lg flex gap-5 items-center hover:bg-base-200'>
-                                            <div className="w-10 rounded-full z-0">
-                                                {userImage ? (
-                                                    <img alt="Foto do profissional" src={userImage} />
-                                                ) : (
-                                                    <img alt="Avatar padrão" src="default.png" />
-                                                )}
+                                            <div className="avatar">
+                                                <div className="w-10 rounded-full z-0">
+                                                    {userImage ? (
+                                                        <img alt="Foto do profissional" src={userImage} />
+                                                    ) : (
+                                                        <img alt="Avatar padrão" src="default.png" />
+                                                    )}
+                                                </div>
                                             </div>
                                             <div>
                                                 {nome ? (

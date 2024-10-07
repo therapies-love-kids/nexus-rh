@@ -136,10 +136,7 @@ export default function Login() {
             <div className='w-1/2 h-screen flex items-center justify-center py-10 px-10 relative bg-base-200'>
                 <div className="w-full h-auto card bg-base-100">
                     <div className='card-body'>
-                        <h2 className="text-2xl font-bold mb-0 card-title">Boas vindas<span className='text-primary'>.</span></h2>
-        
-                        <div className='divider divider-primary mt-0 mb-20 w-40'></div>
-        
+                        <h2 className="card-title">Login</h2>
                         <div className="form-control mt-4">
                             <label className="label">
                                 <span className="label-text">Departamento</span>
@@ -191,17 +188,16 @@ export default function Login() {
         
                         <button
                             onClick={handleLogin}
-                            className="btn btn-primary w-full mt-20"
+                            className="btn btn-primary w-full mt-4"
                         >
                             Entrar
                         </button>
 
                         <div className='divider mt-10'>OU</div>
         
-                        <div className="tooltip text-center w-full mt-5" data-tip="Entre em contato com um administrador para recuperar a conta">
+                        <div className="tooltip text-center w-full mt-4" data-tip="Entre em contato com um administrador para recuperar a conta">
                             <a className="cursor-pointer">Esqueci a senha</a>
                         </div>
-                        <Link className='btn btn-primary' to={"/inicio"}>Entrar temporário</Link>
                     </div>
 
                     {loginStatus && (
