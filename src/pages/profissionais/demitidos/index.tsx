@@ -231,7 +231,7 @@ export default function ProfissionaisDemitidos() {
                                             <div className="avatar">
                                                 <div className="mask mask-squircle w-12 h-12">
                                                     <img
-                                                        src={imageUrls[prof.profissional_id] || '/images/default.png'}
+                                                        src={imageUrls[prof.profissional_id] || 'default.png'}
                                                         alt={`Foto de ${prof.profissional_nome}`}
                                                     />
                                                 </div>

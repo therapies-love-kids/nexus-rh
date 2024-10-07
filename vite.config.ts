@@ -22,6 +22,13 @@ export default defineConfig(({ command }) => {
                 '@': path.join(__dirname, 'src'),
             },
         },
+        css: {
+            preprocessorOptions: {
+                scss: {
+                    api: 'modern-compiler',
+                },
+            },
+        },
         plugins: [
             react(),
             electron({
@@ -46,14 +53,7 @@ export default defineConfig(({ command }) => {
                                 ],
                             },
                         },
-                        css: {
-                            preprocessorOptions: {
-                                scss: {
-                                    api: 'modern',
-                                    silenceDeprecations: ['legacy-js-api'],
-                                },
-                            },
-                        },                
+
                     },
                 },
                 preload: {

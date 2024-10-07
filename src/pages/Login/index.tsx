@@ -26,7 +26,7 @@ export default function Login() {
     useEffect(() => {
         const fetchDepartamentos = async () => {
             try {
-                const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT departamento_id, departamento FROM profissionais_departamento');
+                const result = await window.ipcRenderer.invoke('query-database-postgres', `SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = 'ativo'`);
                 setDepartamentos(result as Departamento[]);
             } catch (error) {
                 console.error('Erro ao buscar departamentos:', error);
@@ -128,82 +128,81 @@ export default function Login() {
             <div className='w-1/2 relative flex items-center justify-center max-h-screen overflow-hidden'>
                 
                 <div className='absolute bottom-0 backdrop-blur-sm backdrop-brightness-110 z-10 h-20 w-full flex justify-center items-center'>
-                    <img src="/public/logo.svg" className='h-10' alt="" />
+                    <img src="logo.svg" className='h-10' alt="" />
                 </div>
-                <img src="/backlogin.jpg" alt="" className='relative w-full h-full bg-cover' />
+                <img src="backlogin.jpg" alt="" className='relative w-full h-full bg-cover' />
             </div>
     
-            <div className='w-1/2 h-screen flex items-center justify-center py-40 px-40 relative bg-base-200'>
-                <div className="w-full h-full p-6 bg-base-100 shadow-xl rounded-lg">
-                    <h2 className="text-2xl text-primary font-bold mb-0">Boas vindas.</h2>
-    
-                    <div className='divider divider-primary mt-0 mb-20 w-40'></div>
-    
-                    <div className="form-control mt-4">
-                        <label className="label">
-                            <span className="label-text">Departamento</span>
-                        </label>
-    
-                        <select
-                            value={selectedDepartamento}
-                            onChange={(e) => setSelectedDepartamento(e.target.value)}
-                            className="select select-bordered w-full"
+            <div className='w-1/2 h-screen flex items-center justify-center py-10 px-10 relative bg-base-200'>
+                <div className="w-full h-auto card bg-base-100">
+                    <div className='card-body'>
+                        <h2 className="text-2xl font-bold mb-0 card-title">Boas vindas<span className='text-primary'>.</span></h2>
+        
+                        <div className='divider divider-primary mt-0 mb-20 w-40'></div>
+        
+                        <div className="form-control mt-4">
+                            <label className="label">
+                                <span className="label-text">Departamento</span>
+                            </label>
+        
+                            <select
+                                value={selectedDepartamento}
+                                onChange={(e) => setSelectedDepartamento(e.target.value)}
+                                className="select select-bordered w-full"
+                            >
+                                <option value="">Selecione um Departamento</option>
+                                {departamentos.map((departamento) => (
+                                    <option key={departamento.departamento_id} value={departamento.departamento_id}>{departamento.departamento}</option>
+                                ))}
+                            </select>
+                        </div>
+        
+                        <div className="form-control mt-4">
+                            <label className="label">
+                                <span className="label-text">Profissional</span>
+                            </label>
+                            <select
+                                value={selectedProfissional}
+                                onChange={(e) => setSelectedProfissional(e.target.value)}
+                                className="select select-bordered w-full"
+                                disabled={!selectedDepartamento}
+                            >
+                                <option value="">Selecione um Profissional</option>
+                                {profissionais.map((prof) => (
+                                    <option key={prof.profissional_id} value={prof.profissional_id}>{prof.profissional_nome}</option>
+                                ))}
+                            </select>
+                        </div>
+        
+                        <div className="form-control mt-4">
+                            <label className="label">
+                                <span className="label-text">Senha</span>
+                            </label>
+        
+                            <input
+                                type="password"
+                                value={senha}
+                                onChange={(e) => setSenha(e.target.value)}
+                                placeholder="Digite a senha"
+                                className="input input-bordered w-full mb-4"
+                                disabled={!selectedProfissional}
+                            />
+                        </div>
+        
+                        <button
+                            onClick={handleLogin}
+                            className="btn btn-primary w-full mt-20"
                         >
-                            <option value="">Selecione um Departamento</option>
-                            {departamentos.map((departamento) => (
-                                <option key={departamento.departamento_id} value={departamento.departamento_id}>{departamento.departamento}</option>
-                            ))}
-                        </select>
-                    </div>
-    
-                    <div className="form-control mt-4">
-                        <label className="label">
-                            <span className="label-text">Profissional</span>
-                        </label>
-                        <select
-                            value={selectedProfissional}
-                            onChange={(e) => setSelectedProfissional(e.target.value)}
-                            className="select select-bordered w-full"
-                            disabled={!selectedDepartamento}
-                        >
-                            <option value="">Selecione um Profissional</option>
-                            {profissionais.map((prof) => (
-                                <option key={prof.profissional_id} value={prof.profissional_id}>{prof.profissional_nome}</option>
-                            ))}
-                        </select>
-                    </div>
-    
-                    <div className="form-control mt-4">
-                        <label className="label">
-                            <span className="label-text">Senha</span>
-                        </label>
-    
-                        <input
-                            type="password"
-                            value={senha}
-                            onChange={(e) => setSenha(e.target.value)}
-                            placeholder="Digite a senha"
-                            className="input input-bordered w-full mb-4"
-                            disabled={!selectedProfissional}
-                        />
-                    </div>
-    
-                    <button
-                        onClick={handleLogin}
-                        className="btn btn-primary w-full mt-20"
-                    >
-                        Entrar
-                    </button>
+                            Entrar
+                        </button>
 
-                    <div className='divider mt-10'>OU</div>
-    
-                    <div className="tooltip text-center w-full mt-5" data-tip="Entre em contato com um administrador para recuperar a conta">
-                        <a className="cursor-pointer">Esqueci a senha</a>
+                        <div className='divider mt-10'>OU</div>
+        
+                        <div className="tooltip text-center w-full mt-5" data-tip="Entre em contato com um administrador para recuperar a conta">
+                            <a className="cursor-pointer">Esqueci a senha</a>
+                        </div>
+                        <Link className='btn btn-primary' to={"/inicio"}>Entrar temporário</Link>
                     </div>
-                    
-                    <button className='btn btn-primary'>
-                        <Link to={"/inicio"}>Entrar temporário</Link>
-                    </button>
 
                     {loginStatus && (
                         <Notification

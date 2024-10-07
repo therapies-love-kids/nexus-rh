@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
-import { IoBrush, IoEnter, IoExit, IoMenu, IoMoon, IoSettings, IoSettingsOutline, IoSunny } from "react-icons/io5";
+import { IoEnter, IoExit, IoMenu, IoMoon, IoRefresh, IoSettingsOutline, IoSunny } from "react-icons/io5";
 import { Link } from 'react-router-dom';
 import { fetchImageFromFtp } from './utils/imageUtils';
+import { Update } from './components';
 
 // Register the overscroll plugin
 Scrollbar.use(OverscrollPlugin);
@@ -53,6 +54,12 @@ export default function Layout({ children }: LayoutProps) {
         <div className='w-full h-full' ref={scrollbarRef}>
             <div>
                 <div className='fixed right-0 z-10 flex gap-5 p-5'>
+
+                    <Update>
+                        <button className="btn btn-circle transition-transform hover:rotate-180">
+                            <IoRefresh />
+                        </button>
+                    </Update>
 
                     <Link to="/">
                         <button className='btn btn-circle btn-ghost'>
@@ -152,11 +159,12 @@ export function LayoutDash({ children }: LayoutProps) {
                             <ul className="menu bg-base-100 text-base-content min-h-full w-80 p-4 z-10 flex flex-col justify-between">
                                 <div>
                                     <li>
-                                        <Link to={"/"} className='text-xl my-5'>
-                                            <img src="/particle.svg" alt="" className='h-11 mr-5' />
+                                        <Link to={"/inicio"} className='text-xl mt-5'>
+                                            <img src="particle.svg" alt="" className='h-8 mr-5' />
                                             <h2 className='text-xl font-semibold tracking-[10px]'>NEXUS</h2>
                                         </Link>
                                     </li>
+                                    <div className="divider"></div>
                                     <li><Link to={""}>Agenda</Link></li>
                                     <li><Link to={"/funcoes"}>Funções</Link></li>
                                     <li><Link to={"/departamentos"}>Departamentos</Link></li>
@@ -169,12 +177,12 @@ export function LayoutDash({ children }: LayoutProps) {
                                     <div className="divider"></div>
                                     
                                     <div className='flex gap-5 justify-between items-center'>
-                                        <div className='flex gap-5 items-center'>
+                                        <Link to={"/"} className='w-full p-2 rounded-lg flex gap-5 items-center hover:bg-base-200'>
                                             <div className="w-10 rounded-full z-0">
                                                 {userImage ? (
                                                     <img alt="Foto do profissional" src={userImage} />
                                                 ) : (
-                                                    <img alt="Avatar padrão" src="/default.png" />
+                                                    <img alt="Avatar padrão" src="default.png" />
                                                 )}
                                             </div>
                                             <div>
@@ -189,21 +197,31 @@ export function LayoutDash({ children }: LayoutProps) {
                                                     <div className='text-xs font-light'>Departamento</div>
                                                 )}
                                             </div>
-                                        </div>
-
-                                        <details className="dropdown dropdown-top">
-                                            <summary className="btn"><IoSettingsOutline /></summary>
-                                            <ul className="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow mb-2 gap-2">
-                                                <Link to={"/"} className='btn text-error'>
-                                                    <IoExit /> Sair
-                                                </Link>
-                                                <label className="swap swap-rotate btn">
-                                                    <input type="checkbox" className="theme-controller" onChange={handleThemeToggle} />
-                                                    <IoSunny className='swap-on fill-current' />
-                                                    <IoMoon className='swap-off fill-current' />
-                                                </label>
+                                        </Link>
+                                        <div className="dropdown dropdown-top">
+                                            <div tabIndex={4} role="button" className="btn m-1"><IoSettingsOutline /></div>
+                                            <ul tabIndex={4} className="dropdown-content menu bg-base-100 rounded-box z-[1] shadow flex-row p-2 gap-2">
+                                                
+                                                    <Update>
+                                                        <button className="btn">
+                                                            <IoRefresh className='transition-transform hover:rotate-180' />
+                                                        </button>
+                                                    </Update>
+                                                
+                                                <li>
+                                                    <label className="swap swap-rotate btn">
+                                                        <input type="checkbox" className="theme-controller" onChange={handleThemeToggle} />
+                                                        <IoSunny className='swap-on fill-current' />
+                                                        <IoMoon className='swap-off fill-current' />
+                                                    </label>
+                                                </li>
+                                                <li>
+                                                    <Link to={"/"} className='btn text-error'>
+                                                        <IoExit />
+                                                    </Link>
+                                                </li>
                                             </ul>
-                                        </details>
+                                        </div>
                                     </div>
                                 </div>
                             </ul>
