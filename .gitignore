@@ -94,6 +94,8 @@ out
 dist
 dist-electron
 **/**unpacked**/
+release
+/release/
 
 # Gatsby files
 .cache/
@@ -129,3 +131,4 @@ dist-electron
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+/release/
