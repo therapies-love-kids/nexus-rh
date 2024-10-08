@@ -5,7 +5,7 @@ appId: com.electron.app
 asar: true
 files:
   - filter:
-      - '!node_modules/electron/dist/locales/*.pak'
+      - '!node_modules/electron/dist/locales/!(en-US|pt-BR).pak'
       - dist-electron
       - dist
   - from: node_modules/electron/dist/locales
