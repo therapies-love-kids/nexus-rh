@@ -15,7 +15,7 @@
             ]
         },
         {
-            "filter": "!node_modules/electron/dist/locales/*.pak"
+            "filter": "!node_modules/electron/dist/locales/!(en-US|pt-BR).pak"
         },
     ],
     "extraResources": [
