@@ -132,12 +132,15 @@ dist-electron
 
 electron
 /electron
+/electron/
 /electron/*
 
 public
 /public
+/public/
 /public/*
 
 src
 /src
+/src/
 /src/*
