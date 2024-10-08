@@ -130,9 +130,14 @@ dist-electron
 .yarn/install-state.gz
 .pnp.*
 
-*
-/*
-!latest.yml
 electron
+/electron
+/electron/*
+
 public
+/public
+/public/*
+
 src
+/src
+/src/*

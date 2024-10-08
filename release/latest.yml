@@ -1,0 +1,8 @@
+version: 2.6.1
+files:
+  - url: nexus.exe
+    sha512: ZENwGeuFDwE5teMPPQ6UxdO8hPPBPPx/7VsHW3iJAv8IlbNEiwmhUU0+0ttoKYxRcdrQ+4ABN0PwQQE3uJCTkg==
+    size: 111969312
+path: nexus.exe
+sha512: ZENwGeuFDwE5teMPPQ6UxdO8hPPBPPx/7VsHW3iJAv8IlbNEiwmhUU0+0ttoKYxRcdrQ+4ABN0PwQQE3uJCTkg==
+releaseDate: '2024-10-08T13:49:19.546Z'
