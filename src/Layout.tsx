@@ -5,7 +5,7 @@ import { IoEnter, IoExit, IoMenu, IoMoon, IoRefresh, IoSettingsOutline, IoSunny 
 import { Link } from 'react-router-dom';
 import { fetchImageFromFtp } from './utils/imageUtils';
 import { Update } from './components';
-import { ipcRenderer } from 'electron/renderer';
+import config from '../package.json';
 
 // Register the overscroll plugin
 Scrollbar.use(OverscrollPlugin);
@@ -247,8 +247,9 @@ export function LayoutDash({ children }: LayoutProps) {
                         {children}
                     </div>
                     <div className='text-neutral/50 flex justify-between px-8 w-full'>
-                        <h6>© 2024 Therapies Love Kids. Todos os direitos reservados.</h6>
+                        <h6>© 2024 Therapies Love Kids.</h6>
                         <h6>Desenvolvido por Pedro Laurenti</h6>
+                        <h6>v. {config.version}</h6>
                     </div>
                 </div>
             </div>
