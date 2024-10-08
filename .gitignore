@@ -93,9 +93,9 @@ out
 .nuxt
 dist
 dist-electron
-**/**unpacked**/
 release
-/release/
+**/**unpacked**/
+release/
 
 # Gatsby files
 .cache/
