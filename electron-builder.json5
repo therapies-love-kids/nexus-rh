@@ -62,5 +62,6 @@
         "provider": "github",
         "owner": "therapies-love-kids",
         "repo": "nexus-rh",
+        "releaseType": "release"
     }
 }

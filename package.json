@@ -14,8 +14,8 @@
         "clear": "rimraf dist-electron && rimraf dist && rimraf out && rimraf release && rimraf test-results",
         "dev": "vite",
         "preview": "vite preview",
+        "dist": "electron-builder --win --publish always",
         "build": "npm run clear && tsc && vite build && electron-builder",
-        "build:unpack": "npm run clear && vite build && electron-builder --dir",
         "build:win": "vite build && electron-builder --win",
         "build:mac": "vite build && electron-builder --mac",
         "build:linux": "vite build && electron-builder --linux"
@@ -27,6 +27,7 @@
         "@tailwindcss/typography": "^0.5.14",
         "basic-ftp": "^5.0.5",
         "canvas-confetti": "^1.9.3",
+        "dotenv": "^16.4.5",
         "electron-updater": "^6.2.1",
         "npm": "^10.8.2",
         "react-date-picker": "^11.0.0",
