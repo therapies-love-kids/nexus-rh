@@ -27,3 +27,8 @@ export { default as Funcoes} from './funcao'
 export { default as FuncoesNova} from './funcao/nova'
 export { default as FuncoesInativos} from './funcao/inativas'
 export { default as FuncoesEditar} from './funcao/editar'
+
+export { default as Social} from './social'
+export { default as SocialMeuPerfil} from './social/perfil'
+export { default as SocialEditarMeuPerfil} from './social/perfil/editar'
+

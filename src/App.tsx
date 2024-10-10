@@ -1,5 +1,5 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout, { LayoutDash } from './Layout';
+import Layout, { LayoutDash, LayoutDashTrans } from './Layout';
 import {
         Login,
         Inicio,
@@ -23,7 +23,10 @@ import {
         Funcoes,
         FuncoesNova,
         FuncoesInativos,
-        FuncoesEditar
+        FuncoesEditar,
+        Social,
+        SocialMeuPerfil,
+        SocialEditarMeuPerfil,
     } from './pages';
 import { Suspense } from 'react';
 import MacErro from './pages/Login/MacErro';
@@ -53,6 +56,28 @@ export default function App() {
                                 <LayoutDash><Inicio /></LayoutDash>
                             </PrivateRoute>
                         } />
+
+                        {/* SOCIAL */}
+                        <>
+                            <Route path="/social" element={
+                                <PrivateRoute>
+                                    <LayoutDashTrans><Social /></LayoutDashTrans>
+                                </PrivateRoute>
+                            } />
+                            {/* PERFIL */}
+                            <>
+                                <Route path="/social/perfil" element={
+                                    <PrivateRoute>
+                                        <LayoutDashTrans><SocialMeuPerfil /></LayoutDashTrans>
+                                    </PrivateRoute>
+                                } />
+                                <Route path="/social/perfil/editar" element={
+                                    <PrivateRoute>
+                                        <LayoutDashTrans><SocialEditarMeuPerfil /></LayoutDashTrans>
+                                    </PrivateRoute>
+                                } />
+                            </>
+                        </>
 
                         {/* PROFISSIONAIS */}
                         <>
