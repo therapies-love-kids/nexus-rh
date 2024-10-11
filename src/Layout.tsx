@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
-import { IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy } from "react-icons/io5";
+import { IoArrowBack, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy } from "react-icons/io5";
 import { Link } from 'react-router-dom';
 import { fetchImageFromFtp } from './utils/imageUtils';
 import { Update } from './components';
@@ -181,7 +181,7 @@ export function LayoutDash({ children }: LayoutProps) {
                                     <div className="divider"></div>
                                     
                                     <div className='flex gap-5 justify-between items-center'>
-                                        <Link to={"/social/perfil"} className='w-full p-2 rounded-lg flex gap-5 items-center hover:bg-base-200'>
+                                        <Link to={"/social"} className='w-full p-2 rounded-lg flex gap-5 items-center hover:bg-base-200'>
                                             <div className="avatar">
                                                 <div className="w-10 rounded-full z-0">
                                                     {userImage ? (
@@ -235,7 +235,7 @@ export function LayoutDash({ children }: LayoutProps) {
                         </div>
                     </div>
 
-                    <Link to={"/"} className='btn btn-ghost text-center'>
+                    <Link to={"/inicio"} className='btn btn-ghost text-center'>
                         <h2 className='text-xl ml-[10px] tracking-[10px] text-center'>NEXUS</h2>
                     </Link>
                 </div>
@@ -247,7 +247,7 @@ export function LayoutDash({ children }: LayoutProps) {
                         {children}
                     </div>
                     <div className='text-neutral/50 flex justify-between px-8 w-full'>
-                        <h6>© 2024 Therapies Love Kids.</h6>
+                        <h6>© 2024 Therapies Love Kids</h6>
                         <h6>Desenvolvido por Pedro Laurenti</h6>
                         <h6>v. {config.version}</h6>
                     </div>
@@ -324,13 +324,16 @@ export function LayoutDashTrans({ children }: LayoutProps) {
         <div className='flex flex-row w-screen'>
             <div className="p-3 border-r border-r-base-300 bg-base-100 flex flex-col items-center justify-between">
                 <div className='flex flex-col'>
+                    <Link to={"/inicio"} className='btn btn-ghost'>
+                        <IoArrowBack />
+                    </Link>
                     <Link to={"/social"} className='btn btn-ghost'>
                         <IoHome />
                     </Link>
                     <Link to={"/social/perfil"} className='btn btn-ghost'>
                         <IoPerson />
                     </Link>
-                    <Link to={""} className='btn btn-ghost'>
+                    <Link to={"/social/tarefas"} className='btn btn-ghost'>
                         <IoCalendar />
                     </Link>
                     <Link to={""} className='btn btn-ghost'>
@@ -376,7 +379,7 @@ export function LayoutDashTrans({ children }: LayoutProps) {
                         {children}
                     </div>
                     <div className='text-neutral/50 flex justify-between px-8 w-full'>
-                        <h6>© 2024 Therapies Love Kids.</h6>
+                        <h6>© 2024 Therapies Love Kids</h6>
                         <h6>Desenvolvido por Pedro Laurenti</h6>
                         <h6>v. {config.version}</h6>
                     </div>

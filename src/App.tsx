@@ -27,6 +27,7 @@ import {
         Social,
         SocialMeuPerfil,
         SocialEditarMeuPerfil,
+        SocialTarefas,
     } from './pages';
 import { Suspense } from 'react';
 import MacErro from './pages/Login/MacErro';
@@ -34,6 +35,7 @@ import { PrivateRoute } from './components';  // Importando o PrivateRoute
 
 import 'react-date-picker/dist/DatePicker.css';
 import 'react-calendar/dist/Calendar.css';
+import './main.scss';
 
 export default function App() {
     return (
@@ -56,28 +58,6 @@ export default function App() {
                                 <LayoutDash><Inicio /></LayoutDash>
                             </PrivateRoute>
                         } />
-
-                        {/* SOCIAL */}
-                        <>
-                            <Route path="/social" element={
-                                <PrivateRoute>
-                                    <LayoutDashTrans><Social /></LayoutDashTrans>
-                                </PrivateRoute>
-                            } />
-                            {/* PERFIL */}
-                            <>
-                                <Route path="/social/perfil" element={
-                                    <PrivateRoute>
-                                        <LayoutDashTrans><SocialMeuPerfil /></LayoutDashTrans>
-                                    </PrivateRoute>
-                                } />
-                                <Route path="/social/perfil/editar" element={
-                                    <PrivateRoute>
-                                        <LayoutDashTrans><SocialEditarMeuPerfil /></LayoutDashTrans>
-                                    </PrivateRoute>
-                                } />
-                            </>
-                        </>
 
                         {/* PROFISSIONAIS */}
                         <>
@@ -216,7 +196,37 @@ export default function App() {
                             } />
 
                         </>
-                        
+
+                        {/* SOCIAL */}
+                        <>
+                            <Route path="/social" element={
+                                <PrivateRoute>
+                                    <LayoutDashTrans><Social /></LayoutDashTrans>
+                                </PrivateRoute>
+                            } />
+                            {/* PERFIL */}
+                            <>
+                                <Route path="/social/perfil" element={
+                                    <PrivateRoute>
+                                        <LayoutDashTrans><SocialMeuPerfil /></LayoutDashTrans>
+                                    </PrivateRoute>
+                                } />
+                                <Route path="/social/perfil/editar" element={
+                                    <PrivateRoute>
+                                        <LayoutDashTrans><SocialEditarMeuPerfil /></LayoutDashTrans>
+                                    </PrivateRoute>
+                                } />
+                            </>
+                            {/* TAREFAS */}
+                            <>
+                                <Route path="/social/tarefas" element={
+                                    <PrivateRoute>
+                                        <LayoutDashTrans><SocialTarefas /></LayoutDashTrans>
+                                    </PrivateRoute>
+                                } />
+                            </>
+                        </>
+
                     </Routes>
                 </Suspense>
             </Router>

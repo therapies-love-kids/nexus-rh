@@ -69,7 +69,6 @@ export default function Login() {
         }
 
         try {
-            // Verificar a senha do profissional
             const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_senha, profissional_foto, profissional_nome FROM profissionais WHERE profissional_id = $1', [selectedProfissional]);
 
             if (result.length === 0) {
@@ -80,34 +79,27 @@ export default function Login() {
             const { profissional_senha, profissional_foto, profissional_nome } = result[0];
 
             if (senha === profissional_senha) {
-                // Armazenar o ID e a foto do profissional no localStorage
                 localStorage.setItem('profissional_id', selectedProfissional.toString());
                 localStorage.setItem('profissional_foto', profissional_foto);
                 localStorage.setItem('profissional_nome', profissional_nome);
 
-                // Buscar as unidades associadas ao profissional
                 const unidadesResult = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT unidade_id FROM profissionais_unidade_associacao WHERE profissional_id = $1', [selectedProfissional]);
-
-                // Armazenar as unidades no localStorage
                 const unidades = unidadesResult.map((row: { unidade_id: number }) => row.unidade_id);
                 localStorage.setItem('unidades', JSON.stringify(unidades));
 
-                // Buscar os MACs permitidos para o profissional
                 const macResults = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT mac FROM profissionais_mac WHERE profissional_id = $1', [selectedProfissional]);
 
                 const macAtual = await window.ipcRenderer.invoke('get-mac-address');
 
-                // Se não há MAC registrado para o profissional
                 if (macResults.length === 0) {
                     navigate(`/primeiros-passos/${selectedProfissional}`);
                 } else {
-                    // Verificar se o MAC atual está entre os MACs permitidos
                     const macPermitido = macResults.some((row: { mac: string }) => row.mac === macAtual);
 
                     if (macPermitido) {
                         navigate('/inicio');
                     } else {
-                        navigate('/mac-erro'); // Página de erro de MAC não permitido
+                        navigate('/mac-erro');
                     }
                 }
             } else {
@@ -123,10 +115,15 @@ export default function Login() {
         setLoginStatus(null);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Enter') {
+            handleLogin();
+        }
+    };
+
     return (
         <div className="min-h-screen w-screen flex">
             <div className='w-1/2 relative flex items-center justify-center max-h-screen overflow-hidden'>
-                
                 <div className='absolute bottom-0 backdrop-blur-sm backdrop-brightness-110 z-10 h-20 w-full flex justify-center items-center'>
                     <img src="logo.svg" className='h-10' alt="" />
                 </div>
@@ -135,13 +132,12 @@ export default function Login() {
     
             <div className='w-1/2 h-screen flex items-center justify-center py-10 px-10 relative bg-base-200'>
                 <div className="w-full h-auto card bg-base-100">
-                    <div className='card-body'>
+                    <div className='card-body' onKeyDown={handleKeyDown}>
                         <h2 className="card-title">Login</h2>
                         <div className="form-control mt-4">
                             <label className="label">
                                 <span className="label-text">Departamento</span>
                             </label>
-        
                             <select
                                 value={selectedDepartamento}
                                 onChange={(e) => setSelectedDepartamento(e.target.value)}

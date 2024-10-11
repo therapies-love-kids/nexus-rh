@@ -31,4 +31,4 @@ export { default as FuncoesEditar} from './funcao/editar'
 export { default as Social} from './social'
 export { default as SocialMeuPerfil} from './social/perfil'
 export { default as SocialEditarMeuPerfil} from './social/perfil/editar'
-
+export { default as SocialTarefas} from './social/tarefas'

@@ -55,7 +55,9 @@ export default function MeuPerfil() {
                     <p className="card-title m-0 p-0">Meu Perfil</p>
                     <div className='flex gap-10 w-full'>
                         {isLoading ? ( // Exibe o loading enquanto os dados estão sendo carregados
+                        <div className='w-full h-full flex justify-center items-center'>
                             <span className="loading loading-spinner loading-lg"></span>
+                        </div>
                         ) : (
                             <>
                                 <div className='flex items-center'>
@@ -93,18 +95,14 @@ export default function MeuPerfil() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="divider divider-horizontal divider-end"></div>
                             </>
                         )}
                     </div>
-                    {/* {!isLoading && ( // Botão aparece apenas quando os dados são carregados
+                    {!isLoading && ( // Botão aparece apenas quando os dados são carregados
                         <div className="mt-6">
                             <Link to="/social/perfil/editar" className="btn btn-primary">Editar Informações</Link>
                         </div>
-                    )} */}
-                    <div className="mt-6">
-                        <Link to="/social/perfil/editar" className="btn btn-primary">Editar Informações</Link>
-                    </div>
+                    )}
                 </div>
             </div>
 
