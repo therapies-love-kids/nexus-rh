@@ -258,11 +258,8 @@ export function LayoutDash({ children }: LayoutProps) {
 }
 
 export function LayoutDashTrans({ children }: LayoutProps) {
-    const scrollbarRef = useRef(null);
-    const [scrollY, setScrollY] = useState(0);
     const [userImage, setUserImage] = useState<string | null>(null);
     const [nome, setNome] = useState<string | null>(null);
-    const [departamento] = useState<string | null>(null);
 
     useEffect(() => {
         // Pega o nome e a foto do profissional do localStorage
@@ -283,29 +280,7 @@ export function LayoutDashTrans({ children }: LayoutProps) {
         if (departamentoProfissional) {
             setNome(departamentoProfissional); // Atualiza o estado do nome
         }
-
-
-        let scrollbarInstance: Scrollbar;
         
-        if (scrollbarRef.current) {
-            scrollbarInstance = Scrollbar.init(scrollbarRef.current, {
-                plugins: {
-                    overscroll: {
-                        effect: 'bounce',
-                    },
-                },
-            });
-
-            scrollbarInstance.addListener((status) => {
-                setScrollY(status.offset.y);
-            });
-        }
-
-        return () => {
-            if (scrollbarInstance) {
-                scrollbarInstance.destroy();
-            }
-        };
     }, []);
 
     const [theme, setTheme] = useState('OrbyLight');
@@ -321,7 +296,7 @@ export function LayoutDashTrans({ children }: LayoutProps) {
     };
 
     return (
-        <div className='flex flex-row w-screen'>
+        <div className='flex flex-row w-screen h-screen'>
             <div className="p-3 border-r border-r-base-300 bg-base-100 flex flex-col items-center justify-between">
                 <div className='flex flex-col'>
                     <Link to={"/inicio"} className='btn btn-ghost'>
@@ -373,16 +348,14 @@ export function LayoutDashTrans({ children }: LayoutProps) {
                     </ul>
                 </div>
             </div>
-            <div className='w-full h-screen bg-base-200' ref={scrollbarRef}>
-                <div>
-                    <div className='min-h-screen'>
-                        {children}
-                    </div>
-                    <div className='text-neutral/50 flex justify-between px-8 w-full'>
-                        <h6>© 2024 Therapies Love Kids</h6>
-                        <h6>Desenvolvido por Pedro Laurenti</h6>
-                        <h6>v. {config.version}</h6>
-                    </div>
+            <div className='w-full h-full bg-base-200 flex flex-col justify-between'>
+                <div className=''>
+                    {children}
+                </div>
+                <div className='text-neutral/50 flex justify-between px-8 w-full'>
+                    <h6>© 2024 Therapies Love Kids</h6>
+                    <h6>Desenvolvido por Pedro Laurenti</h6>
+                    <h6>v. {config.version}</h6>
                 </div>
             </div>
         </div>

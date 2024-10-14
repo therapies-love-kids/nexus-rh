@@ -1,7 +1,5 @@
 /// <reference types="vite-electron-plugin/electron-env" />
 
-require('dotenv').config();
-
 declare namespace NodeJS {
     interface ProcessEnv {
         VSCODE_DEBUG?: 'false' | 'true';  // Inclui 'true' para debugging
