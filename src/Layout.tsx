@@ -257,7 +257,7 @@ export function LayoutDash({ children }: LayoutProps) {
     );
 }
 
-export function LayoutDashTrans({ children }: LayoutProps) {
+export function LayoutDashFixed({ children }: LayoutProps) {
     const [userImage, setUserImage] = useState<string | null>(null);
     const [nome, setNome] = useState<string | null>(null);
 

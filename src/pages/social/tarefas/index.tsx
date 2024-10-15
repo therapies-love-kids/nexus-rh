@@ -1,14 +1,75 @@
 import { fetchImageFromFtp } from "@/utils/imageUtils";
 import { useEffect, useState } from "react";
-import { IoAdd, IoChatbox, IoClipboard, IoPencil, IoSettings, IoTime } from "react-icons/io5";
+import { IoAdd, IoPencil, IoSettings } from "react-icons/io5";
 import Filtros from "@/components/FiltrosTarefas";
+import Tarefa from "@/components/Tarefa";
+import ModalNovoProjeto from "@/components/ModalNovoProjeto";
 
 export default function SocialTarefas() {
+    const storedDepartamentoId = localStorage.getItem('departamento_id');
     const storedProfissionalId = localStorage.getItem('profissional_id');
-    const [profissional_id] = useState<number | null>(storedProfissionalId ? parseInt(storedProfissionalId, 10) : null);
-    const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
+
+    const [selectedDepartamento, setSelectedDepartamento] = useState<number | undefined>(storedDepartamentoId ? parseInt(storedDepartamentoId, 10) : undefined);
     const [departamentos, setDepartamentos] = useState<{ departamento_id: number, departamento: string }[]>([]);
-    const [projetos, setProjetos] = useState<{ projeto_id: number, projeto: string }[]>([]);
+    const [selectedProfissional, setSelectedProfissional] = useState<number | null>(storedProfissionalId ? parseInt(storedProfissionalId, 10) : null);
+    const [profissional_id] = useState<number | null>(storedProfissionalId ? parseInt(storedProfissionalId, 10) : null);
+    const [profissionais, setProfissionais] = useState<{ profissional_id: number; profissional_nome: string }[]>([]);
+    const [filtroProfissionalNome, setFiltroProfissionalNome] = useState<string>(''); 
+
+    const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
+    const [projetos, setProjetos] = useState<{ projeto_id: number, projeto_nome: string }[]>([]);
+    const [selectedProjeto, setSelectedProjeto] = useState<number | undefined>(undefined);
+    const [isFirstLoad, setIsFirstLoad] = useState(true);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => setIsModalOpen(false);
+
+    const fetchProfissionais = async (departamentoId: number) => {
+        try {
+            const result = await window.ipcRenderer.invoke('query-database-postgres', `
+                SELECT profissional_id, profissional_nome 
+                FROM profissionais 
+                WHERE profissional_id IN (
+                    SELECT profissional_id 
+                    FROM profissionais_departamento_associacao 
+                    WHERE departamento_id = $1
+                ) AND profissional_status1 = 'ativo'`, 
+                [departamentoId]
+            );
+            setProfissionais(result);
+
+            if (selectedProfissional && isFirstLoad) {
+                const profissional = result.find((p: { profissional_id: number }) => p.profissional_id === selectedProfissional);
+                if (profissional) {
+                    setFiltroProfissionalNome(profissional.profissional_nome);
+                }
+                setIsFirstLoad(false);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar profissionais:', error);
+        }
+    };
+
+    useEffect(() => {
+        const fetchDepartamentos = async () => {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                `SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = 'ativo'`
+            );
+            setDepartamentos(result);
+            if (selectedDepartamento) {
+                fetchProfissionais(selectedDepartamento);
+            }
+        };
+        fetchDepartamentos();
+    }, [selectedDepartamento]);
+
+    useEffect(() => {
+        if (selectedDepartamento) {
+            fetchProfissionais(selectedDepartamento);
+        }
+    }, [selectedDepartamento]);
 
     useEffect(() => {
         const fetchProfissionalData = async () => {
@@ -19,35 +80,23 @@ export default function SocialTarefas() {
                 );
                 const profissional = result[0];
                 const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
-
                 if (profissional_id) {
-                    setImageUrls({ [profissional_id.toString()]: imageUrl });
+                    setImageUrls({ [profissional_id]: imageUrl });
                 }
             }
         };
 
-        const fetchDepartamentos = async () => {
-            const result = await window.ipcRenderer.invoke(
-                'query-database-postgres',
-                `SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = 'ativo'`
-            );
-            setDepartamentos(result);
-        };
-
-        // Adicione aqui a função para buscar os projetos
         const fetchProjetos = async () => {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                `SELECT projeto_id, projeto_nome FROM tarefas_projetos WHERE projeto_status = 'ativo'` // Modifique conforme necessário
+                `SELECT projeto_id, projeto_nome FROM tarefas_projetos WHERE projeto_status = 'ativo'`
             );
             setProjetos(result);
         };
 
         fetchProfissionalData();
-        fetchDepartamentos();
-        fetchProjetos();  // Chame a função para buscar projetos
+        fetchProjetos();
     }, [profissional_id]);
-
 
     return (
         <div className="">
@@ -57,30 +106,23 @@ export default function SocialTarefas() {
                 </div>
 
                 <div className="flex items-center gap-10">
+                    <Filtros 
+                        departamentos={departamentos} // Passando departamentos
+                        selectedDepartamento={selectedDepartamento} 
+                        setSelectedDepartamento={setSelectedDepartamento}
+                        projetos={projetos} // Passando projetos
+                        selectedProjeto={selectedProjeto} 
+                        setSelectedProjeto={setSelectedProjeto}
+                        profissionais={profissionais} 
+                        selectedProfissional={selectedProfissional} 
+                        setSelectedProfissional={setSelectedProfissional}
+                        filtroProfissionalNome={filtroProfissionalNome} 
+                    />
 
-                    <select className="select select-ghost">
-                        <option selected disabled>Selecione um Departamento</option>
-                        {departamentos.map((dep) => (
-                            <option key={dep.departamento_id} value={dep.departamento_id}>
-                                {dep.departamento}
-                            </option>
-                        ))}
-                    </select>
-
-                    <select className="select select-ghost">
-                        <option selected disabled>Selecione um Projeto</option>
-                        {projetos.map((proj) => (
-                            <option key={proj.projeto_id} value={proj.projeto_id}>
-                                {proj.projeto}
-                            </option>
-                        ))}
-                    </select>
-
-                    <Filtros />
                     <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="btn btn-ghost"><IoSettings /></div>
                         <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                            <li><a>Novo Projeto</a></li>
+                            <li><button onClick={openModal}>Novo Projeto</button></li>
                             <li><a>Arquivar Projeto</a></li>
                             <li><a>Tarefas arquivadas</a></li>
                             <li><a>Projetos arquivados</a></li>
@@ -88,46 +130,32 @@ export default function SocialTarefas() {
                     </div>
                 </div>
             </div>
-
             <div className="flex gap-10 max-w-full m-10">
                 <div className="w-96">
                     <button className="btn btn-ghost">
                         <IoPencil /> Título da coluna 
                     </button>
                     <div className="bg-base-100 overflow-x-auto h-[70vh] rounded-xl p-2">
-                        <div className="border-base-300 border-2 p-2 rounded-xl border-dashed min-h-28 mb-5">
-                            <div className="badge badge-primary">
-                                Prioridade baixa
-                            </div>
-                            <div className="badge badge-warning">
-                                Prioridade média
-                            </div>
-                            <div className="badge badge-error">
-                                Prioridade alta
-                            </div>
-                            <h2 className="mt-5 text-xl">Título da tarefa</h2>
-                            <div className="flex items-center gap-2">
-                                {profissional_id !== null && imageUrls[profissional_id] && (
-                                    <img src={imageUrls[profissional_id]} alt="foto" className="w-8 aspect-square object-cover rounded-full" />
-                                )}
-                                <div className="flex items-center justify-center rounded-full border-2 border-dashed aspect-square w-8"><IoAdd /></div>
-                            </div>
-                            <h2 className="mt-10">Subtarefas</h2>
-                            <div>
-                                <div className="form-control">
-                                    <label className="label cursor-pointer gap-3 w-fit">
-                                        <input type="checkbox" defaultChecked className="checkbox" />
-                                        <span className="label-text">Subtarefa 1</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div className="divider mb-2"></div>
-                            <div className="flex items-center justify-between text-sm mb-2">
-                                <div className="flex items-center gap-2"><IoTime />5h</div>
-                                <div className="flex items-center gap-2"><IoChatbox />1</div>
-                                <div className="flex items-center gap-2"><IoClipboard />3</div>
-                            </div>
-                        </div>
+                    <Tarefa
+                        titulo="Título da tarefa"
+                        prioridade="media"
+                        horas={5}
+                        subtarefas={[
+                            { nome: "Subtarefa 1", concluida: false },
+                            { nome: "Subtarefa 2", concluida: true }
+                        ]}
+                        comentarios={[
+                            { id: 1, texto: "Comentário 1" },
+                            { id: 2, texto: "Comentário 2" }
+                        ]}
+                        anexos={[
+                            { id: 1, nome: "Arquivo 1.pdf" },
+                            { id: 2, nome: "Imagem 1.png" },
+                            { id: 3, nome: "Documento 1.docx" }
+                        ]}
+                        imageUrl={profissional_id !== null ? imageUrls[profissional_id] : null}
+                    />
+
                     </div>
                     <button className="btn btn-ghost">
                         <IoAdd /> Tarefa
@@ -137,6 +165,7 @@ export default function SocialTarefas() {
                     <IoAdd /> Coluna
                 </button>
             </div>
+            <ModalNovoProjeto isOpen={isModalOpen} onClose={closeModal} />
         </div>
     );
 }

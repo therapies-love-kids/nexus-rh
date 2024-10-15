@@ -82,6 +82,7 @@ export default function Login() {
                 localStorage.setItem('profissional_id', selectedProfissional.toString());
                 localStorage.setItem('profissional_foto', profissional_foto);
                 localStorage.setItem('profissional_nome', profissional_nome);
+                localStorage.setItem('departamento_id', selectedDepartamento.toString());
 
                 const unidadesResult = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT unidade_id FROM profissionais_unidade_associacao WHERE profissional_id = $1', [selectedProfissional]);
                 const unidades = unidadesResult.map((row: { unidade_id: number }) => row.unidade_id);

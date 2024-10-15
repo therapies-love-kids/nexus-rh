@@ -1,5 +1,5 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout, { LayoutDash, LayoutDashTrans } from './Layout';
+import Layout, { LayoutDash, LayoutDashFixed } from './Layout';
 import {
         Login,
         Inicio,
@@ -201,19 +201,19 @@ export default function App() {
                         <>
                             <Route path="/social" element={
                                 <PrivateRoute>
-                                    <LayoutDashTrans><Social /></LayoutDashTrans>
+                                    <LayoutDashFixed><Social /></LayoutDashFixed>
                                 </PrivateRoute>
                             } />
                             {/* PERFIL */}
                             <>
                                 <Route path="/social/perfil" element={
                                     <PrivateRoute>
-                                        <LayoutDashTrans><SocialMeuPerfil /></LayoutDashTrans>
+                                        <LayoutDashFixed><SocialMeuPerfil /></LayoutDashFixed>
                                     </PrivateRoute>
                                 } />
                                 <Route path="/social/perfil/editar" element={
                                     <PrivateRoute>
-                                        <LayoutDashTrans><SocialEditarMeuPerfil /></LayoutDashTrans>
+                                        <LayoutDashFixed><SocialEditarMeuPerfil /></LayoutDashFixed>
                                     </PrivateRoute>
                                 } />
                             </>
@@ -221,7 +221,7 @@ export default function App() {
                             <>
                                 <Route path="/social/tarefas" element={
                                     <PrivateRoute>
-                                        <LayoutDashTrans><SocialTarefas /></LayoutDashTrans>
+                                        <LayoutDashFixed><SocialTarefas /></LayoutDashFixed>
                                     </PrivateRoute>
                                 } />
                             </>
