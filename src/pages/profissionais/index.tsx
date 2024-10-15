@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
 import { fetchImageFromFtp } from '@/utils/imageUtils';
 import { Link, useNavigate } from 'react-router-dom';
-import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Profissional {
@@ -152,15 +152,6 @@ export default function Profissionais() {
 
     const navigate = useNavigate();
 
-    const handleEdit = () => {
-        if (selectedProfissionais.length === 1) {
-            const [selectedId] = selectedProfissionais;
-            navigate(`/profissionais/${selectedId}`);
-        } else {
-            setNotification({ type: 'error', message: 'Selecione apenas um profissional para editar.' });
-        }
-    };
-
     return (
         <div className='bg-base-200 min-h-screen'>
             <Breadcrumbs />
@@ -186,7 +177,7 @@ export default function Profissionais() {
                                                 Mover para Demitidos
                                             </a>
                                         </li>
-                                        <li>
+                                        {/* <li>
                                             <button
                                                 className={` ${selectedProfissionais.length !== 1 ? 'tooltip text-gray-400 text-start cursor-not-allowed' : ''}`}
                                                 data-tip={selectedProfissionais.length !== 1 ? 'Selecione apenas um profissional para editar.' : ''}
@@ -195,7 +186,7 @@ export default function Profissionais() {
                                             >
                                                 Editar
                                             </button>
-                                        </li>
+                                        </li> */}
                                     </ul>
                                 </div>
 
@@ -235,6 +226,7 @@ export default function Profissionais() {
                                     <th>Nome</th>
                                     <th>Unidades</th>
                                     <th>Funções</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -264,6 +256,11 @@ export default function Profissionais() {
                                             {funcoesMap[prof.profissional_id]?.map((funcao, index) => (
                                                 <div key={index}>{funcao.funcao}</div>
                                             )) || 'Nenhuma função'}
+                                        </td>
+                                        <td className="w-1">
+                                            <Link to={`/profissionais/${prof.profissional_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
+                                                <IoPencil />
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}

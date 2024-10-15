@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
 import { Link } from 'react-router-dom';
-import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Funcao {
@@ -141,6 +141,7 @@ export default function FuncoesInativos() {
                                     </th>
                                     <th>ID</th>
                                     <th>Nome da Função</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -158,6 +159,11 @@ export default function FuncoesInativos() {
                                         </th>
                                         <td>{funcao.funcao_id}</td>
                                         <td>{funcao.funcao}</td>
+                                        <td className="w-1">
+                                            <Link to={`/funcoes/${funcao.funcao_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
+                                                <IoPencil />
+                                            </Link>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

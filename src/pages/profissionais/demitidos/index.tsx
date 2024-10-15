@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
 import { fetchImageFromFtp } from '@/utils/imageUtils';
 import { Link } from 'react-router-dom';
-import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification }  from '@/components'; // Importa o componente de notificação
 
 interface Profissional {
@@ -211,6 +211,7 @@ export default function ProfissionaisDemitidos() {
                                     <th>Nome</th>
                                     {/* <th>Nível de Acesso</th> */}
                                     <th>Unidade de Atuação</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -242,6 +243,11 @@ export default function ProfissionaisDemitidos() {
                                             {unidadesMap[prof.profissional_id]?.map((unidade, index) => (
                                                 <div key={index}>{unidade.unidade}</div>
                                             )) || 'Nenhuma unidade'}
+                                        </td>
+                                        <td className="w-1">
+                                            <Link to={`/profissionais/${prof.profissional_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
+                                                <IoPencil />
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}

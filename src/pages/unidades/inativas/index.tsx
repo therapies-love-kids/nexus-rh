@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
 import { Link } from 'react-router-dom';
-import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Unidade {
@@ -147,6 +147,7 @@ export default function Unidades() {
                                     <th>Nome da Unidade</th>
                                     <th>Endereço</th>
                                     <th>CEP</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -166,6 +167,11 @@ export default function Unidades() {
                                         <td>{unidade.unidade}</td>
                                         <td>{unidade.endereco}</td>
                                         <td>{unidade.cep}</td>
+                                        <td className="w-1">
+                                            <Link to={`/unidades/${unidade.unidade_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
+                                                <IoPencil />
+                                            </Link>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
