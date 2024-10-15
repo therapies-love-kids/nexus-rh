@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
-import { IoClose, IoDownloadOutline, IoEnter, IoExit, IoExitOutline, IoMenu, IoMoon, IoRefresh, IoSettingsOutline, IoSunny, IoArrowBack, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy } from "react-icons/io5";
+import { IoClose, IoDownloadOutline, IoArrowBack, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy } from "react-icons/io5";
 import { Link } from 'react-router-dom';
 import { fetchImageFromFtp } from './utils/imageUtils';
 import { Update } from './components';
