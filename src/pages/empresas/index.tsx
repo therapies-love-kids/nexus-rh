@@ -164,7 +164,7 @@ export default function Empresas() {
                                         <td>{empresa.empresa}</td>
                                         <td>{empresa.cnpj}</td>
                                         <td>
-                                            <Link to={`/empresas/${empresa.empresa_id}`} className='btn btn-ghost tooltip flex' data-tip="Editar">
+                                            <Link to={`/empresas/${empresa.empresa_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
                                                 <IoPencil />
                                             </Link>
                                         </td>

@@ -245,7 +245,7 @@ export default function ProfissionaisDemitidos() {
                                             )) || 'Nenhuma unidade'}
                                         </td>
                                         <td>
-                                            <Link to={`/profissionais/${prof.profissional_id}`} className='btn btn-ghost tooltip flex' data-tip="Editar">
+                                            <Link to={`/profissionais/${prof.profissional_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
                                                 <IoPencil />
                                             </Link>
                                         </td>

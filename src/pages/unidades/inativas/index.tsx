@@ -168,7 +168,7 @@ export default function Unidades() {
                                         <td>{unidade.endereco}</td>
                                         <td>{unidade.cep}</td>
                                         <td>
-                                            <Link to={`/unidades/${unidade.unidade_id}`} className='btn btn-ghost tooltip flex' data-tip="Editar">
+                                            <Link to={`/unidades/${unidade.unidade_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
                                                 <IoPencil />
                                             </Link>
                                         </td>

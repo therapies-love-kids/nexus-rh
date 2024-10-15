@@ -160,7 +160,7 @@ export default function DepartamentosInativos() {
                                         <td>{departamento.departamento_id}</td>
                                         <td>{departamento.departamento}</td>
                                         <td>
-                                        <Link to={`/departamentos/${departamento.departamento_id}`} className='btn btn-ghost tooltip flex' data-tip="Editar">
+                                        <Link to={`/departamentos/${departamento.departamento_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
                                             <IoPencil />
                                         </Link>
                                         </td>
