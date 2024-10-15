@@ -160,7 +160,7 @@ export default function Departamentos() {
                                         </th>
                                         <td>{departamento.departamento_id}</td>
                                         <td>{departamento.departamento}</td>
-                                        <td>
+                                        <td className="w-1">
                                             <Link to={`/departamentos/${departamento.departamento_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
                                                 <IoPencil />
                                             </Link>

@@ -257,7 +257,7 @@ export default function Profissionais() {
                                                 <div key={index}>{funcao.funcao}</div>
                                             )) || 'Nenhuma função'}
                                         </td>
-                                        <td>
+                                        <td className="w-1">
                                             <Link to={`/profissionais/${prof.profissional_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
                                                 <IoPencil />
                                             </Link>

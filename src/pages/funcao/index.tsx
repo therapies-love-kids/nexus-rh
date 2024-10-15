@@ -160,7 +160,7 @@ export default function Funcaos() {
                                         </th>
                                         <td>{funcao.funcao_id}</td>
                                         <td>{funcao.funcao}</td>
-                                        <td>
+                                        <td className="w-1">
                                             <Link to={`/funcoes/${funcao.funcao_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
                                                 <IoPencil />
                                             </Link>

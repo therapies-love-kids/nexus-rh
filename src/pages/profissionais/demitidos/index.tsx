@@ -244,7 +244,7 @@ export default function ProfissionaisDemitidos() {
                                                 <div key={index}>{unidade.unidade}</div>
                                             )) || 'Nenhuma unidade'}
                                         </td>
-                                        <td>
+                                        <td className="w-1">
                                             <Link to={`/profissionais/${prof.profissional_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
                                                 <IoPencil />
                                             </Link>
