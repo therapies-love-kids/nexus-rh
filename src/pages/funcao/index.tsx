@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
 import { Link, useNavigate } from 'react-router-dom';
-import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Funcao {
@@ -46,15 +46,6 @@ export default function Funcaos() {
     };
 
     const navigate = useNavigate();
-
-    const handleEdit = () => {
-        if (selectedFuncoes.length === 1) {
-            const [selectedId] = selectedFuncoes;
-            navigate(`/funcoes/${selectedId}`);
-        } else {
-            setNotification({ type: 'error', message: 'Selecione apenas uma função para editar.' });
-        }
-    };
 
     const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
         if (selectedFuncoes.length > 0) {
@@ -114,16 +105,6 @@ export default function Funcaos() {
                                                 Mover para Inativos
                                             </a>
                                         </li>
-                                        <li>
-                                            <button
-                                                className={`${selectedFuncoes.length !== 1 ? 'tooltip text-gray-400 text-start cursor-not-allowed' : ''}`}
-                                                data-tip={selectedFuncoes.length !== 1 ? 'Selecione apenas uma função para editar.' : ''}
-                                                onClick={handleEdit}
-                                                disabled={selectedFuncoes.length !== 1}
-                                            >
-                                                Editar
-                                            </button>
-                                        </li>
                                     </ul>
                                 </div>
 
@@ -161,6 +142,7 @@ export default function Funcaos() {
                                     </th>
                                     <th>ID</th>
                                     <th>Nome da Função</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -178,6 +160,11 @@ export default function Funcaos() {
                                         </th>
                                         <td>{funcao.funcao_id}</td>
                                         <td>{funcao.funcao}</td>
+                                        <td className="w-1">
+                                            <Link to={`/funcoes/${funcao.funcao_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
+                                                <IoPencil />
+                                            </Link>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
 import { Link, useNavigate } from 'react-router-dom';
-import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Unidade {
@@ -48,15 +48,6 @@ export default function Unidades() {
     };
 
     const navigate = useNavigate();
-
-    const handleEdit = () => {
-        if (selectedUnidades.length === 1) {
-            const [selectedId] = selectedUnidades;
-            navigate(`/unidades/${selectedId}`);
-        } else {
-            setNotification({ type: 'error', message: 'Selecione apenas uma unidade para editar.' });
-        }
-    };
 
     const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
         if (selectedUnidades.length > 0) {
@@ -119,16 +110,6 @@ export default function Unidades() {
                                                 Mover para Inativos
                                             </a>
                                         </li>
-                                        <li>
-                                            <button
-                                                className={` ${selectedUnidades.length !== 1 ? 'tooltip text-gray-400 text-start cursor-not-allowed' : ''}`}
-                                                data-tip={selectedUnidades.length !== 1 ? 'Selecione apenas uma unidade para editar.' : ''}
-                                                onClick={handleEdit}
-                                                disabled={selectedUnidades.length !== 1}
-                                            >
-                                                Editar
-                                            </button>
-                                        </li>
                                     </ul>
                                 </div>
 
@@ -168,6 +149,7 @@ export default function Unidades() {
                                     <th>Nome da Unidade</th>
                                     <th>Endereço</th>
                                     <th>CEP</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -187,6 +169,11 @@ export default function Unidades() {
                                         <td>{unidade.unidade}</td>
                                         <td>{unidade.endereco}</td>
                                         <td>{unidade.cep}</td>
+                                        <td className="w-1">
+                                            <Link to={`/unidades/${unidade.unidade_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
+                                                <IoPencil />
+                                            </Link>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

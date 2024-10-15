@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
 import { Link, useNavigate } from 'react-router-dom';
-import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Empresa {
@@ -143,6 +143,7 @@ export default function Empresas() {
                                     <th>ID</th>
                                     <th>Nome da Empresa</th>
                                     <th>CNPJ</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -161,6 +162,11 @@ export default function Empresas() {
                                         <td>{empresa.empresa_id}</td>
                                         <td>{empresa.empresa}</td>
                                         <td>{empresa.cnpj}</td>
+                                        <td className="w-1">
+                                            <Link to={`/empresas/${empresa.empresa_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
+                                                <IoPencil />
+                                            </Link>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

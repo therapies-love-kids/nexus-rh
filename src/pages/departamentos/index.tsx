@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
 import { Link, useNavigate } from 'react-router-dom';
-import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
 
 interface Departamento {
@@ -46,15 +46,6 @@ export default function Departamentos() {
     };
 
     const navigate = useNavigate();
-
-    const handleEdit = () => {
-        if (selectedDepartamentos.length === 1) {
-            const [selectedId] = selectedDepartamentos;
-            navigate(`/departamentos/${selectedId}`);
-        } else {
-            setNotification({ type: 'error', message: 'Selecione apenas uma departamento para editar.' });
-        }
-    };
 
     const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
         if (selectedDepartamentos.length > 0) {
@@ -114,16 +105,6 @@ export default function Departamentos() {
                                                 Mover para Inativos
                                             </a>
                                         </li>
-                                        <li>
-                                            <button
-                                                className={`${selectedDepartamentos.length !== 1 ? 'tooltip text-gray-400 text-start cursor-not-allowed' : ''}`}
-                                                data-tip={selectedDepartamentos.length !== 1 ? 'Selecione apenas um departamento para editar.' : ''}
-                                                onClick={handleEdit}
-                                                disabled={selectedDepartamentos.length !== 1}
-                                            >
-                                                Editar
-                                            </button>
-                                        </li>
                                     </ul>
                                 </div>
 
@@ -161,6 +142,7 @@ export default function Departamentos() {
                                     </th>
                                     <th>ID</th>
                                     <th>Nome do Departamento</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -178,6 +160,11 @@ export default function Departamentos() {
                                         </th>
                                         <td>{departamento.departamento_id}</td>
                                         <td>{departamento.departamento}</td>
+                                        <td className="w-1">
+                                            <Link to={`/departamentos/${departamento.departamento_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
+                                                <IoPencil />
+                                            </Link>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
