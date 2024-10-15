@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
-import { IoEnter, IoExit, IoMenu, IoMoon, IoRefresh, IoSettingsOutline, IoSunny } from "react-icons/io5";
+import { IoClose, IoDownloadOutline, IoEnter, IoExit, IoExitOutline, IoMenu, IoMoon, IoRefresh, IoSettingsOutline, IoSunny } from "react-icons/io5";
 import { Link } from 'react-router-dom';
 import { fetchImageFromFtp } from './utils/imageUtils';
 import { Update } from './components';
@@ -56,26 +56,32 @@ export default function Layout({ children }: LayoutProps) {
             <div>
                 <div className='fixed right-0 z-10 flex gap-5 p-5'>
 
-                    <Update>
-                        <button className="btn btn-circle transition-transform hover:rotate-180">
-                            <IoRefresh />
-                        </button>
-                    </Update>
-
-                    <button
-                        className='btn btn-circle btn-ghost'
-                        onClick={() => window.ipcRenderer.invoke('app-close')}>
-                        <IoExit />
-                    </button>
-
-
-                    <label className="swap swap-rotate btn btn-circle btn-ghost">
-                        <input type="checkbox" className="theme-controller" onChange={handleThemeToggle} />
-                        <IoSunny className='swap-on fill-current' />
-                        <IoMoon className='swap-off fill-current' />
-                    </label>
-
                     <Link className='btn btn-circle' to={"/inicio"}><IoEnter /></Link>
+
+                    <div className="tooltip tooltip-bottom" data-tip="Buscar atualização"> 
+                        <Update>
+                            <button className="btn btn-circle">
+                                <IoDownloadOutline />
+                            </button>
+                        </Update>
+                    </div>
+
+                    <div className="tooltip tooltip-bottom" data-tip="Trocar tema">    
+                        <label className="swap btn btn-circle" >
+                            <input type="checkbox" className="theme-controller" onChange={handleThemeToggle}/>
+                            <IoSunny className='swap-off fill-current' />
+                            <IoMoon className='swap-on fill-current' />
+                        </label>
+                    </div>
+                    
+                    <div className="tooltip tooltip-bottom" data-tip="Fechar">
+                        <button
+                            className='btn btn-circle'
+                            onClick={() => window.ipcRenderer.invoke('app-close')}>
+                            <IoClose />
+                        </button>    
+                    </div>
+
                 </div>
                 {children}
             </div>
@@ -208,20 +214,21 @@ export function LayoutDash({ children }: LayoutProps) {
                                             <div tabIndex={4} role="button" className="btn m-1"><IoSettingsOutline /></div>
                                             <ul tabIndex={4} className="dropdown-content menu bg-base-100 rounded-box z-[1] shadow flex-row p-2 gap-2">
                                                 
-                                                    <Update>
-                                                        <button className="btn">
-                                                            <IoRefresh className='transition-transform hover:rotate-180' />
-                                                        </button>
-                                                    </Update>
+                                                <Update>
+                                                    <button className="btn tooltip tooltip-left" data-tip="Buscar atualização">
+                                                        <IoDownloadOutline />
+                                                    </button>
+                                                </Update>
                                                 
-                                                <li>
+                                                <li className='tooltip tooltip-left' data-tip="Trocar tema">
                                                     <label className="swap swap-rotate btn">
                                                         <input type="checkbox" className="theme-controller" onChange={handleThemeToggle} />
                                                         <IoSunny className='swap-on fill-current' />
                                                         <IoMoon className='swap-off fill-current' />
                                                     </label>
                                                 </li>
-                                                <li>
+                                                
+                                                <li className='tooltip tooltip-left' data-tip="Sair">
                                                     <Link to={"/"} className='btn text-error'>
                                                         <IoExit />
                                                     </Link>
