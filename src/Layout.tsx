@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
-import { IoClose, IoDownloadOutline, IoEnter, IoExit, IoExitOutline, IoMenu, IoMoon, IoRefresh, IoSettingsOutline, IoSunny } from "react-icons/io5";
+import { IoClose, IoDownloadOutline, IoEnter, IoExit, IoExitOutline, IoMenu, IoMoon, IoRefresh, IoSettingsOutline, IoSunny, IoArrowBack, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy } from "react-icons/io5";
 import { Link } from 'react-router-dom';
 import { fetchImageFromFtp } from './utils/imageUtils';
 import { Update } from './components';
@@ -187,7 +187,7 @@ export function LayoutDash({ children }: LayoutProps) {
                                     <div className="divider"></div>
                                     
                                     <div className='flex gap-5 justify-between items-center'>
-                                        <Link to={"/"} className='w-full p-2 rounded-lg flex gap-5 items-center hover:bg-base-200'>
+                                        <Link to={"/social"} className='w-full p-2 rounded-lg flex gap-5 items-center hover:bg-base-200'>
                                             <div className="avatar">
                                                 <div className="w-10 rounded-full z-0">
                                                     {userImage ? (
@@ -242,7 +242,7 @@ export function LayoutDash({ children }: LayoutProps) {
                         </div>
                     </div>
 
-                    <Link to={"/"} className='btn btn-ghost text-center'>
+                    <Link to={"/inicio"} className='btn btn-ghost text-center'>
                         <h2 className='text-xl ml-[10px] tracking-[10px] text-center'>NEXUS</h2>
                     </Link>
                 </div>
@@ -254,7 +254,7 @@ export function LayoutDash({ children }: LayoutProps) {
                         {children}
                     </div>
                     <div className='text-neutral/50 flex justify-between px-8 w-full'>
-                        <h6>© 2024 Therapies Love Kids.</h6>
+                        <h6>© 2024 Therapies Love Kids</h6>
                         <h6>Desenvolvido por Pedro Laurenti</h6>
                         <h6>v. {config.version}</h6>
                     </div>
@@ -263,3 +263,109 @@ export function LayoutDash({ children }: LayoutProps) {
         </div>
     );
 }
+
+export function LayoutDashFixed({ children }: LayoutProps) {
+    const [userImage, setUserImage] = useState<string | null>(null);
+    const [nome, setNome] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Pega o nome e a foto do profissional do localStorage
+        const foto = localStorage.getItem('profissional_foto');
+        const nomeProfissional = localStorage.getItem('profissional_nome'); // Buscar o nome do profissional
+        const departamentoProfissional = localStorage.getItem('profissional_departamento'); // Buscar o nome do profissional
+        
+        if (foto) {
+            // Busca a URL da imagem a partir do nome do arquivo
+            fetchImageFromFtp(foto)
+                .then((imageUrl) => setUserImage(imageUrl))
+                .catch((err) => console.error('Erro ao buscar a imagem:', err));
+        }
+        
+        if (nomeProfissional) {
+            setNome(nomeProfissional); // Atualiza o estado do nome
+        }
+        if (departamentoProfissional) {
+            setNome(departamentoProfissional); // Atualiza o estado do nome
+        }
+        
+    }, []);
+
+    const [theme, setTheme] = useState('OrbyLight');
+
+    useEffect(() => {
+        // Aplica o tema no root element
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [theme]);
+
+    const handleThemeToggle = () => {
+        // Troca entre CustomLight e CustomDark
+        setTheme((prevTheme) => (prevTheme === 'OrbyLight' ? 'OrbyDark' : 'OrbyLight'));
+    };
+
+    return (
+        <div className='flex flex-row w-screen h-screen'>
+            <div className="p-3 border-r border-r-base-300 bg-base-100 flex flex-col items-center justify-between">
+                <div className='flex flex-col'>
+                    <Link to={"/inicio"} className='btn btn-ghost'>
+                        <IoArrowBack />
+                    </Link>
+                    <Link to={"/social"} className='btn btn-ghost'>
+                        <IoHome />
+                    </Link>
+                    <Link to={"/social/perfil"} className='btn btn-ghost'>
+                        <IoPerson />
+                    </Link>
+                    <Link to={"/social/tarefas"} className='btn btn-ghost'>
+                        <IoCalendar />
+                    </Link>
+                    <Link to={""} className='btn btn-ghost'>
+                        <IoChatbox />
+                    </Link>
+                    <Link to={""} className='btn btn-ghost'>
+                        <IoNotifications />
+                    </Link>
+                    <Link to={""} className='btn btn-ghost'>
+                        <IoTrophy />
+                    </Link>
+                </div>
+                <div className="dropdown dropdown-top">
+                    <div tabIndex={4} role="button" className="btn btn-ghost">
+                        <IoSettingsOutline />
+                    </div>
+                    <ul tabIndex={4} className="dropdown-content menu bg-base-100 rounded-box flex-row p-0 my-2 gap-2">
+                        
+                        <Update>
+                            <button className="btn">
+                                <IoRefresh className='transition-transform hover:rotate-180' />
+                            </button>
+                        </Update>
+                        
+                        <li>
+                            <label className="swap swap-rotate btn">
+                                <input type="checkbox" className="theme-controller" onChange={handleThemeToggle} />
+                                <IoSunny className='swap-on fill-current' />
+                                <IoMoon className='swap-off fill-current' />
+                            </label>
+                        </li>
+                        <li>
+                            <Link to={"/"} className='btn text-error'>
+                                <IoExit />
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div className='w-full h-full bg-base-200 flex flex-col justify-between'>
+                <div className=''>
+                    {children}
+                </div>
+                <div className='text-neutral/50 flex justify-between px-8 w-full'>
+                    <h6>© 2024 Therapies Love Kids</h6>
+                    <h6>Desenvolvido por Pedro Laurenti</h6>
+                    <h6>v. {config.version}</h6>
+                </div>
+            </div>
+        </div>
+    );
+}
+

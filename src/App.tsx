@@ -1,5 +1,5 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout, { LayoutDash } from './Layout';
+import Layout, { LayoutDash, LayoutDashFixed } from './Layout';
 import {
         Login,
         Inicio,
@@ -23,7 +23,11 @@ import {
         Funcoes,
         FuncoesNova,
         FuncoesInativos,
-        FuncoesEditar
+        FuncoesEditar,
+        Social,
+        SocialMeuPerfil,
+        SocialEditarMeuPerfil,
+        SocialTarefas,
     } from './pages';
 import { Suspense } from 'react';
 import MacErro from './pages/Login/MacErro';
@@ -31,6 +35,7 @@ import { PrivateRoute } from './components';  // Importando o PrivateRoute
 
 import 'react-date-picker/dist/DatePicker.css';
 import 'react-calendar/dist/Calendar.css';
+import './main.scss';
 
 export default function App() {
     return (
@@ -191,7 +196,37 @@ export default function App() {
                             } />
 
                         </>
-                        
+
+                        {/* SOCIAL */}
+                        <>
+                            <Route path="/social" element={
+                                <PrivateRoute>
+                                    <LayoutDashFixed><Social /></LayoutDashFixed>
+                                </PrivateRoute>
+                            } />
+                            {/* PERFIL */}
+                            <>
+                                <Route path="/social/perfil" element={
+                                    <PrivateRoute>
+                                        <LayoutDashFixed><SocialMeuPerfil /></LayoutDashFixed>
+                                    </PrivateRoute>
+                                } />
+                                <Route path="/social/perfil/editar" element={
+                                    <PrivateRoute>
+                                        <LayoutDashFixed><SocialEditarMeuPerfil /></LayoutDashFixed>
+                                    </PrivateRoute>
+                                } />
+                            </>
+                            {/* TAREFAS */}
+                            <>
+                                <Route path="/social/tarefas" element={
+                                    <PrivateRoute>
+                                        <LayoutDashFixed><SocialTarefas /></LayoutDashFixed>
+                                    </PrivateRoute>
+                                } />
+                            </>
+                        </>
+
                     </Routes>
                 </Suspense>
             </Router>
