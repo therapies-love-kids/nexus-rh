@@ -14,8 +14,19 @@ interface LayoutProps {
     children: ReactNode;
 }
 
+// Função para obter o tema do local storage
+const getStoredTheme = () => {
+    return localStorage.getItem('theme') || 'OrbyLight';
+};
+
+// Função para definir o tema no local storage
+const setStoredTheme = (theme: string) => {
+    localStorage.setItem('theme', theme);
+};
+
 export default function Layout({ children }: LayoutProps) {
     const scrollbarRef = useRef(null);
+    const [theme, setTheme] = useState(getStoredTheme());
 
     useEffect(() => {
         let scrollbarInstance: Scrollbar;
@@ -37,11 +48,10 @@ export default function Layout({ children }: LayoutProps) {
         };
     }, []);
 
-    const [theme, setTheme] = useState('OrbyLight');
-
     useEffect(() => {
         // Aplica o tema no root element
         document.documentElement.setAttribute('data-theme', theme);
+        setStoredTheme(theme);
     }, [theme]);
 
     const handleThemeToggle = () => {
@@ -94,6 +104,7 @@ export function LayoutDash({ children }: LayoutProps) {
     const [userImage, setUserImage] = useState<string | null>(null);
     const [nome, setNome] = useState<string | null>(null); // Novo estado para o nome
     const [departamento, setDepartamento] = useState<string | null>(null); // Novo estado para o nome
+    const [theme, setTheme] = useState(getStoredTheme);
 
     useEffect(() => {
         // Pega o nome e a foto do profissional do localStorage
@@ -139,11 +150,10 @@ export function LayoutDash({ children }: LayoutProps) {
         };
     }, []);
 
-    const [theme, setTheme] = useState('OrbyLight');
-
     useEffect(() => {
         // Aplica o tema no root element
         document.documentElement.setAttribute('data-theme', theme);
+        setStoredTheme(theme);
     }, [theme]);
 
     const handleThemeToggle = () => {
@@ -266,6 +276,7 @@ export function LayoutDash({ children }: LayoutProps) {
 export function LayoutDashFixed({ children }: LayoutProps) {
     const [userImage, setUserImage] = useState<string | null>(null);
     const [nome, setNome] = useState<string | null>(null);
+    const [theme, setTheme] = useState(getStoredTheme);
 
     useEffect(() => {
         // Pega o nome e a foto do profissional do localStorage
@@ -289,11 +300,10 @@ export function LayoutDashFixed({ children }: LayoutProps) {
         
     }, []);
 
-    const [theme, setTheme] = useState('OrbyLight');
-
     useEffect(() => {
         // Aplica o tema no root element
         document.documentElement.setAttribute('data-theme', theme);
+        setStoredTheme(theme);
     }, [theme]);
 
     const handleThemeToggle = () => {
