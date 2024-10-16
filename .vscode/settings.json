@@ -4,7 +4,7 @@
     "typescript.tsdk": "node_modules/typescript/lib",
     "typescript.tsc.autoDetect": "off",
     "files.exclude": {
-        "**/.vscode": true,
+        "**/.git": false
     },
     "json.schemas": [{
         "fileMatch": [

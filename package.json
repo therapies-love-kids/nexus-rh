@@ -14,7 +14,7 @@
         "clear": "rimraf dist-electron && rimraf dist && rimraf out && rimraf release && rimraf test-results",
         "dev": "vite",
         "preview": "vite preview",
-        "dist": "node dist.js",
+        "dist": "node dist.ts",
         "build": "npm run clear && tsc && vite build && electron-builder",
         "build:win": "vite build && electron-builder --win",
         "build:mac": "vite build && electron-builder --mac",

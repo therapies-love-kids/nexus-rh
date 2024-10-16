@@ -5,7 +5,7 @@ const Progress: React.FC<React.PropsWithChildren<{percent?: number}>> = props =>
 
     return (
         <progress 
-            className="progress progress-primary w-56" 
+            className="progress progress-primary w-full" 
             value={percent} 
             max="100">
         </progress>

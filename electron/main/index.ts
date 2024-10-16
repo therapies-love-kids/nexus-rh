@@ -1,3 +1,4 @@
+
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -6,6 +7,8 @@ import { update } from './update';
 import { setupFtpIpcHandlers } from './ftpConnection';
 import { setupMacAddressIpcHandler } from './macConsulta';
 import { setupDatabaseIpcHandlers } from './DBConnection';
+import '/public/icon.ico'
+import '/public/icon.png'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,12 +37,14 @@ let win: BrowserWindow | null = null;
 const preload = path.join(__dirname, '../preload/index.mjs');
 const indexHtml = path.join(RENDERER_DIST, 'index.html');
 
-// Define o caminho do ícone dependendo da plataforma
-const iconPath = process.platform === 'win32'
-    ? path.join(VITE_PUBLIC, 'icon.png')
-    : path.join(VITE_PUBLIC, 'icon.png'); // Utilize um ícone PNG para Linux/macOS
+// Define o caminho do ícone
+const iconPath = path.join(VITE_PUBLIC, 'icon.png'); // Verifique se o caminho está correto
+console.log('Icon Path:', iconPath);
 
 async function createWindow() {
+    const iconPath = path.join(VITE_PUBLIC, 'icon.png');
+    console.log('Icon Path:', iconPath); // Verifique se o ícone é acessível
+
     win = new BrowserWindow({
         title: 'Main window',
         icon: iconPath,
@@ -70,12 +75,12 @@ async function createWindow() {
 app.whenReady().then(() => {
     createWindow();
     setupFtpIpcHandlers();
-    setupDatabaseIpcHandlers(); // Configura os IPC handlers para o banco de dados
+    setupDatabaseIpcHandlers();
     setupMacAddressIpcHandler();
 });
 
 ipcMain.handle('app-close', () => {
-    app.quit();  // Fecha o aplicativo
+    app.quit();
 });
 
 app.on('window-all-closed', () => {

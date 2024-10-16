@@ -32,21 +32,39 @@ const Update: React.FC<UpdateProps> = ({ children }) => {
             const modal = document.getElementById('my_modal_5') as HTMLDialogElement;
             if (modal) modal.close();
         },
-        aoConfirmar: () => window.ipcRenderer.invoke('start-download'),
+        aoConfirmar: () => {
+            if (!simulacao) {
+                window.ipcRenderer.invoke('start-download');
+            } else {
+                // Simulação: Se estiver em modo de simulação, não faz o download real
+                console.log("Simulação: A atualização não será baixada.");
+            }
+        },
     });
+
+    const simulacao = false; // Defina aqui se você quer estar em modo de simulação
 
     const verificarAtualizacao = async () => {
         setVerificando(true);
-        const resultado = await window.ipcRenderer.invoke('check-update');
-        setInformacoesProgresso({ percent: 0 });
-        setVerificando(false);
+        if (!simulacao) {
+            const resultado = await window.ipcRenderer.invoke('check-update');
+            setInformacoesProgresso({ percent: 0 });
+            setVerificando(false);
+            const modal = document.getElementById('my_modal_5') as HTMLDialogElement;
+            if (modal) modal.showModal();
 
-        const modal = document.getElementById('my_modal_5') as HTMLDialogElement;
-        if (modal) modal.showModal();
-
-        if (resultado?.error) {
-            setAtualizacaoDisponivel(false);
-            setErroAtualizacao(resultado?.error);
+            if (resultado?.error) {
+                setAtualizacaoDisponivel(false);
+                setErroAtualizacao(resultado?.error);
+            }
+        } else {
+            // Modo de simulação
+            setInformacoesVersao({ update: true, version: '1.0.0', newVersion: '1.1.0' });
+            setAtualizacaoDisponivel(true);
+            setInformacoesProgresso({ percent: 50 }); // Simulação de progresso
+            setVerificando(false);
+            const modal = document.getElementById('my_modal_5') as HTMLDialogElement;
+            if (modal) modal.showModal();
         }
     };
 
@@ -58,13 +76,17 @@ const Update: React.FC<UpdateProps> = ({ children }) => {
                 ...estado,
                 textoCancelar: 'Cancelar',
                 textoConfirmar: 'Atualizar',
-                aoConfirmar: () => window.ipcRenderer.invoke('start-download'),
+                aoConfirmar: () => {
+                    if (!simulacao) {
+                        window.ipcRenderer.invoke('start-download');
+                    }
+                },
             }));
             setAtualizacaoDisponivel(true);
         } else {
             setAtualizacaoDisponivel(false);
         }
-    }, []);
+    }, [simulacao]);
 
     const aoErroAtualizacao = useCallback((_event: Electron.IpcRendererEvent, arg1: ErrorType) => {
         setAtualizacaoDisponivel(false);
@@ -81,9 +103,13 @@ const Update: React.FC<UpdateProps> = ({ children }) => {
             ...estado,
             textoCancelar: 'Depois',
             textoConfirmar: 'Instalar agora',
-            aoConfirmar: () => window.ipcRenderer.invoke('quit-and-install'),
+            aoConfirmar: () => {
+                if (!simulacao) {
+                    window.ipcRenderer.invoke('quit-and-install');
+                }
+            },
         }));
-    }, []);
+    }, [simulacao]);
 
     useEffect(() => {
         window.ipcRenderer.on('update-can-available', aoAtualizacaoDisponivel);
@@ -101,43 +127,44 @@ const Update: React.FC<UpdateProps> = ({ children }) => {
 
     return (
         <>
-            <dialog id="my_modal_5" className="modal modal-bottom sm:modal-middle">
-                <div className="modal-box">
-                {erroAtualizacao ? (
-                        <div>
-                            <h3 className="font-bold text-lg">Erro</h3>
-                            <p className="py-4">Erro ao baixar a última versão.</p>
-                            <p>{erroAtualizacao.message}</p>
-                        </div>
+            <dialog id="my_modal_5" className="modal">
+                <div className="modal-box card-body text-left">
+                    {erroAtualizacao ? (
+                        <>
+                            <h3 className="card-title font-bold text-lg mb-5">Erro</h3>
+                            <div className='mb-5 w-full'>
+                                <p className="mb-5">Erro ao baixar a última versão.</p>
+                                <p>{erroAtualizacao.message}</p>
+                            </div>
+                        </>
                     ) : atualizacaoDisponivel ? (
-                        <div>
-                            <h3 className="font-bold text-lg">Atualização Disponível</h3>
-                            <div>
-                                <p className="py-4">A última versão é: v{informacoesVersao?.newVersion}</p>
-                                <p className="new-version__target">
-                                    v{informacoesVersao?.version} -&gt; v{informacoesVersao?.newVersion}
-                                </p>
-                                <div className="update__progress">
-                                    <div className="progress__title">Progresso da atualização:</div>
-                                    <div className="progress__bar">
-                                        <Progress percent={informacoesProgresso?.percent}></Progress>
+                        <>
+                            <h3 className="card-title font-bold text-lg mb-5">Atualização Disponível</h3>
+                            <div className='mb-5 w-full'>
+                                <div className='w-full flex justify-between'>
+                                    <div>
+                                        v{informacoesVersao?.version}
+                                    </div>
+                                    <div>
+                                        v{informacoesVersao?.newVersion}
                                     </div>
                                 </div>
+                                <Progress percent={informacoesProgresso?.percent}></Progress>
                             </div>
-                        </div>
+                        </>
                     ) : (
-                        <div>
-                            <h3 className="font-bold text-lg">Nenhuma Atualização Disponível</h3>
-                            <p className="py-4">{JSON.stringify(informacoesVersao ?? {}, null, 2)}</p>
-                        </div>
+                        <>
+                            <h3 className="card-title font-bold text-lg mb-5">Nenhuma Atualização Disponível</h3>
+                            <p className="mb-5 w-full">{JSON.stringify(informacoesVersao ?? {}, null, 2)}</p>
+                        </>
                     )}
-                    <div className="modal-action">
-                        <button className="btn" onClick={botoesModal.aoCancelar}>
+                    <div className="card-actions w-full justify-between">
+                        <button className="btn btn-neutral" onClick={botoesModal.aoCancelar}>
                             {botoesModal.textoCancelar || 'Fechar'}
                         </button>
                         {atualizacaoDisponivel && (
-                            <button className="btn" onClick={botoesModal.aoConfirmar}>
-                                {botoesModal.textoConfirmar || 'Ok'}
+                            <button className="btn btn-success" onClick={botoesModal.aoConfirmar}>
+                                {botoesModal.textoConfirmar || 'Avançar'}
                             </button>
                         )}
                     </div>
