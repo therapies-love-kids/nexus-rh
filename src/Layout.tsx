@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
-import { IoClose, IoDownloadOutline, IoArrowBack, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy, IoStatsChart } from "react-icons/io5";
+import { IoClose, IoDownloadOutline, IoArrowBack, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy, IoStatsChart, IoSettings } from "react-icons/io5";
 import { Link } from 'react-router-dom';
 import { fetchImageFromFtp } from './utils/imageUtils';
 import { Update } from './components';
@@ -349,7 +349,7 @@ export function LayoutDashFixed({ children }: LayoutProps) {
 
                         <div className='tooltip tooltip-right' data-tip="Configurações">
                             <div tabIndex={4} role="button" className="btn btn-ghost">
-                                <IoSettingsOutline />
+                                <IoSettings />
                             </div>
                         </div>
 
