@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
-import { IoClose, IoDownloadOutline, IoArrowBack, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy } from "react-icons/io5";
+import { IoClose, IoDownloadOutline, IoArrowBack, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy, IoStatsChart, IoSettings } from "react-icons/io5";
 import { Link } from 'react-router-dom';
 import { fetchImageFromFtp } from './utils/imageUtils';
 import { Update } from './components';
@@ -159,7 +159,7 @@ export function LayoutDash({ children }: LayoutProps) {
                     <div className="drawer">
                         <input id="my-drawer" type="checkbox" className="drawer-toggle" />
                         <div className="drawer-content">
-                            <label htmlFor="my-drawer" className="btn btn-ghost drawer-button text-xl ">
+                            <label htmlFor="my-drawer" className="btn btn-ghost drawer-button text-xl">
                                 <IoMenu />
                             </label>
                         </div>
@@ -305,53 +305,81 @@ export function LayoutDashFixed({ children }: LayoutProps) {
         <div className='flex flex-row w-screen h-screen'>
             <div className="p-3 border-r border-r-base-300 bg-base-100 flex flex-col items-center justify-between">
                 <div className='flex flex-col'>
-                    <Link to={"/inicio"} className='btn btn-ghost'>
-                        <IoArrowBack />
-                    </Link>
-                    <Link to={"/social"} className='btn btn-ghost'>
-                        <IoHome />
-                    </Link>
-                    <Link to={"/social/perfil"} className='btn btn-ghost'>
-                        <IoPerson />
-                    </Link>
-                    <Link to={"/social/tarefas"} className='btn btn-ghost'>
-                        <IoCalendar />
-                    </Link>
-                    <Link to={""} className='btn btn-ghost'>
-                        <IoChatbox />
-                    </Link>
-                    <Link to={""} className='btn btn-ghost'>
-                        <IoNotifications />
-                    </Link>
-                    <Link to={""} className='btn btn-ghost'>
-                        <IoTrophy />
-                    </Link>
-                </div>
-                <div className="dropdown dropdown-top">
-                    <div tabIndex={4} role="button" className="btn btn-ghost">
-                        <IoSettingsOutline />
+                                        
+                    <div className="tooltip tooltip-right" data-tip="Dashboard">
+                        <Link to={"/social"} className='btn btn-ghost'>
+                            <IoStatsChart />
+                        </Link>
                     </div>
-                    <ul tabIndex={4} className="dropdown-content menu bg-base-100 rounded-box flex-row p-0 my-2 gap-2">
-                        
+
+                    <div className="tooltip tooltip-right" data-tip="Perfil">
+                        <Link to={"/social/perfil"} className='btn btn-ghost'>
+                            <IoPerson />
+                        </Link>
+                    </div>
+
+                    <div className="tooltip tooltip-right" data-tip="Tarefas">
+                        <Link to={"/social/tarefas"} className='btn btn-ghost'>
+                            <IoCalendar />
+                        </Link>
+                    </div>
+
+                    <div className="tooltip tooltip-right" data-tip="Mensagens">
+                        <Link to={""} className='btn btn-ghost'>
+                            <IoChatbox />
+                        </Link>
+                    </div>
+
+                    <div className="tooltip tooltip-right" data-tip="Notificações">
+                        <Link to={""} className='btn btn-ghost'>
+                            <IoNotifications />
+                        </Link>
+                    </div>
+
+                    <div className="tooltip tooltip-right" data-tip="Conquistas">
+                        <Link to={""} className='btn btn-ghost'>
+                            <IoTrophy />
+                        </Link>
+                    </div>
+
+                </div>
+                <div className='flex flex-col'>
+                    <div className='dropdown dropdown-top'>
+
+                        <div className='tooltip tooltip-right' data-tip="Configurações">
+                            <div tabIndex={4} role="button" className="btn btn-ghost">
+                                <IoSettings />
+                            </div>
+                        </div>
+
+                        <ul tabIndex={4} className="dropdown-content menu bg-base-100 rounded-box flex-row p-0 my-2 gap-2">
+                            
                         <Update>
-                            <button className="btn">
-                                <IoRefresh className='transition-transform hover:rotate-180' />
+                            <button className="btn tooltip tooltip-right" data-tip="Buscar atualização">
+                                <IoDownloadOutline />
                             </button>
                         </Update>
                         
-                        <li>
+                        <li className='tooltip tooltip-right' data-tip="Trocar tema">
                             <label className="swap swap-rotate btn">
                                 <input type="checkbox" className="theme-controller" onChange={handleThemeToggle} />
                                 <IoSunny className='swap-on fill-current' />
                                 <IoMoon className='swap-off fill-current' />
                             </label>
                         </li>
-                        <li>
+                        
+                        <li className='tooltip tooltip-right' data-tip="Sair">
                             <Link to={"/"} className='btn text-error'>
                                 <IoExit />
                             </Link>
                         </li>
-                    </ul>
+                        </ul>
+                    </div>
+                    <div className='tooltip tooltip-right' data-tip="Página Inicial">
+                        <Link to={"/inicio"} className='btn btn-ghost'>
+                            <IoHome />
+                        </Link>
+                    </div>
                 </div>
             </div>
             <div className='w-full h-full bg-base-200 flex flex-col justify-between'>
