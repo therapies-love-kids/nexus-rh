@@ -16,7 +16,6 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
     const scrollbarRef = useRef(null);
-    
 
     useEffect(() => {
         let scrollbarInstance: Scrollbar;

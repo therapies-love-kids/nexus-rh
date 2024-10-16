@@ -1,4 +1,5 @@
 /// <reference path="./src/type/package-json.d.ts" />
+require('dotenv').config();
 
 import { rmSync } from 'node:fs';
 import path from 'node:path';

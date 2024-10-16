@@ -6,15 +6,10 @@ import { update } from './update';
 import { setupFtpIpcHandlers } from './ftpConnection';
 import { setupMacAddressIpcHandler } from './macConsulta';
 import { setupDatabaseIpcHandlers } from './DBConnection';
-import 'dotenv/config'; 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 process.env.APP_ROOT = path.join(__dirname, '../..');
-
-export const GH_TOKEN = process.env.GH_TOKEN;
-
-console.log('GitHub Token:', process.env.GH_TOKEN);
 
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron');
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
