@@ -39,11 +39,9 @@ const indexHtml = path.join(RENDERER_DIST, 'index.html');
 
 // Define o caminho do ícone
 const iconPath = path.join(VITE_PUBLIC, 'icon.png'); // Verifique se o caminho está correto
-console.log('Icon Path:', iconPath);
 
 async function createWindow() {
     const iconPath = path.join(VITE_PUBLIC, 'icon.png');
-    console.log('Icon Path:', iconPath); // Verifique se o ícone é acessível
 
     win = new BrowserWindow({
         title: 'Main window',

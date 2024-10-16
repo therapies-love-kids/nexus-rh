@@ -57,10 +57,7 @@
         "perMachine": true,
         "allowToChangeInstallationDirectory": true,
         "deleteAppDataOnUninstall": false,
-        "allowElevation": true,
         "createDesktopShortcut": true,
-        "include": "build/installer.nsh",
-        "installerHeaderIcon": "public/icon.ico",
     },
     "publish": {
         "provider": "github",

@@ -24,7 +24,6 @@ export default function SocialTarefas() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
-
     const fetchProfissionais = async (departamentoId: number) => {
         try {
             const result = await window.ipcRenderer.invoke('query-database-postgres', `
@@ -51,6 +50,36 @@ export default function SocialTarefas() {
         }
     };
 
+    const [tarefas, setTarefas] = useState<{ 
+        tarefa_id: number; 
+        tarefa_titulo: string; 
+        tarefa_descricao: string; 
+        tarefa_status: string; 
+        tarefa_prioridade: any; 
+        tarefa_data_criacao: string; 
+        tarefa_data_vencimento: string; 
+        tarefa_departamento_id: number; 
+        tarefa_unidade_id: number; 
+        funcao_id: number; 
+        tarefa_atribuida_por: number; 
+        tarefa_projeto_id: number; 
+    }[]>([]);
+
+    const fetchTarefas = async (departamentoId: number) => {
+        try {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                `SELECT tarefa_id, tarefa_titulo, tarefa_descricao, tarefa_status, tarefa_prioridade, tarefa_data_criacao, tarefa_data_vencimento, tarefa_departamento_id, tarefa_unidade_id, funcao_id, tarefa_atribuida_por, tarefa_projeto_id 
+                    FROM tarefas 
+                    WHERE tarefa_departamento_id = $1`,
+                [departamentoId]
+            );
+            setTarefas(result);
+        } catch (error) {
+            console.error('Erro ao buscar tarefas:', error);
+        }
+    };
+
     useEffect(() => {
         const fetchDepartamentos = async () => {
             const result = await window.ipcRenderer.invoke(
@@ -68,6 +97,7 @@ export default function SocialTarefas() {
     useEffect(() => {
         if (selectedDepartamento) {
             fetchProfissionais(selectedDepartamento);
+            fetchTarefas(selectedDepartamento);
         }
     }, [selectedDepartamento]);
 
@@ -136,26 +166,28 @@ export default function SocialTarefas() {
                         <IoPencil /> Título da coluna 
                     </button>
                     <div className="bg-base-100 overflow-x-auto h-[70vh] rounded-xl p-2">
-                    <Tarefa
-                        titulo="Título da tarefa"
-                        prioridade="media"
-                        horas={5}
-                        subtarefas={[
-                            { nome: "Subtarefa 1", concluida: false },
-                            { nome: "Subtarefa 2", concluida: true }
-                        ]}
-                        comentarios={[
-                            { id: 1, texto: "Comentário 1" },
-                            { id: 2, texto: "Comentário 2" }
-                        ]}
-                        anexos={[
-                            { id: 1, nome: "Arquivo 1.pdf" },
-                            { id: 2, nome: "Imagem 1.png" },
-                            { id: 3, nome: "Documento 1.docx" }
-                        ]}
-                        imageUrl={profissional_id !== null ? imageUrls[profissional_id] : null}
-                    />
-
+                        {tarefas.map(tarefa => (
+                            <Tarefa
+                                key={tarefa.tarefa_id} // Adicione uma chave única
+                                titulo={tarefa.tarefa_titulo}
+                                prioridade={tarefa.tarefa_prioridade}
+                                horas={5} // Ajuste este valor conforme necessário
+                                subtarefas={[
+                                    { nome: "Subtarefa 1", concluida: false }, // Exemplos, substitua por dados reais
+                                    { nome: "Subtarefa 2", concluida: true }
+                                ]}
+                                comentarios={[
+                                    { id: 1, texto: "Comentário 1" }, // Exemplos, substitua por dados reais
+                                    { id: 2, texto: "Comentário 2" }
+                                ]}
+                                anexos={[
+                                    { id: 1, nome: "Arquivo 1.pdf" }, // Exemplos, substitua por dados reais
+                                    { id: 2, nome: "Imagem 1.png" },
+                                    { id: 3, nome: "Documento 1.docx" }
+                                ]}
+                                imageUrl={profissional_id !== null ? imageUrls[profissional_id] : null}
+                            />
+                        ))}
                     </div>
                     <button className="btn btn-ghost">
                         <IoAdd /> Tarefa
