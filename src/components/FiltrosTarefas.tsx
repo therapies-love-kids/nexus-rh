@@ -11,16 +11,17 @@ interface FiltrosState {
 }
 
 interface FiltrosProps {
-    departamentos: { departamento_id: number; departamento: string }[];
+    departamentos: Array<{ departamento_id: number; departamento: string }>;
     selectedDepartamento: number | undefined;
     setSelectedDepartamento: React.Dispatch<React.SetStateAction<number | undefined>>;
-    projetos: { projeto_id: number; projeto_nome: string }[];
+    projetos: any[];
     selectedProjeto: number | undefined;
     setSelectedProjeto: React.Dispatch<React.SetStateAction<number | undefined>>;
-    profissionais: { profissional_id: number; profissional_nome: string }[];
+    profissionais: any[];
     selectedProfissional: number | null;
     setSelectedProfissional: React.Dispatch<React.SetStateAction<number | null>>;
-    filtroProfissionalNome: string; 
+    filtroProfissionalNome: string;
+    setFiltroProfissionalNome: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const Filtros = ({ departamentos, selectedDepartamento, setSelectedDepartamento, projetos, selectedProjeto, setSelectedProjeto, profissionais, selectedProfissional, setSelectedProfissional, filtroProfissionalNome }: FiltrosProps) => {
