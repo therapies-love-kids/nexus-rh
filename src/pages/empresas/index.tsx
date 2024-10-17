@@ -17,13 +17,20 @@ export default function Empresas() {
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = empresas.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(empresas.length / recordsPerPage);
+
+    const navigate = useNavigate();
+
     const fetchEmpresas = async () => {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
                 'SELECT empresa_id, empresa, cnpj FROM profissionais_empresa WHERE empresa_status1 = \'ativo\''
             );
-            setEmpresas(result as Empresa[]);
+            setEmpresas((result as Empresa[]).sort((a, b) => a.empresa_id - b.empresa_id));
         } catch (error) {
             console.error('Erro ao buscar empresas:', error);
         }
@@ -31,12 +38,7 @@ export default function Empresas() {
 
     useEffect(() => {
         fetchEmpresas();
-    }, []);
-
-    const indexOfLastRecord = currentPage * recordsPerPage;
-    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const currentRecords = empresas.slice(indexOfFirstRecord, indexOfLastRecord);
-    const totalPages = Math.ceil(empresas.length / recordsPerPage);
+    }, []);    
 
     const handleCheckboxChange = (empresa_id: number): void => {
         setSelectedEmpresas(prevSelected =>
@@ -45,8 +47,6 @@ export default function Empresas() {
                 : [...prevSelected, empresa_id]
         );
     };
-
-    const navigate = useNavigate();
 
     const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
         if (selectedEmpresas.length > 0) {

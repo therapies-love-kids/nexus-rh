@@ -30,13 +30,20 @@ export default function Profissionais() {
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = filteredProfissionais.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(filteredProfissionais.length / recordsPerPage);
+
+    const navigate = useNavigate();
+
     const fetchProfissionais = async () => {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
                 'SELECT profissional_id, profissional_foto, profissional_nome FROM profissionais WHERE profissional_status1 = \'ativo\''
             );
-            setProfissionais(result as Profissional[]);
+            setProfissionais((result as Profissional[]).sort((a, b) => a.profissional_id - b.profissional_id));
             setFilteredProfissionais(result as Profissional[]);
 
             const imagePromises = (result as Profissional[]).map(async (profissional) => {
@@ -105,11 +112,6 @@ export default function Profissionais() {
         fetchFuncoes();
     }, []);
 
-    const indexOfLastRecord = currentPage * recordsPerPage;
-    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const currentRecords = filteredProfissionais.slice(indexOfFirstRecord, indexOfLastRecord);
-    const totalPages = Math.ceil(filteredProfissionais.length / recordsPerPage);
-
     const handleChangeStatus = async (status: 'Demitido' | 'Ativo') => {
         if (selectedProfissionais.length > 0) {
             try {
@@ -149,8 +151,6 @@ export default function Profissionais() {
                 : [...prevSelected, profissional_id]
         );
     };
-
-    const navigate = useNavigate();
 
     return (
         <div className='bg-base-200 min-h-screen'>

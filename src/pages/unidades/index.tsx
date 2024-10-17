@@ -24,7 +24,7 @@ export default function Unidades() {
                 'query-database-postgres',
                 'SELECT unidade_id, unidade, endereco, cep FROM profissionais_unidade WHERE unidade_status1 = \'ativo\''
             );
-            setUnidades(result as Unidade[]);
+            setUnidades((result as Unidade[]).sort((a, b) => a.unidade_id - b.unidade_id));
         } catch (error) {
             console.error('Erro ao buscar unidades:', error);
         }

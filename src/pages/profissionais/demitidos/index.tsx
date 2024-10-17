@@ -34,8 +34,7 @@ export default function ProfissionaisDemitidos() {
                 'query-database-postgres',
                 'SELECT profissional_id, profissional_foto, profissional_nome FROM profissionais WHERE profissional_status1 = \'demitido\''
             );
-            
-            setProfissionais(result as Profissional[]);
+            setProfissionais((result as Profissional[]).sort((a, b) => a.profissional_id - b.profissional_id));
             setFilteredProfissionais(result as Profissional[]);
 
             const imagePromises = (result as Profissional[]).map(async (profissional: Profissional) => {

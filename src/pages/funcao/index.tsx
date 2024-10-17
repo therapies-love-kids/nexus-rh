@@ -15,6 +15,13 @@ export default function Funcaos() {
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
+    
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = funcoes.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(funcoes.length / recordsPerPage);
+
+    const navigate = useNavigate();
 
     const fetchFuncoes = async () => {
         try {
@@ -22,7 +29,7 @@ export default function Funcaos() {
                 'query-database-postgres',
                 'SELECT funcao_id, funcao FROM profissionais_funcao WHERE funcao_status1 = \'ativo\''
             );
-            setFuncoes(result as Funcao[]);
+            setFuncoes((result as Funcao[]).sort((a, b) => a.funcao_id - b.funcao_id));
         } catch (error) {
             console.error('Erro ao buscar funções:', error);
         }
@@ -30,12 +37,7 @@ export default function Funcaos() {
 
     useEffect(() => {
         fetchFuncoes();
-    }, []);
-
-    const indexOfLastRecord = currentPage * recordsPerPage;
-    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const currentRecords = funcoes.slice(indexOfFirstRecord, indexOfLastRecord);
-    const totalPages = Math.ceil(funcoes.length / recordsPerPage);
+    }, []);    
 
     const handleCheckboxChange = (funcao_id: number): void => {
         setSelectedFuncoes(prevSelected =>
@@ -44,8 +46,6 @@ export default function Funcaos() {
                 : [...prevSelected, funcao_id]
         );
     };
-
-    const navigate = useNavigate();
 
     const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
         if (selectedFuncoes.length > 0) {

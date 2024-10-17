@@ -15,6 +15,13 @@ export default function Departamentos() {
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
+    
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = departamentos.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(departamentos.length / recordsPerPage);
+
+    const navigate = useNavigate();
 
     const fetchDepartamentos = async () => {
         try {
@@ -22,7 +29,7 @@ export default function Departamentos() {
                 'query-database-postgres',
                 'SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = \'ativo\''
             );
-            setDepartamentos(result as Departamento[]);
+            setDepartamentos((result as Departamento[]).sort((a, b) => a.departamento_id - b.departamento_id));
         } catch (error) {
             console.error('Erro ao buscar departamentos:', error);
         }
@@ -30,12 +37,7 @@ export default function Departamentos() {
 
     useEffect(() => {
         fetchDepartamentos();
-    }, []);
-
-    const indexOfLastRecord = currentPage * recordsPerPage;
-    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const currentRecords = departamentos.slice(indexOfFirstRecord, indexOfLastRecord);
-    const totalPages = Math.ceil(departamentos.length / recordsPerPage);
+    }, []);    
 
     const handleCheckboxChange = (departamento_id: number): void => {
         setSelectedDepartamentos(prevSelected =>
@@ -43,9 +45,7 @@ export default function Departamentos() {
                 ? prevSelected.filter(selectedId => selectedId !== departamento_id)
                 : [...prevSelected, departamento_id]
         );
-    };
-
-    const navigate = useNavigate();
+    };    
 
     const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
         if (selectedDepartamentos.length > 0) {

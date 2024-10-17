@@ -16,13 +16,18 @@ export default function FuncoesInativos() {
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = funcoes.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(funcoes.length / recordsPerPage);
+
     const fetchFuncoes = async () => {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
                 'SELECT funcao_id, funcao FROM profissionais_funcao WHERE funcao_status1 = \'inativo\''
             );
-            setFuncoes(result as Funcao[]);
+            setFuncoes((result as Funcao[]).sort((a, b) => a.funcao_id - b.funcao_id));
         } catch (error) {
             console.error('Erro ao buscar funcoes:', error);
         }
@@ -31,11 +36,6 @@ export default function FuncoesInativos() {
     useEffect(() => {
         fetchFuncoes();
     }, []);
-
-    const indexOfLastRecord = currentPage * recordsPerPage;
-    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const currentRecords = funcoes.slice(indexOfFirstRecord, indexOfLastRecord);
-    const totalPages = Math.ceil(funcoes.length / recordsPerPage);
 
     const handleCheckboxChange = (funcao_id: number): void => {
         setSelectedFuncoes(prevSelected =>

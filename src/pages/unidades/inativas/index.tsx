@@ -18,13 +18,18 @@ export default function Unidades() {
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = unidades.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(unidades.length / recordsPerPage);
+
     const fetchUnidades = async () => {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
                 'SELECT unidade_id, unidade, endereco, cep FROM profissionais_unidade WHERE unidade_status1 = \'inativo\''
             );
-            setUnidades(result as Unidade[]);
+            setUnidades((result as Unidade[]).sort((a, b) => a.unidade_id - b.unidade_id));
         } catch (error) {
             console.error('Erro ao buscar unidades:', error);
         }
@@ -33,11 +38,6 @@ export default function Unidades() {
     useEffect(() => {
         fetchUnidades();
     }, []);
-
-    const indexOfLastRecord = currentPage * recordsPerPage;
-    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const currentRecords = unidades.slice(indexOfFirstRecord, indexOfLastRecord);
-    const totalPages = Math.ceil(unidades.length / recordsPerPage);
 
     const handleCheckboxChange = (unidade_id: number): void => {
         setSelectedUnidades(prevSelected =>

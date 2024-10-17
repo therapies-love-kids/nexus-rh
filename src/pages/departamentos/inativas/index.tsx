@@ -16,13 +16,18 @@ export default function DepartamentosInativos() {
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = departamentos.slice(indexOfFirstRecord, indexOfLastRecord);
+    const totalPages = Math.ceil(departamentos.length / recordsPerPage);
+
     const fetchDepartamentos = async () => {
         try {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
                 'SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = \'inativo\''
             );
-            setDepartamentos(result as Departamento[]);
+            setDepartamentos((result as Departamento[]).sort((a, b) => a.departamento_id - b.departamento_id));
         } catch (error) {
             console.error('Erro ao buscar departamentos:', error);
         }
@@ -31,11 +36,6 @@ export default function DepartamentosInativos() {
     useEffect(() => {
         fetchDepartamentos();
     }, []);
-
-    const indexOfLastRecord = currentPage * recordsPerPage;
-    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const currentRecords = departamentos.slice(indexOfFirstRecord, indexOfLastRecord);
-    const totalPages = Math.ceil(departamentos.length / recordsPerPage);
 
     const handleCheckboxChange = (departamento_id: number): void => {
         setSelectedDepartamentos(prevSelected =>
