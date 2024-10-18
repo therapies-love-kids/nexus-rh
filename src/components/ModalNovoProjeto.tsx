@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Modal from './ModalInsert';
+import ModalInsert from './ModalInsert';
 
     export default function ModalNovoProjeto({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const [projetoNome, setProjetoNome] = useState('');
@@ -43,5 +43,5 @@ import Modal from './ModalInsert';
         { label: 'Data de Fim', type: 'date', value: projetoDataFim, setValue: setProjetoDataFim },
     ];
 
-    return <Modal isOpen={isOpen} onClose={onClose} title="Criar Novo Projeto" fields={fields} onSubmit={handleSubmit} submitText="Criar Projeto" modalMessage={modalMessage} />;
+    return <ModalInsert isOpen={isOpen} onClose={onClose} title="Criar Novo Projeto" fields={fields} onSubmit={handleSubmit} submitText="Criar Projeto" modalMessage={modalMessage} />;
 }

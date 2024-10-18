@@ -8,7 +8,7 @@ interface ModalProps {
     modalMessage?: string;
 }
 
-export default function Modal({ isOpen, onClose, title, fields, onSubmit, submitText, modalMessage }: ModalProps) {
+export default function ModalInsert({ isOpen, onClose, title, fields, onSubmit, submitText, modalMessage }: ModalProps) {
 if (!isOpen) return null;
 
     return (

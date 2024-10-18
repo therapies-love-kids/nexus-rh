@@ -63,7 +63,7 @@ export default function Tarefa({
                 <div className="flex items-center justify-between text-sm mb-2">
                 <div className="flex items-center gap-2">
                     <IoTime />
-                    {horas}h
+                    {horas}
                 </div>
                 <div className="flex items-center gap-2">
                     <IoChatbox />
