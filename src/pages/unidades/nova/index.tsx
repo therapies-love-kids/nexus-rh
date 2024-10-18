@@ -11,6 +11,8 @@ export default function NovaUnidade() {
     const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const isButtonDisabled = (!unidadeNome || !endereco || !cep)
+
     const handleSubmit = async () => {
         if (!unidadeNome || !endereco || !cep) {
             setModalMessage('Preencha todos os campos obrigatórios: unidade, endereço e CEP.');
@@ -94,13 +96,15 @@ export default function NovaUnidade() {
                                 guide={false} // Não exibe a máscara antes de digitar
                             />
                         </div>
-
-                        <button 
-                            className="btn btn-primary mt-6" 
-                            onClick={handleSubmit}
-                        >
-                            Adicionar Unidade
-                        </button>
+                        <div className="tooltip tooltip-bottom w-full" data-tip={isButtonDisabled ? "Preencha todos os campos obrigatórios" : null}>
+                            <button 
+                                className="btn btn-primary mt-6 w-full"
+                                onClick={handleSubmit}
+                                disabled={isButtonDisabled}
+                            >
+                                Adicionar Unidade
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

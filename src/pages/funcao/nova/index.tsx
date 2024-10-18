@@ -8,20 +8,14 @@ export default function NovaFuncao() {
     const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleSubmit = async () => {
-        if (!funcaoNome) {
-            setModalMessage('Preencha todos os campos obrigatórios: "Função".');
-            setIsModalOpen(true);
-            return;
-        }
+    const isButtonDisabled = !funcaoNome;
 
+    const handleSubmit = async () => {
         try {
             const table = 'profissionais_funcao';
             const columns = ['funcao'];
             const values = [funcaoNome];
-
             const result = await window.ipcRenderer.invoke('insert-records-postgres', { table, columns, values });
-
             if (result.success) {
                 setModalMessage('Função criada com sucesso!');
             } else {
@@ -38,7 +32,6 @@ export default function NovaFuncao() {
     return (
         <div className='bg-base-200 min-h-screen'>
             <Breadcrumbs />
-
             <div className="px-24 rounded">
                 <div className="card bg-base-100 shadow-xl w-full my-10">
                     <div className="card-body">
@@ -50,7 +43,6 @@ export default function NovaFuncao() {
                                 Adicionar Nova função
                             </p>
                         </div>
-
                         <div className="form-control mt-4">
                             <label className="label">
                                 <span className="label-text">Nome da função</span>
@@ -60,25 +52,26 @@ export default function NovaFuncao() {
                                 placeholder="Nome da função" 
                                 className="input input-bordered" 
                                 value={funcaoNome}
-                                onChange={(e) => setFuncaoNome(e.target.value)} 
+                                onChange={(e) => setFuncaoNome(e.target.value)}
                             />
                         </div>
-
-                        <button 
-                            className="btn btn-primary mt-6" 
-                            onClick={handleSubmit}
-                        >
-                            Adicionar Função
-                        </button>
+                        <div className="tooltip tooltip-bottom w-full" data-tip={isButtonDisabled ? "Preencha todos os campos obrigatórios" : null}>
+                            <button 
+                                className="btn btn-primary mt-6 w-full"
+                                onClick={handleSubmit}
+                                disabled={isButtonDisabled}
+                            >
+                                Adicionar Função
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-
             {/* Modal */}
             {isModalOpen && (
                 <Modal 
-                    type={modalMessage?.includes('sucesso') ? 'success' : 'error'} 
-                    message={modalMessage || ''} 
+                    type={modalMessage?.includes('sucesso') ? 'success' : 'error'}
+                    message={modalMessage || ''}
                     onClose={() => setIsModalOpen(false)}
                 >
                     <p>{modalMessage}</p>

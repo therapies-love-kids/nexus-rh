@@ -8,13 +8,9 @@ export default function NovoDepartamento() {
     const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleSubmit = async () => {
-        if (!departamentoNome) {
-            setModalMessage('Preencha todos os campos obrigatórios: "departamento".');
-            setIsModalOpen(true);
-            return;
-        }
+    const isButtonDisabled = !departamentoNome;
 
+    const handleSubmit = async () => {
         try {
             const table = 'profissionais_departamento';
             const columns = ['departamento'];
@@ -64,12 +60,16 @@ export default function NovoDepartamento() {
                             />
                         </div>
 
-                        <button 
-                            className="btn btn-primary mt-6" 
-                            onClick={handleSubmit}
-                        >
-                            Adicionar Departamento
-                        </button>
+                        <div className="tooltip tooltip-bottom w-full" data-tip={isButtonDisabled ? "Preencha todos os campos obrigatórios" : null}>
+                            <button 
+                                className="btn btn-primary mt-6 w-full"
+                                onClick={handleSubmit}
+                                disabled={isButtonDisabled}
+                            >
+                                Adicionar Departamento
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </div>

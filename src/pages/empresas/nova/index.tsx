@@ -10,6 +10,8 @@ export default function NovaEmpresa() {
     const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const isButtonDisabled = (!empresaNome || !cnpj);
+
     const handleSubmit = async () => {
         if (!empresaNome || !cnpj) {
             setModalMessage('Preencha todos os campos obrigatórios: empresa e CNPJ.');
@@ -81,12 +83,15 @@ export default function NovaEmpresa() {
                             />
                         </div>
 
-                        <button 
-                            className="btn btn-primary mt-6" 
-                            onClick={handleSubmit}
-                        >
-                            Adicionar Empresa
-                        </button>
+                        <div className="tooltip tooltip-bottom w-full" data-tip={isButtonDisabled ? "Preencha todos os campos obrigatórios" : null}>
+                            <button 
+                                className="btn btn-primary mt-6 w-full"
+                                onClick={handleSubmit}
+                                disabled={isButtonDisabled}
+                            >
+                                Adicionar Empresa
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

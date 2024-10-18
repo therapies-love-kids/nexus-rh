@@ -55,6 +55,10 @@ export default function NovoProfissional() {
     const [funcaoNomes, setFuncaoNomes] = useState<string[]>([]);
     const [funcoesPermissoes, setFuncoesPermissoes] = useState<{ [key: number]: { perm_editar: boolean; perm_criar: boolean; perm_inativar: boolean; perm_excluir: boolean } }>({});
 
+    const isButtonDisabledStep1 = (!nome || !senha || !dataIngressoEmpresa || !cpf);
+    const isButtonDisabledStep2 = (!unidadeIds.length || !departamentoIds.length || !funcaoIds.length);
+    const isButtonDisabledStep3 = (!empresaIds.length);
+
     useEffect(() => {
         const fetchOptions = async () => {
             try {
@@ -241,9 +245,9 @@ export default function NovoProfissional() {
     
     const handleCopyToClipboard = () => {
         const text =
-`Departamentos: ${departamentoNomes.join(', ')}
-Login: ${nome}
-Senha provisória: ${senha}`;
+            `Departamentos: ${departamentoNomes.join(', ')}
+            Login: ${nome}
+            Senha provisória: ${senha}`;
         navigator.clipboard.writeText(text)
             .then(() => console.log('Texto copiado para a área de transferência!'))
             .catch((error) => console.error('Erro ao copiar o texto:', error));
@@ -370,7 +374,7 @@ Senha provisória: ${senha}`;
                                             <thead>
                                                 <tr>
                                                     <th></th>
-                                                    <th>Departamento</th>
+                                                    <th>Unidade</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -599,29 +603,35 @@ Senha provisória: ${senha}`;
                         )}
 
                         {/* Navegação entre os passos */}
-                        <div className="mt-10 join join-vertical lg:join-horizontal">
+                        <div className="mt-10 flex justify-between">
                             <button
-                                className="btn join-item"
+                                className="btn"
                                 onClick={handlePrevious}
                                 disabled={step === 1}
                             >
                                 Voltar
                             </button>
-                            {step < totalSteps ? (
-                                <button
-                                    className="btn join-item"
-                                    onClick={handleNext}
-                                >
-                                    Próximo
-                                </button>
-                            ) : (
-                                <button
-                                    className="btn btn-success join-item"
-                                    onClick={handleSubmit}
-                                >
-                                    Adicionar Profissional
-                                </button>
-                            )}
+                            {
+                                step === 1 ? (
+                                    <div className="tooltip tooltip-bottom" data-tip={isButtonDisabledStep1 ? "Preencha todos os campos obrigatórios" : null}>
+                                        <button className="btn" onClick={handleNext} disabled={isButtonDisabledStep1}>
+                                            Próximo
+                                        </button>
+                                    </div>
+                                ) : step === 2 ? (
+                                    <div className="tooltip tooltip-bottom" data-tip={isButtonDisabledStep2 ? "Preencha todos os campos obrigatórios" : null}>
+                                        <button className="btn" onClick={handleNext} disabled={isButtonDisabledStep2}>
+                                            Próximo
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="tooltip tooltip-bottom" data-tip={isButtonDisabledStep3 ? "Preencha todos os campos obrigatórios" : null}>
+                                        <button className="btn btn-success join-item" onClick={handleNext} disabled={isButtonDisabledStep3}>
+                                            Adicionar Profissional
+                                        </button>
+                                    </div>
+                                )
+                            }
                         </div>
                     </div>
                 </div>
