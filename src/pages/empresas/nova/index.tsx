@@ -45,7 +45,7 @@ export default function NovaEmpresa() {
                 <div className="card bg-base-100 shadow-xl w-full my-10">
                     <div className="card-body">
                         <div className='flex flex-row items-center gap-2'>
-                            <Link to={'/profissionais/empresas'}>
+                            <Link to={'/empresas'}>
                                 <button className="btn btn-ghost w-full"><IoArrowBack /></button>
                             </Link>
                             <p className="card-title m-0 p-0">
