@@ -14,12 +14,6 @@ export default function NovaUnidade() {
     const isButtonDisabled = (!unidadeNome || !endereco || !cep)
 
     const handleSubmit = async () => {
-        if (!unidadeNome || !endereco || !cep) {
-            setModalMessage('Preencha todos os campos obrigatórios: unidade, endereço e CEP.');
-            setIsModalOpen(true);
-            return;
-        }
-
         try {
             const table = 'profissionais_unidade';
             const columns = ['unidade', 'endereco', 'cep'];

@@ -124,21 +124,7 @@ export default function NovoProfissional() {
         // setSelectedProfissionais([]);
     };
 
-    const handleSubmit = async () => {
-        if (
-            unidadeIds.length === 0 ||
-            empresaIds.length === 0 ||
-            departamentoIds.length === 0 ||
-            funcaoIds.length === 0 ||
-            !senha ||
-            !dataIngressoEmpresa ||
-            !cpf
-        ) {
-            setModalMessage('Preencha todos os campos obrigatórios: unidade(s), função, empresa, departamento, função, senha, data de ingresso e CPF.');
-            setIsModalOpen(true);
-            return;
-        }
-    
+    const handleSubmit = async () => {    
         try {
             const table = 'profissionais';
             const columns = [
@@ -626,7 +612,7 @@ export default function NovoProfissional() {
                                     </div>
                                 ) : (
                                     <div className="tooltip tooltip-bottom" data-tip={isButtonDisabledStep3 ? "Preencha todos os campos obrigatórios" : null}>
-                                        <button className="btn btn-success join-item" onClick={handleNext} disabled={isButtonDisabledStep3}>
+                                        <button className="btn btn-success" onClick={handleNext} disabled={isButtonDisabledStep3}>
                                             Adicionar Profissional
                                         </button>
                                     </div>

@@ -13,12 +13,6 @@ export default function NovaEmpresa() {
     const isButtonDisabled = (!empresaNome || !cnpj);
 
     const handleSubmit = async () => {
-        if (!empresaNome || !cnpj) {
-            setModalMessage('Preencha todos os campos obrigatórios: empresa e CNPJ.');
-            setIsModalOpen(true);
-            return;
-        }
-
         try {
             const table = 'profissionais_empresa';
             const columns = ['empresa', 'cnpj'];

@@ -17,6 +17,10 @@ export default function PrimeirosPassos() {
 
     const { profissional_id } = useParams();
 
+    const isButtonDisabledStep1 = (!senha);
+    const isButtonDisabledStep2 = (!dataNascimento);
+    const isButtonDisabledStep3 = (!horaEntrada || !horaSaida);
+
     async function handleFinalSubmit() {
         const fileExt = foto?.name.split('.').pop();
         const fotoNome = `profissional_${profissional_id}.${fileExt}`;
@@ -52,6 +56,7 @@ export default function PrimeirosPassos() {
                 
                     if (macInsertResponse.success) {
                         setNotification({ type: 'success', message: 'MAC registrado com sucesso!' });
+                        window.location.href = '/';
                     } else {
                         setNotification({ type: 'error', message: `Erro ao registrar MAC: ${macInsertResponse.message}` });
                     }
@@ -80,33 +85,15 @@ export default function PrimeirosPassos() {
         }
     }
 
-    function validateStep() {
-        if (step === 1 && !senha) {
-            setNotification({ type: 'error', message: 'Por favor, insira uma senha.' });
-            return false;
-        }
-        if (step === 2 && (!foto || !dataNascimento)) {
-            setNotification({ type: 'error', message: 'Por favor, envie uma foto e selecione a data de nascimento.' });
-            return false;
-        }
-        if (step === 3 && (!horaEntrada || !horaSaida)) {
-            setNotification({ type: 'error', message: 'Por favor, insira o horário de entrada e saída.' });
-            return false;
-        }
-        return true;
-    }
+    const totalSteps = 4;
 
-    function handleNextStep() {
-        if (validateStep()) {
-            setStep(step + 1);
-        }
-    }
+    const handleNext = () => {
+        if (step < totalSteps) setStep(step + 1);
+    };
 
-    useEffect(() => {
-        if (step === 4) {
-            handleFinalSubmit(); 
-        }
-    }, [step]);
+    const handlePrevious = () => {
+        if (step > 1) setStep(step - 1);
+    };
 
     // Atualize a pré-visualização da imagem quando a foto for carregada
     useEffect(() => {
@@ -131,13 +118,8 @@ export default function PrimeirosPassos() {
                 <div className="card bg-base-100 shadow-xl w-full my-10">
                     <div className="card-body">
                         <div className='flex flex-row items-center gap-2'>
-                            {step <= 4 && step > 1 && (
-                                <button className="btn btn-ghost" onClick={() => setStep(step - 1)}>
-                                    <IoArrowBack />
-                                </button>
-                            )}
                             <p className="card-title m-0 p-0">
-                                {step === 1 ? "Escolha sua senha" : step === 2 ? "Informações pessoais" : step === 3 ? "Horário de serviço" : "Concluído"}
+                                {step === 1 ? "Escolha sua senha" : step === 2 ? "Informações pessoais" : step === 3 ? "Horário de serviço" : "Resumo"}
                             </p>
                         </div>
 
@@ -160,18 +142,20 @@ export default function PrimeirosPassos() {
                         {step === 2 && (
                             <div className="form-control mt-4">
                                 <label className="label">
-                                    <span className="label-text">Foto</span>
+                                    <span className="label-text">Foto (opcional)</span>
                                 </label>
-                                <input 
-                                    type="file" 
-                                    className="file-input file-input-bordered w-full" 
-                                    onChange={(e) => {
-                                        if (e.target.files && e.target.files.length > 0) {
-                                            setFoto(e.target.files[0]);
-                                        }
-                                    }} 
-                                    required
-                                />
+                                <div lang="pt-BR">
+                                    <input
+                                        type="file"
+                                        className="file-input file-input-bordered w-full"
+                                        onChange={(e) => {
+                                            if (e.target.files && e.target.files.length > 0) {
+                                                setFoto(e.target.files[0]);
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                
                                 {/* Pré-visualização da imagem */}
                                 {fotoPreview && (
                                     <div className="mt-4">
@@ -188,21 +172,14 @@ export default function PrimeirosPassos() {
                                         <span className="label-text">Data de Nascimento</span>
                                     </label>
                                     <label className="input input-bordered flex items-center gap-2 w-full">
-                                        <IoCalendar />
-                                        <DatePicker
-                                            onChange={(value) => {
-                                                if (value instanceof Date || value === null) {
-                                                    setDataNascimento(value);
-                                                }
+                                        <input
+                                            type="date"
+                                            onChange={(e) => {
+                                                const value = e.target.value ? new Date(e.target.value) : null;
+                                                setDataNascimento(value);
                                             }}
-                                            value={dataNascimento}
-                                            format="dd/MM/yyyy"
-                                            className="w-full custom-datepicker"
-                                            calendarIcon={<IoCalendar />}
-                                            clearIcon={<IoClose />}
-                                            dayPlaceholder="dd"
-                                            monthPlaceholder="mm"
-                                            yearPlaceholder="aaaa"
+                                            value={dataNascimento ? dataNascimento.toISOString().split('T')[0] : ''}
+                                            className="w-full"
                                             required
                                         />
                                     </label>
@@ -236,18 +213,57 @@ export default function PrimeirosPassos() {
                         )}
 
                         {step === 4 && (
-                            <div className="flex flex-col items-center mt-4">
-                                <h2 className="text-2xl font-bold mt-4">Cadastro Completo!</h2>
-                                <p className="text-center mt-2">Parabéns, suas informações foram registradas com sucesso.</p>
+                            <div className="flex flex-col items-center mt-4 space-y-2">
+                                {fotoPreview && (
+                                    <div className="mt-4">
+                                        <img
+                                            src={fotoPreview}
+                                            alt="Pré-visualização"
+                                            className="w-40 h-40 object-cover rounded-full"
+                                        />
+                                    </div>
+                                )}
+                                <p><strong>Data de nascimento:</strong> {dataNascimento ? dataNascimento.toLocaleDateString() : 'N/A'}</p>
+                                <p><strong>Horário de entrada:</strong> {horaEntrada}</p>
+                                <p><strong>Horário de saída:</strong> {horaSaida}</p>
                             </div>
                         )}
 
                         <div className='flex justify-between mt-10'>
-                            {step <= 3 ? (
-                                <button className="btn btn-primary" onClick={handleNextStep}>Próximo</button>
-                            ) : (
-                                <Link to="/" className="btn btn-success">Finalizar</Link>
-                            )}
+                            <button
+                                className="btn"
+                                onClick={handlePrevious}
+                                disabled={step === 1}
+                            >
+                                Voltar
+                            </button>
+                            {
+                                step === 1 ? (
+                                    <div className="tooltip tooltip-bottom" data-tip={isButtonDisabledStep1 ? "Preencha todos os campos obrigatórios" : null}>
+                                        <button className="btn" onClick={handleNext} disabled={isButtonDisabledStep1}>
+                                            Próximo
+                                        </button>
+                                    </div>
+                                ) : step === 2 ? (
+                                    <div className="tooltip tooltip-bottom" data-tip={isButtonDisabledStep2 ? "Preencha todos os campos obrigatórios" : null}>
+                                        <button className="btn" onClick={handleNext} disabled={isButtonDisabledStep2}>
+                                            Próximo
+                                        </button>
+                                    </div>
+                                ) : step === 3 ? (
+                                    <div className="tooltip tooltip-bottom" data-tip={isButtonDisabledStep3 ? "Preencha todos os campos obrigatórios" : null}>
+                                        <button className="btn" onClick={handleNext} disabled={isButtonDisabledStep3}>
+                                            Próximo
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <button className="btn btn-success" onClick={handleFinalSubmit}>
+                                            Finalizar
+                                        </button>
+                                    </div>
+                                )
+                            }
                         </div>
                     </div>
                 </div>
