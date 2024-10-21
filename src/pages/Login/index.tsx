@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Notification } from '@/components';
 import "/src/main.scss"
+import { IoEyeOff, IoEye } from 'react-icons/io5';
 
 interface Departamento {
     departamento_id: number;
@@ -22,6 +23,8 @@ export default function Login() {
     const [senha, setSenha] = useState<string>('');
     const [loginStatus, setLoginStatus] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
     const navigate = useNavigate();
+
+    const [mostrarSenha, setMostrarSenha] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchDepartamentos = async () => {
@@ -173,14 +176,25 @@ export default function Login() {
                                 <span className="label-text">Senha</span>
                             </label>
         
-                            <input
-                                type="password"
-                                value={senha}
-                                onChange={(e) => setSenha(e.target.value)}
-                                placeholder="Digite a senha"
-                                className="input input-bordered w-full mb-4"
-                                disabled={!selectedProfissional}
-                            />
+                            <div className="relative">
+                                <label className="input input-bordered flex items-center gap-2 w-full">
+                                    <input
+                                        type={mostrarSenha ? 'text' : 'password'}
+                                        value={senha}
+                                        onChange={(e) => setSenha(e.target.value)}
+                                        placeholder="Digite a senha"
+                                        className="flex-grow"
+                                        disabled={!selectedProfissional}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setMostrarSenha(!mostrarSenha)}
+                                        disabled={!selectedProfissional}
+                                    >
+                                        {mostrarSenha ? <IoEyeOff/> : <IoEye/>}
+                                    </button>
+                                </label>
+                            </div>
                         </div>
         
                         <button

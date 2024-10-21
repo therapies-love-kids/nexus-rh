@@ -132,10 +132,11 @@ export default function PrimeirosPassos() {
                                     <span className="label-text">Senha de acesso</span>
                                 </label>
                                 <div className="relative">
+                                <label className="input input-bordered flex items-center gap-2">
                                     <input
                                         type={mostrarSenha ? "text" : "password"}
                                         placeholder="Senha de acesso"
-                                        className="input input-bordered w-full pr-12"
+                                        className="flex-grow"
                                         value={senha}
                                         onChange={(e) => setSenha(e.target.value)}
                                         required
@@ -146,6 +147,7 @@ export default function PrimeirosPassos() {
                                     >
                                         {mostrarSenha ? <IoEyeOff /> : <IoEye />}
                                     </button>
+                                </label>
                                 </div>
                             </div>
                         )}
@@ -236,7 +238,7 @@ export default function PrimeirosPassos() {
                                 )}
                                 <p>
                                     <strong>Senha: </strong>
-                                    {mostrarSenhaResumo ? senha : '***'}&nbsp;
+                                    {mostrarSenhaResumo ? senha : '*'.repeat(senha.length)}&nbsp;
                                     <button onClick={() => setMostrarSenhaResumo(!mostrarSenhaResumo)}>
                                         {mostrarSenhaResumo ? <IoEyeOff /> : <IoEye />}
                                     </button>

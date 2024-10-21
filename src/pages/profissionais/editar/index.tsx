@@ -83,11 +83,10 @@ export default function AtualizarProfissional() {
         try {
             await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                {
-                    text: 'DELETE FROM profissionais_mac WHERE profissional_id = $1 AND mac = $2',
-                    values: [profissional_id, macToDelete]
-                }
-            );
+                `DELETE FROM profissionais_mac WHERE profissional_id = $1 AND mac = $2`,
+                [profissional_id, macToDelete]
+              );
+            
             setMacs(macs.filter(mac => mac !== macToDelete)); // Atualizar a lista de MACs
         } catch (error) {
             console.log(error);
