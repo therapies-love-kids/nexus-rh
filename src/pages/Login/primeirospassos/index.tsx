@@ -1,8 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
-import DatePicker from "react-date-picker";
-import { IoArrowBack, IoCalendar, IoClose, IoEye, IoEyeOff } from "react-icons/io5";
-import { Link } from "react-router-dom";
+import { IoEye, IoEyeOff } from "react-icons/io5";
 import { Notification } from '@/components';
 import { uploadImageFtp } from '@/utils/hookFTP';
 
@@ -31,7 +29,6 @@ export default function PrimeirosPassos() {
         
         try {
             const macAddress = await window.ipcRenderer.invoke('get-mac-address');
-            console.log('MAC Address:', macAddress);
             
             const updates = {
                 profissional_senha: senha,
@@ -45,7 +42,7 @@ export default function PrimeirosPassos() {
                 table: 'profissionais',
                 updates,
                 ids: [profissional_id],
-                idColumn: 'profissional_id' // Passando o nome da coluna de identificação
+                idColumn: 'profissional_id'
             });
     
             if (response.success) {

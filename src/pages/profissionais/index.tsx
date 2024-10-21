@@ -1,117 +1,36 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
-import { DownloadImageFtp } from '@/utils/hookFTP';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
-import { Notification } from "@/components"; // Importando o componente Notification
+import { Notification } from "@/components";
+import { useFuncoes, useProfissionais, useUnidades } from '@/utils/hookProfissionais';
 
 interface Profissional {
     profissional_id: number;
     profissional_foto: string;
     profissional_nome: string;
-}
-
-interface Unidade {
-    unidade: string;
-}
-
-interface Funcao {
-    funcao: string;
+    imageUrl?: string;  // Inclui o campo imageUrl retornado pelo hook
 }
 
 export default function Profissionais() {
-    const [, setProfissionais] = useState<Profissional[]>([]);
     const [selectedProfissionais, setSelectedProfissionais] = useState<number[]>([]);
     const [filteredProfissionais, setFilteredProfissionais] = useState<Profissional[]>([]);
-    const [unidadesMap, setUnidadesMap] = useState<Record<number, Unidade[]>>({});
-    const [funcoesMap, setFuncoesMap] = useState<Record<number, Funcao[]>>({});
-    const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
+
+    const profissionais = useProfissionais(undefined, 'profissionais/fotos', 'ativo');
+    const unidades = useUnidades('ativo');
+    const funcoes = useFuncoes('ativo');
+
+    useEffect(() => {
+        setFilteredProfissionais(profissionais);
+    }, [profissionais]);
 
     const indexOfLastRecord = currentPage * recordsPerPage;
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
     const currentRecords = filteredProfissionais.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(filteredProfissionais.length / recordsPerPage);
-
-    const navigate = useNavigate();
-
-    const fetchProfissionais = async () => {
-        try {
-            const result = await window.ipcRenderer.invoke(
-                'query-database-postgres',
-                'SELECT profissional_id, profissional_foto, profissional_nome FROM profissionais WHERE profissional_status1 = \'ativo\''
-            );
-            setProfissionais((result as Profissional[]).sort((a, b) => a.profissional_id - b.profissional_id));
-            setFilteredProfissionais(result as Profissional[]);
-    
-            const imagePromises = (result as Profissional[]).map(async (profissional) => {
-                // Passe a pasta base e o caminho da imagem
-                const imageUrl = await DownloadImageFtp('profissionais/fotos', profissional.profissional_foto);
-                return { profissional_id: profissional.profissional_id, imageUrl };
-            });
-    
-            const imageResults = await Promise.all(imagePromises);
-            const imageMap: Record<number, string> = {};
-            imageResults.forEach(result => {
-                imageMap[result.profissional_id] = result.imageUrl;
-            });
-    
-            setImageUrls(imageMap);
-        } catch (error) {
-            console.error('Erro ao buscar profissionais:', error);
-        }
-    };
-
-    const fetchUnidades = async () => {
-        try {
-            // Tabela de associação de profissionais e unidades
-            const result = await window.ipcRenderer.invoke(
-                'query-database-postgres',
-                `SELECT pu.profissional_id, u.unidade 
-                    FROM profissionais_unidade_associacao pu 
-                    JOIN profissionais_unidade u ON pu.unidade_id = u.unidade_id`
-            );
-            const unidadesMapping: Record<number, Unidade[]> = {};
-            result.forEach((item: { profissional_id: number, unidade: string }) => {
-                if (!unidadesMapping[item.profissional_id]) {
-                    unidadesMapping[item.profissional_id] = [];
-                }
-                unidadesMapping[item.profissional_id].push({ unidade: item.unidade });
-            });
-            setUnidadesMap(unidadesMapping);
-        } catch (error) {
-            console.error('Erro ao buscar unidades:', error);
-        }
-    };
-
-    const fetchFuncoes = async () => {
-        try {
-            const result = await window.ipcRenderer.invoke(
-                'query-database-postgres',
-                `SELECT pu.profissional_id, u.funcao 
-                    FROM profissionais_funcao_associacao pu 
-                    JOIN profissionais_funcao u ON pu.funcao_id = u.funcao_id`
-            );
-            const funcoesMapping: Record<number, Funcao[]> = {};
-            result.forEach((item: { profissional_id: number, funcao: string }) => {
-                if (!funcoesMapping[item.profissional_id]) {
-                    funcoesMapping[item.profissional_id] = [];
-                }
-                funcoesMapping[item.profissional_id].push({ funcao: item.funcao });
-            });
-            setFuncoesMap(funcoesMapping);
-        } catch (error) {
-            console.error('Erro ao buscar funções:', error);
-        }
-    };
-
-    useEffect(() => {
-        fetchProfissionais();
-        fetchUnidades();
-        fetchFuncoes();
-    }, []);
 
     const handleChangeStatus = async (status: 'Demitido' | 'Ativo') => {
         if (selectedProfissionais.length > 0) {
@@ -119,25 +38,24 @@ export default function Profissionais() {
                 setNotification({ type: 'info', message: `Alterando status dos profissionais para ${status}...` });
     
                 const updates = {
-                    profissional_status1: status.toLowerCase(), // Definindo o status
+                    profissional_status1: status.toLowerCase(),
                 };
     
                 const result = await window.ipcRenderer.invoke('update-records-postgres', {
                     table: 'profissionais',
                     updates,
-                    ids: selectedProfissionais, // IDs dos profissionais selecionados
-                    idColumn: 'profissional_id', // Coluna de identificação
+                    ids: selectedProfissionais,
+                    idColumn: 'profissional_id',
                 });
     
                 if (result.success) {
-                    await fetchProfissionais();
+                    profissionais; // Atualiza os profissionais
                     setSelectedProfissionais([]);
                     setNotification({ type: 'success', message: `Status dos profissionais alterado para ${status} com sucesso!` });
                 } else {
                     setNotification({ type: 'error', message: result.message || 'Erro ao alterar status dos profissionais.' });
                 }
             } catch (error) {
-                console.error('Erro ao alterar status dos profissionais:', error);
                 setNotification({ type: 'error', message: 'Erro ao alterar status dos profissionais.' });
             }
         } else {
@@ -169,25 +87,15 @@ export default function Profissionais() {
                                     </div>
                                     <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                                         <li>
-                                            <Link to="/profissionais/demitidos">
-                                                Visualizar Demitidos
+                                            <Link to="/profissionais/inativos">
+                                                Visualizar Inativos
                                             </Link>
                                         </li>
                                         <li>
                                             <a onClick={() => handleChangeStatus('Demitido')}>
-                                                Mover para Demitidos
+                                                Mover para Inativos
                                             </a>
                                         </li>
-                                        {/* <li>
-                                            <button
-                                                className={` ${selectedProfissionais.length !== 1 ? 'tooltip text-gray-400 text-start cursor-not-allowed' : ''}`}
-                                                data-tip={selectedProfissionais.length !== 1 ? 'Selecione apenas um profissional para editar.' : ''}
-                                                onClick={handleEdit}
-                                                disabled={selectedProfissionais.length !== 1}
-                                            >
-                                                Editar
-                                            </button>
-                                        </li> */}
                                     </ul>
                                 </div>
 
@@ -245,16 +153,16 @@ export default function Profissionais() {
                                         </th>
                                         <td>{prof.profissional_id}</td>
                                         <td>
-                                            <img src={imageUrls[prof.profissional_id]} alt={prof.profissional_nome} className="w-16 h-16 object-cover rounded-full" />
+                                            <img src={prof.imageUrl} alt={prof.profissional_nome} className="w-16 h-16 object-cover rounded-full" />
                                         </td>
                                         <td>{prof.profissional_nome}</td>
                                         <td>
-                                            {unidadesMap[prof.profissional_id]?.map((unidade, index) => (
+                                            {unidades.map((unidade, index) => (
                                                 <div key={index}>{unidade.unidade}</div>
                                             )) || 'Nenhuma unidade'}
                                         </td>
                                         <td>
-                                            {funcoesMap[prof.profissional_id]?.map((funcao, index) => (
+                                            {funcoes.map((funcao, index) => (
                                                 <div key={index}>{funcao.funcao}</div>
                                             )) || 'Nenhuma função'}
                                         </td>

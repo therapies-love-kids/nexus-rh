@@ -6,7 +6,7 @@ import {
         Profissionais,
         ProfissionaisNovo,
         PrimeirosPassos,
-        ProfissionaisDemitidos,
+        ProfissionaisInativos,
         ProfissionaisEditar,
         Unidades,
         UnidadesNova,
@@ -67,9 +67,9 @@ export default function App() {
                                 </PrivateRoute>
                             } />
 
-                            <Route path="/profissionais/demitidos" element={
+                            <Route path="/profissionais/inativos" element={
                                 <PrivateRoute>
-                                    <LayoutDash><ProfissionaisDemitidos /></LayoutDash>
+                                    <LayoutDash><ProfissionaisInativos /></LayoutDash>
                                 </PrivateRoute>
                             } />
 

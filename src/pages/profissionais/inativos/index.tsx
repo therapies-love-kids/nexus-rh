@@ -15,7 +15,7 @@ interface Unidade {
     unidade: string;
 }
 
-export default function ProfissionaisDemitidos() {
+export default function ProfissionaisInativos() {
     const [, setProfissionais] = useState<Profissional[]>([]);
     const [selectedProfissionais, setSelectedProfissionais] = useState<number[]>([]);
     const [filteredProfissionais, setFilteredProfissionais] = useState<Profissional[]>([]);
@@ -51,7 +51,7 @@ export default function ProfissionaisDemitidos() {
 
             setImageUrls(imageMap);
         } catch (error) {
-            console.error('Erro ao buscar profissionais demitidos:', error);
+            console.error('Erro ao buscar profissionais inativos:', error);
         }
     };
 
@@ -152,7 +152,7 @@ export default function ProfissionaisDemitidos() {
                 <div className='card bg-base-100 shadow-xl w-full mb-10'>
                     <div className="card-body">
                         <div className='flex justify-between'>
-                            <h2 className="card-title">Profissionais Demitidos</h2>
+                            <h2 className="card-title">Profissionais Inativos</h2>
                             <div className='flex gap-2 justify-between'>
                                 <div className="dropdown dropdown-end">
                                     <div tabIndex={1} role="button" className="btn">

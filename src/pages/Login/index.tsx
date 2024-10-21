@@ -1,69 +1,25 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Notification } from '@/components';
 import "/src/main.scss"
 import { IoEyeOff, IoEye } from 'react-icons/io5';
-
-interface Departamento {
-    departamento_id: number;
-    departamento: string;
-}
-
-interface Profissional {
-    profissional_id: number;
-    profissional_nome: string;
-    profissional_senha: string;
-}
+import { useDepartamentos, useProfissionais } from '@/utils/hookProfissionais';
 
 export default function Login() {
-    const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
-    const [profissionais, setProfissionais] = useState<Profissional[]>([]);
     const [selectedDepartamento, setSelectedDepartamento] = useState<number | string>('');
     const [selectedProfissional, setSelectedProfissional] = useState<number | string>('');
     const [senha, setSenha] = useState<string>('');
     const [loginStatus, setLoginStatus] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
     const navigate = useNavigate();
+    
+    // Usando o hook para buscar departamentos
+    const fetchProfissionais = async () => {};
+    const departamentos = useDepartamentos(selectedDepartamento, fetchProfissionais, 'ativo');
+
+    // Usando o hook para buscar profissionais
+    const profissionais = useProfissionais(undefined, 'profissionais/fotos', 'ativo');
 
     const [mostrarSenha, setMostrarSenha] = useState<boolean>(false);
-
-    useEffect(() => {
-        const fetchDepartamentos = async () => {
-            try {
-                const result = await window.ipcRenderer.invoke('query-database-postgres', `SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = 'ativo'`);
-                setDepartamentos(result as Departamento[]);
-            } catch (error) {
-                console.error('Erro ao buscar departamentos:', error);
-            }
-        };
-
-        fetchDepartamentos();
-    }, []);
-
-    useEffect(() => {
-        if (selectedDepartamento) {
-            const fetchProfissionais = async () => {
-                try {
-                    const result = await window.ipcRenderer.invoke('query-database-postgres', `
-                        SELECT profissional_id, profissional_nome, profissional_senha 
-                        FROM profissionais 
-                        WHERE profissional_id IN (
-                            SELECT profissional_id 
-                            FROM profissionais_departamento_associacao 
-                            WHERE departamento_id = $1
-                        ) AND profissional_status1 = 'ativo'`, 
-                        [selectedDepartamento]);
-                    setProfissionais(result as Profissional[]);
-                } catch (error) {
-                    console.error('Erro ao buscar profissionais:', error);
-                }
-            };
-
-            fetchProfissionais();
-        } else {
-            setProfissionais([]);
-            setSelectedProfissional('');
-        }
-    }, [selectedDepartamento]);
 
     const handleLogin = async () => {
         if (!selectedProfissional || !senha) {
@@ -72,7 +28,8 @@ export default function Login() {
         }
 
         try {
-            const result = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT profissional_senha, profissional_foto, profissional_nome FROM profissionais WHERE profissional_id = $1', [selectedProfissional]);
+            const result = await window.ipcRenderer.invoke('query-database-postgres',
+                'SELECT profissional_senha, profissional_foto, profissional_nome FROM profissionais WHERE profissional_id = $1', [selectedProfissional]);
 
             if (result.length === 0) {
                 setLoginStatus({ type: 'error', message: 'Profissional não encontrado' });
@@ -88,6 +45,7 @@ export default function Login() {
                 localStorage.setItem('departamento_id', selectedDepartamento.toString());
 
                 const unidadesResult = await window.ipcRenderer.invoke('query-database-postgres', 'SELECT unidade_id FROM profissionais_unidade_associacao WHERE profissional_id = $1', [selectedProfissional]);
+                
                 const unidades = unidadesResult.map((row: { unidade_id: number }) => row.unidade_id);
                 localStorage.setItem('unidades', JSON.stringify(unidades));
 
@@ -144,7 +102,10 @@ export default function Login() {
                             </label>
                             <select
                                 value={selectedDepartamento}
-                                onChange={(e) => setSelectedDepartamento(e.target.value)}
+                                onChange={(e) => {
+                                    setSelectedDepartamento(Number(e.target.value)); // Converter o valor para number
+                                    setSelectedProfissional(''); // Resetando o profissional ao mudar o departamento
+                                }}
                                 className="select select-bordered w-full"
                             >
                                 <option value="">Selecione um Departamento</option>

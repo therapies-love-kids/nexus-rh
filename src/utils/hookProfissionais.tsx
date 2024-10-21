@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { DownloadImageFtp } from "@/utils/hookFTP";
 
-export function useDepartamentos(selectedDepartamento: number | undefined, fetchProfissionais: (departamentoId: number) => Promise<void>) {
+export function useDepartamentos(selectedDepartamento: any, fetchProfissionais: (departamentoId: number) => Promise<void>, status: string = 'ativo') {
     const [departamentos, setDepartamentos] = useState<{ departamento_id: number, departamento: string }[]>([]);
 
     useEffect(() => {
         const fetchDepartamentos = async () => {
             const result = await window.ipcRenderer.invoke(
                 'query-database-postgres',
-                `SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = 'ativo'`
+                `SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = $1`,
+                [status]
             );
             setDepartamentos(result);
             if (selectedDepartamento) {
@@ -16,65 +17,115 @@ export function useDepartamentos(selectedDepartamento: number | undefined, fetch
             }
         };
         fetchDepartamentos();
-    }, [selectedDepartamento, fetchProfissionais]);
+    }, [selectedDepartamento, fetchProfissionais, status]);
 
     return departamentos;
 }
 
-export function useProfissionalImage(profissional_id: number | any, baseFolder: string) {
-    const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
+export function useEmpresas(status: string = 'ativo') {
+    const [empresas, setEmpresas] = useState<{ empresa_id: number, empresa: string, cnpj: string }[]>([]);
 
     useEffect(() => {
-        const fetchProfissionalImage = async () => {
-            if (profissional_id) {
-                try {
-                    const result = await window.ipcRenderer.invoke(
-                        'query-database-postgres',
-                        `SELECT profissional_foto FROM profissionais WHERE profissional_id = $1`,
-                        [profissional_id]
-                    );
-                    const profissional = result[0];
-                    const imageUrl = await DownloadImageFtp(baseFolder, profissional.profissional_foto);
-                    setImageUrls((prev) => ({ ...prev, [profissional_id]: imageUrl }));
-                } catch (error) {
-                    console.error('Erro ao buscar a imagem do profissional:', error);
-                }
-            }
+        const fetchEmpresas = async () => {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                `SELECT empresa_id, empresa, cnpj FROM profissionais_empresa WHERE empresa_status1 = $1`,
+                [status]
+            );
+            setEmpresas(result);
         };
+        fetchEmpresas();
+    }, [status]);
 
-        fetchProfissionalImage();
-    }, [profissional_id, baseFolder]);
-
-    return imageUrls[profissional_id] || null;
+    return empresas;
 }
 
-export function useProfissionais(departamentoId: number | undefined) {
-    const [profissionais, setProfissionais] = useState<{ profissional_id: number, profissional_nome: string }[]>([]);
+export function useFuncoes(status: string = 'ativo') {
+    const [funcoes, setFuncoes] = useState<{ funcao_id: number, funcao: string }[]>([]);
+
+    useEffect(() => {
+        const fetchFuncoes = async () => {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                `SELECT funcao_id, funcao FROM profissionais_funcao WHERE funcao_status1 = $1`,
+                [status]
+            );
+            setFuncoes(result);
+        };
+        fetchFuncoes();
+    }, [status]);
+
+    return funcoes;
+}
+
+export function useUnidades(status: string = 'ativo') {
+    const [unidades, setUnidades] = useState<{ unidade_id: number, unidade: string, endereco: string, cep: string }[]>([]);
+
+    useEffect(() => {
+        const fetchUnidades = async () => {
+            const result = await window.ipcRenderer.invoke(
+                'query-database-postgres',
+                `SELECT unidade_id, unidade, endereco, cep FROM profissionais_unidade WHERE unidade_status1 = $1`,
+                [status]
+            );
+            setUnidades(result);
+        };
+        fetchUnidades();
+    }, [status]);
+
+    return unidades;
+}
+
+export function useProfissionais(departamentoId: number | undefined, baseFolder: string, status: string = 'ativo') {
+    const [profissionais, setProfissionais] = useState<{
+        profissional_id: number,
+        profissional_nome: string,
+        profissional_senha: string,
+        profissional_foto: string,
+        profissional_horaentrada: string,
+        profissional_horasaida: string,
+        profissional_dataingressoempresa: string,
+        profissional_datanascimento: string,
+        profissional_datademissaoempresa: string | null,
+        profissional_cpf: string,
+        profissional_status1: string,
+        imageUrl?: string
+    }[]>([]);
 
     useEffect(() => {
         const fetchProfissionais = async () => {
-            if (departamentoId) {
-                try {
-                    const result = await window.ipcRenderer.invoke(
-                        'query-database-postgres',
-                        `SELECT profissional_id, profissional_nome 
-                        FROM profissionais 
-                        WHERE profissional_id IN (
-                            SELECT profissional_id 
-                            FROM profissionais_departamento_associacao 
-                            WHERE departamento_id = $1
-                        ) AND profissional_status1 = 'ativo'`,
-                        [departamentoId]
-                    );
-                    setProfissionais(result);
-                } catch (error) {
-                    console.error('Erro ao buscar profissionais:', error);
-                }
+            try {
+                const query = departamentoId
+                    ? `SELECT p.profissional_id, p.profissional_nome, p.profissional_senha, p.profissional_foto, 
+                                p.profissional_horaentrada, p.profissional_horasaida, p.profissional_dataingressoempresa, 
+                                p.profissional_datanascimento, p.profissional_datademissaoempresa, p.profissional_cpf, p.profissional_status1
+                        FROM profissionais p
+                        JOIN profissionais_departamento_associacao dpa ON p.profissional_id = dpa.profissional_id
+                        WHERE dpa.departamento_id = $1 AND p.profissional_status1 = $2`
+                    : `SELECT p.profissional_id, p.profissional_nome, p.profissional_senha, p.profissional_foto, 
+                                p.profissional_horaentrada, p.profissional_horasaida, p.profissional_dataingressoempresa, 
+                                p.profissional_datanascimento, p.profissional_datademissaoempresa, p.profissional_cpf, p.profissional_status1
+                        FROM profissionais p
+                        WHERE p.profissional_status1 = $1`;
+
+                const params = departamentoId ? [departamentoId, status] : [status];
+
+                const result = await window.ipcRenderer.invoke('query-database-postgres', query, params);
+
+                // Buscando as imagens dos profissionais
+                const profissionaisWithImages = await Promise.all(result.map(async (profissional: any) => {
+                    const imageUrl = await DownloadImageFtp(baseFolder, profissional.profissional_foto);
+                    return { ...profissional, imageUrl };
+                }));
+
+                setProfissionais(profissionaisWithImages);
+            } catch (error) {
+                console.error('Erro ao buscar profissionais:', error);
             }
         };
 
         fetchProfissionais();
-    }, [departamentoId]);
+    }, [departamentoId, baseFolder, status]);
 
     return profissionais;
 }

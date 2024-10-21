@@ -1,15 +1,14 @@
 import React, { useEffect } from 'react';
 
 interface NotificationProps {
-    type: 'info' | 'success' | 'error'; // Tipos possíveis para a notificação
-    message: string; // Mensagem a ser exibida
-    onClose: () => void; // Função de callback para fechar a notificação
+    type: 'info' | 'success' | 'error';
+    message: string;
+    onClose: () => void;
 }
 
 const Notification: React.FC<NotificationProps> = ({ type, message, onClose }) => {
     let alertClass = '';
 
-    // Define a classe com base no tipo de notificação
     switch (type) {
         case 'info':
             alertClass = 'alert-info';
@@ -21,7 +20,7 @@ const Notification: React.FC<NotificationProps> = ({ type, message, onClose }) =
             alertClass = 'alert-error';
             break;
         default:
-            alertClass = 'alert-info'; // Classe padrão se o tipo não for reconhecido
+            alertClass = 'alert-info';
     }
 
     useEffect(() => {
