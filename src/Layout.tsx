@@ -3,7 +3,7 @@ import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
 import { IoClose, IoDownloadOutline, IoArrowBack, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy, IoStatsChart, IoSettings } from "react-icons/io5";
 import { Link } from 'react-router-dom';
-import { fetchImageFromFtp } from './utils/imageUtils';
+import { DownloadImageFtp } from './utils/hookFTP';
 import { Update } from './components';
 import config from '../package.json';
 
@@ -114,7 +114,7 @@ export function LayoutDash({ children }: LayoutProps) {
         
         if (foto) {
             // Busca a URL da imagem a partir do nome do arquivo
-            fetchImageFromFtp(foto)
+            DownloadImageFtp('profissionais/fotos',foto)
                 .then((imageUrl) => setUserImage(imageUrl))
                 .catch((err) => console.error('Erro ao buscar a imagem:', err));
         }
@@ -286,9 +286,9 @@ export function LayoutDashFixed({ children }: LayoutProps) {
         
         if (foto) {
             // Busca a URL da imagem a partir do nome do arquivo
-            fetchImageFromFtp(foto)
+            DownloadImageFtp('profissionais/fotos',foto)
                 .then((imageUrl) => setUserImage(imageUrl))
-                .catch((err) => console.error('Erro ao buscar a imagem:', err));
+                .catch((err) => console.log('Erro ao buscar a imagem:', err));
         }
         
         if (nomeProfissional) {

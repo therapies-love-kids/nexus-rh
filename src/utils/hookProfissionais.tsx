@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchImageFromFtp } from "@/utils/imageUtils";
+import { DownloadImageFtp } from "@/utils/hookFTP";
 
 export function useDepartamentos(selectedDepartamento: number | undefined, fetchProfissionais: (departamentoId: number) => Promise<void>) {
     const [departamentos, setDepartamentos] = useState<{ departamento_id: number, departamento: string }[]>([]);
@@ -21,7 +21,7 @@ export function useDepartamentos(selectedDepartamento: number | undefined, fetch
     return departamentos;
 }
 
-export function useProfissionalImage(profissional_id: number | any) {
+export function useProfissionalImage(profissional_id: number | any, baseFolder: string) {
     const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
 
     useEffect(() => {
@@ -34,7 +34,7 @@ export function useProfissionalImage(profissional_id: number | any) {
                         [profissional_id]
                     );
                     const profissional = result[0];
-                    const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
+                    const imageUrl = await DownloadImageFtp(baseFolder, profissional.profissional_foto);
                     setImageUrls((prev) => ({ ...prev, [profissional_id]: imageUrl }));
                 } catch (error) {
                     console.error('Erro ao buscar a imagem do profissional:', error);
@@ -43,7 +43,7 @@ export function useProfissionalImage(profissional_id: number | any) {
         };
 
         fetchProfissionalImage();
-    }, [profissional_id]);
+    }, [profissional_id, baseFolder]);
 
     return imageUrls[profissional_id] || null;
 }

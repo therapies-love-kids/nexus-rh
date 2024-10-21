@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal } from "@/components";
-import { fetchImageFromFtp } from '@/utils/imageUtils';
+import { DownloadImageFtp } from '@/utils/hookFTP';
 import { Link } from 'react-router-dom';
 
 export default function MeuPerfil() {
@@ -25,7 +25,7 @@ export default function MeuPerfil() {
                     );
 
                     const profissional = result[0];
-                    const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
+                    const imageUrl = await DownloadImageFtp('profissionais/fotos', profissional.profissional_foto);
 
                     if (profissional_id) {
                         setImageUrls({ [profissional_id.toString()]: imageUrl });

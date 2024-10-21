@@ -45,15 +45,15 @@ async function getImageFromFtp(remoteFilePath: string): Promise<Buffer> {
 }
 
 // Função para fazer o upload da imagem via FTP
-async function uploadImageToFtp(localFilePath: string, remoteFileName: string): Promise<void> {
+async function uploadImageFtp(localFilePath: string, remoteFilePath: string): Promise<void> {
     const client = new ftp.Client();
     client.ftp.verbose = true; // Para habilitar o log detalhado
     try {
         await client.access(ftpConfig);
-        console.log(`Conectado ao FTP. Enviando arquivo ${localFilePath} como ${remoteFileName}`);
+        console.log(`Conectado ao FTP. Enviando arquivo ${localFilePath} como ${remoteFilePath}`);
 
         // Envia o arquivo local para o servidor FTP
-        await client.uploadFrom(localFilePath, `profissionais/${remoteFileName}`);
+        await client.uploadFrom(localFilePath, remoteFilePath);
         console.log('Upload concluído com sucesso.');
     } catch (err) {
         if (err instanceof Error) {
@@ -69,10 +69,9 @@ async function uploadImageToFtp(localFilePath: string, remoteFileName: string): 
 
 // Função para registrar os IPC handlers do FTP
 export function setupFtpIpcHandlers() {
-    ipcMain.handle('ftp-get-image', async (event, fileName: string | null) => {
+    ipcMain.handle('download-ftp', async (event, { remoteFilePath }) => {
         try {
-            const imagePath = fileName ? `profissionais/${fileName}` : 'profissionais/default.png';
-            const imageBuffer = await getImageFromFtp(imagePath);
+            const imageBuffer = await getImageFromFtp(remoteFilePath); // Usa o caminho completo que foi gerado no frontend
             const base64Image = imageBuffer.toString('base64');
             return { success: true, base64Image };
         } catch (error) {
@@ -83,10 +82,10 @@ export function setupFtpIpcHandlers() {
             }
         }
     });
-
-    ipcMain.handle('upload-ftp', async (event, { localFilePath, remoteFileName }) => {
+    
+    ipcMain.handle('upload-ftp', async (event, { localFilePath, baseFolder, remoteFileName }: { localFilePath: string, baseFolder: string, remoteFileName: string }) => {
         try {
-            await uploadImageToFtp(localFilePath, remoteFileName);  // Certifique-se que está usando 'localFilePath'
+            await uploadImageFtp(localFilePath, `${baseFolder ?? ''}/${remoteFileName}`);  
             return { success: true, message: 'Upload realizado com sucesso!' };
         } catch (error) {
             if (error instanceof Error) {

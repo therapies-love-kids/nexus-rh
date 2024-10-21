@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
-import { fetchImageFromFtp } from '@/utils/imageUtils';
+import { DownloadImageFtp, uploadImageFtp } from '@/utils/hookFTP';
 import { Link } from 'react-router-dom';
 import { IoArrowBack } from 'react-icons/io5';
 import DatePicker from 'react-date-picker';
@@ -39,7 +39,7 @@ export default function AtualizarMeuPerfil() {
                     );
     
                     const profissional = result[0];
-                    const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
+                    const imageUrl = await DownloadImageFtp(`profissionais/fotos/`, profissional.profissional_foto);
                     
                     // Garantir que profissional_id não seja null ou undefined
                     if (profissional_id) {
@@ -69,19 +69,14 @@ export default function AtualizarMeuPerfil() {
 
     const handleFotoUpload = async () => {
         if (!foto) return;
-
+    
         const fileExt = foto.name.split('.').pop();
         const fotoNome = `profissional_${profissional_id}.${fileExt}`;
-
+    
         try {
-            const ftpResponse = await window.ipcRenderer.invoke('upload-ftp', { localFilePath: foto.path, remoteFileName: fotoNome });
-            if (ftpResponse.success) {
-                console.log('Imagem enviada ao servidor com sucesso!');
-            } else {
-                console.error(`Erro ao enviar a imagem: ${ftpResponse.message}`);
-            }
-        } catch (err) {
-            console.error('Erro ao enviar a imagem:', err);
+            await uploadImageFtp('profissionais/fotos', foto.path, fotoNome);
+        } catch (error) {
+            console.error('Erro ao enviar a imagem:', error);
         }
     };
 

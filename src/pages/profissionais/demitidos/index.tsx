@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
-import { fetchImageFromFtp } from '@/utils/imageUtils';
+import { DownloadImageFtp } from '@/utils/hookFTP';
 import { Link } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification }  from '@/components'; // Importa o componente de notificação
@@ -37,8 +37,9 @@ export default function ProfissionaisDemitidos() {
             setProfissionais((result as Profissional[]).sort((a, b) => a.profissional_id - b.profissional_id));
             setFilteredProfissionais(result as Profissional[]);
 
-            const imagePromises = (result as Profissional[]).map(async (profissional: Profissional) => {
-                const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
+            const imagePromises = (result as Profissional[]).map(async (profissional) => {
+                // Passe a pasta base e o caminho da imagem
+                const imageUrl = await DownloadImageFtp('profissionais/fotos', profissional.profissional_foto);
                 return { profissional_id: profissional.profissional_id, imageUrl };
             });
 

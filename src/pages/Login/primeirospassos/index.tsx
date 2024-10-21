@@ -4,12 +4,13 @@ import DatePicker from "react-date-picker";
 import { IoArrowBack, IoCalendar, IoClose, IoEye, IoEyeOff } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { Notification } from '@/components';
+import { uploadImageFtp } from '@/utils/hookFTP';
 
 export default function PrimeirosPassos() {
     const [step, setStep] = useState(1);
     const [senha, setSenha] = useState("");
     const [foto, setFoto] = useState<File | null>(null);
-    const [fotoPreview, setFotoPreview] = useState<string | null>(null); // Novo estado para pré-visualização da imagem
+    const [fotoPreview, setFotoPreview] = useState<string | null>(null);
     const [horaEntrada, setHoraEntrada] = useState("");
     const [horaSaida, setHoraSaida] = useState("");
     const [dataNascimento, setDataNascimento] = useState<Date | null>(null);
@@ -69,12 +70,13 @@ export default function PrimeirosPassos() {
                 
                 if (foto) {
                     const localFilePath = foto.path;
-                    const remoteFileName = fotoNome;
-    
-                    const ftpResponse = await window.ipcRenderer.invoke('upload-ftp', { localFilePath, remoteFileName });
-    
-                    if (!ftpResponse.success) {
-                        setNotification({ type: 'error', message: `Erro ao enviar a imagem: ${ftpResponse.message}` });
+                    const fotoNome = `profissional_${profissional_id}.${foto.name.split('.').pop()}`;
+                
+                    try {
+                        // Usa a função adaptada passando a pasta base
+                        await uploadImageFtp('profissionais/fotos', localFilePath, fotoNome);
+                    } catch (error) {
+                        setNotification({ type: 'error', message: `Erro ao enviar a imagem` });
                     }
                 }
             } else {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
-import { fetchImageFromFtp } from '@/utils/imageUtils';
+import { DownloadImageFtp } from '@/utils/hookFTP';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification } from "@/components"; // Importando o componente Notification
@@ -45,18 +45,19 @@ export default function Profissionais() {
             );
             setProfissionais((result as Profissional[]).sort((a, b) => a.profissional_id - b.profissional_id));
             setFilteredProfissionais(result as Profissional[]);
-
+    
             const imagePromises = (result as Profissional[]).map(async (profissional) => {
-                const imageUrl = await fetchImageFromFtp(profissional.profissional_foto);
+                // Passe a pasta base e o caminho da imagem
+                const imageUrl = await DownloadImageFtp('profissionais/fotos', profissional.profissional_foto);
                 return { profissional_id: profissional.profissional_id, imageUrl };
             });
-
+    
             const imageResults = await Promise.all(imagePromises);
             const imageMap: Record<number, string> = {};
             imageResults.forEach(result => {
                 imageMap[result.profissional_id] = result.imageUrl;
             });
-
+    
             setImageUrls(imageMap);
         } catch (error) {
             console.error('Erro ao buscar profissionais:', error);

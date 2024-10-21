@@ -6,7 +6,7 @@ import Tarefa from "@/components/Tarefa";
 import ModalNovaTarefa from "@/components/ModalNovaTarefa";
 import ModalNovaColuna from "@/components/ModalNovaColuna";
 
-export default function SocialTarefas() {
+export default function SocialTarefasKanban() {
     const storedDepartamentoId = localStorage.getItem('departamento_id');
     const storedProfissionalId = localStorage.getItem('profissional_id');
     
@@ -23,7 +23,7 @@ export default function SocialTarefas() {
     const departamentos = useDepartamentos(selectedDepartamento, async () => Promise.resolve());
     const colunas = useColunas(selectedProjeto); // Hook para buscar colunas
     const tarefas = useTarefas(selectedDepartamento);
-    const profissionalImageUrl = useProfissionalImage(selectedProfissional);
+    const profissionalImageUrl = useProfissionalImage(selectedProfissional, 'imagens/profissionais');
     const projetos = useProjetos(selectedDepartamento);
 
     return (
