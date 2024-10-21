@@ -1,7 +1,7 @@
 import { useState, useEffect, SetStateAction } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { Link } from 'react-router-dom';
-import { IoArrowBack, IoCalendar, IoClose, IoKey, IoPerson } from 'react-icons/io5';
+import { IoArrowBack, IoCalendar, IoClose, IoEye, IoEyeOff, IoKey, IoPerson } from 'react-icons/io5';
 import { FaCopy } from 'react-icons/fa';
 import DatePicker from 'react-date-picker';
 import MaskedInput from 'react-text-mask';
@@ -58,6 +58,8 @@ export default function NovoProfissional() {
     const isButtonDisabledStep1 = (!nome || !senha || !dataIngressoEmpresa || !cpf);
     const isButtonDisabledStep2 = (!unidadeIds.length || !departamentoIds.length || !funcaoIds.length);
     const isButtonDisabledStep3 = (!empresaIds.length);
+
+    const [showPassword, setShowPassword] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchOptions = async () => {
@@ -296,12 +298,18 @@ export default function NovoProfissional() {
                                     <label className="input input-bordered flex items-center gap-2">
                                         <IoKey />
                                         <input
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             placeholder="Senha do profissional"
                                             className="flex-grow"
                                             value={senha}
                                             onChange={(e) => setSenha(e.target.value)}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <IoEyeOff /> : <IoEye />}
+                                        </button>
                                     </label>
                                     <div className="label">
                                         <span className="label-text-alt">Padrão: <b>123</b></span>

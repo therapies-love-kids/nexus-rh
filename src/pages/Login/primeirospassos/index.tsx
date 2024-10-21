@@ -142,7 +142,6 @@ export default function PrimeirosPassos() {
                                     />
                                     <button
                                         type="button"
-                                        className="absolute top-0 right-0 p-4 text-lg transition duration-300 ease-in-out"
                                         onClick={() => setMostrarSenha(!mostrarSenha)}
                                     >
                                         {mostrarSenha ? <IoEyeOff /> : <IoEye />}

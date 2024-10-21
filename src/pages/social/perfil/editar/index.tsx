@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { DownloadImageFtp, uploadImageFtp } from '@/utils/hookFTP';
 import { Link } from 'react-router-dom';
-import { IoArrowBack } from 'react-icons/io5';
+import { IoArrowBack, IoEye, IoEyeOff } from 'react-icons/io5';
 import DatePicker from 'react-date-picker';
 import MaskedInput from 'react-text-mask';
 
@@ -13,7 +13,6 @@ export default function AtualizarMeuPerfil() {
     const storedProfissionalId = localStorage.getItem('profissional_id');
     // Inicializa o estado com o valor recuperado ou null
     const [profissional_id] = useState<number | null>(storedProfissionalId ? parseInt(storedProfissionalId, 10) : null);
-    
 
     const [nome, setNome] = useState<string>('');
     const [cpf, setCPF] = useState<string>('');
@@ -28,6 +27,9 @@ export default function AtualizarMeuPerfil() {
 
     const [foto, setFoto] = useState<File | null>(null);
     const [fotoPreview, setFotoPreview] = useState<string | null>(null);
+
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [showPassword2, setShowPassword2] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchProfissionalData = async () => {
@@ -190,14 +192,13 @@ export default function AtualizarMeuPerfil() {
 
                                 <div className='flex flex-row w-full gap-3 '>
                                     <input
-                                        type="text"
+                                        type="password"
                                         placeholder="Senha do profissional"
                                         className="w-full input input-bordered input-disabled"
                                         value={senha}
                                         onChange={(e) => setSenha(e.target.value)}
                                         disabled // O campo fica desativado se mudarSenha for false
-                                    />
-                                    
+                                    />                                    
 
                                     {/* Botão Mudar Senha */}
                                     <button
@@ -212,24 +213,40 @@ export default function AtualizarMeuPerfil() {
                             {/* Campos de Nova Senha e Confirmar Nova Senha */}
                             {mudarSenha && (
                                 <div className='p-5 mt-5 border-base-300 border-2 border-dashed'>
-                                    <div className="form-control">
-                                        <input
-                                            type="password"
-                                            placeholder="Nova senha"
-                                            className="input input-bordered"
-                                            value={novaSenha}
-                                            onChange={(e) => setNovaSenha(e.target.value)}
-                                        />
+                                    <div className="form-control mt-4">
+                                        <label className="input input-bordered flex items-center gap-2">
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                placeholder="Nova senha"
+                                                className="w-full pr-16"
+                                                value={novaSenha}
+                                                onChange={(e) => setNovaSenha(e.target.value)}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                            >
+                                                {showPassword ? <IoEyeOff /> : <IoEye />}
+                                            </button>
+                                        </label>
                                     </div>
 
                                     <div className="form-control mt-4">
-                                        <input
-                                            type="password"
-                                            placeholder="Confirmar nova senha"
-                                            className="input input-bordered"
-                                            value={confirmarNovaSenha}
-                                            onChange={(e) => setConfirmarNovaSenha(e.target.value)}
-                                        />
+                                        <label className="input input-bordered flex items-center gap-2">
+                                            <input
+                                                type={showPassword2 ? "text" : "password"}
+                                                placeholder="Confirmar nova senha"
+                                                className="w-full pr-16"
+                                                value={confirmarNovaSenha}
+                                                onChange={(e) => setConfirmarNovaSenha(e.target.value)}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword2(!showPassword2)}
+                                            >
+                                                {showPassword2 ? <IoEyeOff /> : <IoEye />}
+                                            </button>
+                                        </label>
                                     </div>
                                 </div>
                             )}

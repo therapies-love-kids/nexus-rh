@@ -14,7 +14,7 @@ const Modal: React.FC<ModalProps> = ({ type, onClose, children }) => {
 
     return (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg p-6 min-w-96">
+            <div className="bg-base-100 rounded-lg p-6 min-w-96">
                 <div className={`text-lg font-bold
                     ${type === 'success' ? 'text-success' : type === 'error' ? 'text-error' : 'text-primary'}
                     `}>

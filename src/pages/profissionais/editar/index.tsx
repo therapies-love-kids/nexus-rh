@@ -1,7 +1,7 @@
 import { useState, useEffect, SetStateAction } from 'react';
 import { Breadcrumbs, Modal } from "@/components";
 import { Link, useParams } from 'react-router-dom';
-import { IoArrowBack, IoCalendar, IoKey, IoPerson, IoClose } from 'react-icons/io5';
+import { IoArrowBack, IoCalendar, IoKey, IoPerson, IoClose, IoEye, IoEyeOff } from 'react-icons/io5';
 import DatePicker from 'react-date-picker';
 import MaskedInput from 'react-text-mask';
 
@@ -50,9 +50,14 @@ export default function AtualizarProfissional() {
     const [funcaoNomes, setFuncaoNomes] = useState<string[]>([]);
     const [funcoesPermissoes, setFuncoesPermissoes] = useState<{ [key: number]: { perm_editar: boolean; perm_criar: boolean; perm_inativar: boolean; perm_excluir: boolean } }>({});
 
-
     const [macs, setMacs] = useState<string[]>([]);
     const [newMac, setNewMac] = useState<string>('');
+
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+
+    const isButtonDisabledStep1 = (!nome || !senha || !dataIngressoEmpresa || !cpf);
+    const isButtonDisabledStep2 = (!selectedUnidades.length || !selectedDepartamentos.length || !selectedFuncoes.length);
+    const isButtonDisabledStep3 = (!selectedEmpresas.length);
 
     // Função para buscar os MACs do profissional
     const fetchMacs = async () => {
@@ -634,12 +639,18 @@ export default function AtualizarProfissional() {
                                     <label className="input input-bordered flex items-center gap-2">
                                         <IoKey />
                                         <input
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             placeholder="Senha do profissional"
                                             className="flex-grow"
                                             value={senha}
                                             onChange={(e) => setSenha(e.target.value)}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <IoEyeOff /> : <IoEye />}
+                                        </button>
                                     </label>
                                 </div>
 
@@ -917,29 +928,39 @@ export default function AtualizarProfissional() {
                         )}
 
                         {/* Navegação entre os passos */}
-                        <div className="join join-vertical lg:join-horizontal">
+                        <div className="mt-10 flex justify-between">
                             <button
-                                className="btn join-item"
+                                className="btn"
                                 onClick={handlePrevious}
                                 disabled={step === 1}
                             >
                                 Voltar
                             </button>
-                            {step < totalSteps ? (
-                                <button
-                                    className="btn join-item"
-                                    onClick={handleNext}
-                                >
-                                    Próximo
-                                </button>
-                            ) : (
-                                <button
-                                    className="btn btn-success join-item"
-                                    onClick={handleSubmit}
-                                >
-                                    Atualizar Profissional
-                                </button>
-                            )}
+                            {
+                                step === 1 ? (
+                                    <div className="tooltip tooltip-bottom" data-tip={isButtonDisabledStep1 ? "Preencha todos os campos obrigatórios" : null}>
+                                        <button className="btn" onClick={handleNext} disabled={isButtonDisabledStep1}>
+                                            Próximo
+                                        </button>
+                                    </div>
+                                ) : step === 2 ? (
+                                    <div className="tooltip tooltip-bottom" data-tip={isButtonDisabledStep2 ? "Preencha todos os campos obrigatórios" : null}>
+                                        <button className="btn" onClick={handleNext} disabled={isButtonDisabledStep2}>
+                                            Próximo
+                                        </button>
+                                    </div>
+                                ) : step === 3 ? (
+                                    <div className="tooltip tooltip-bottom" data-tip={isButtonDisabledStep3 ? "Preencha todos os campos obrigatórios" : null}>
+                                        <button className="btn" onClick={handleNext} disabled={isButtonDisabledStep3}>
+                                            Próximo
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button className="btn btn-success" onClick={handleSubmit} >
+                                        Atualizar Profissional
+                                    </button>
+                                )
+                            }
                         </div>
                     </div>
                 </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Modal } from "@/components";
 import { DownloadImageFtp } from '@/utils/hookFTP';
 import { Link } from 'react-router-dom';
+import { IoEyeOff, IoEye } from 'react-icons/io5';
 
 export default function MeuPerfil() {
     const storedProfissionalId = localStorage.getItem('profissional_id');
@@ -14,6 +15,8 @@ export default function MeuPerfil() {
     const [isLoading, setIsLoading] = useState<boolean>(true); // Adiciona o estado de carregamento
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [modalMessage, setModalMessage] = useState<string | null>(null);
+    
+    const [showPassword, setShowPassword] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchProfissionalData = async () => {
@@ -71,25 +74,34 @@ export default function MeuPerfil() {
                                         <label className="ml-5 mb-2">
                                             <span className="label-text">Nome do profissional</span>
                                         </label>
-                                        <div className="border p-5 rounded-2xl">{nome}</div>
+                                        <div className="border p-3 rounded-2xl">{nome}</div>
                                     </div>
                                     <div className="form-control mt-4">
                                         <label className="ml-5 mb-2">
                                             <span className="label-text">CPF do profissional</span>
                                         </label>
-                                        <div className="border p-5 rounded-2xl">{cpf}</div>
+                                        <div className="border p-3 rounded-2xl">{cpf}</div>
                                     </div>
                                     <div className="form-control mt-4">
                                         <label className="ml-5 mb-2">
                                             <span className="label-text">Senha</span>
                                         </label>
-                                        <div className="border p-5 rounded-2xl">{senha}</div>
+                                        <div className="border p-3 rounded-2xl flex items-center justify-between">
+                                            {showPassword ? <span>{senha}</span> : <span>{'*'.repeat(senha.length)}</span>}
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                            >
+                                                {showPassword ? <IoEyeOff /> : <IoEye />}
+                                            </button>
+                                        </div>
+                                        
                                     </div>
                                     <div className="form-control mt-4">
                                         <label className="ml-5 mb-2">
-                                            <span className="label-text">Data de Nascimento</span>
+                                            <span className="label-text">Data de nascimento</span>
                                         </label>
-                                        <div className="border p-5 rounded-2xl">
+                                        <div className="border p-3 rounded-2xl">
                                             {dataNascimento ? dataNascimento.toLocaleDateString('pt-BR')
                                             : 'Não definida'}
                                         </div>
