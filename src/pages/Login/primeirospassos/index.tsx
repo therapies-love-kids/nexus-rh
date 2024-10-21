@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import DatePicker from "react-date-picker";
-import { IoArrowBack, IoCalendar, IoClose } from "react-icons/io5";
+import { IoArrowBack, IoCalendar, IoClose, IoEye, IoEyeOff } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { Notification } from '@/components';
 
@@ -14,8 +14,11 @@ export default function PrimeirosPassos() {
     const [horaSaida, setHoraSaida] = useState("");
     const [dataNascimento, setDataNascimento] = useState<Date | null>(null);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error', message: string } | null>(null);
-
+    
     const { profissional_id } = useParams();
+    
+    const [mostrarSenha, setMostrarSenha] = useState(false);
+    const [mostrarSenhaResumo, setMostrarSenhaResumo] = useState(false);
 
     const isButtonDisabledStep1 = (!senha);
     const isButtonDisabledStep2 = (!dataNascimento);
@@ -70,9 +73,7 @@ export default function PrimeirosPassos() {
     
                     const ftpResponse = await window.ipcRenderer.invoke('upload-ftp', { localFilePath, remoteFileName });
     
-                    if (ftpResponse.success) {
-                        // setNotification({ type: 'success', message: 'Imagem enviada ao servidor com sucesso!' });
-                    } else {
+                    if (!ftpResponse.success) {
                         setNotification({ type: 'error', message: `Erro ao enviar a imagem: ${ftpResponse.message}` });
                     }
                 }
@@ -112,7 +113,7 @@ export default function PrimeirosPassos() {
                     <li className={`step ${step >= 1 ? "step-primary" : ""}`}>Escolha sua senha</li>
                     <li className={`step ${step >= 2 ? "step-primary" : ""}`}>Informações pessoais</li>
                     <li className={`step ${step >= 3 ? "step-primary" : ""}`}>Horário de serviço</li>
-                    <li data-content="✓" className={`step ${step === 4 ? "step-primary" : ""}`}>Fim</li>
+                    <li className={`step ${step === 4 ? "step-primary" : ""}`}>Resumo</li>
                 </ul>
 
                 <div className="card bg-base-100 shadow-xl w-full my-10">
@@ -128,14 +129,23 @@ export default function PrimeirosPassos() {
                                 <label className="label">
                                     <span className="label-text">Senha de acesso</span>
                                 </label>
-                                <input
-                                    type="password"
-                                    placeholder="Senha de acesso"
-                                    className="input input-bordered"
-                                    value={senha}
-                                    onChange={(e) => setSenha(e.target.value)}
-                                    required
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={mostrarSenha ? "text" : "password"}
+                                        placeholder="Senha de acesso"
+                                        className="input input-bordered w-full pr-12"
+                                        value={senha}
+                                        onChange={(e) => setSenha(e.target.value)}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute top-0 right-0 p-4 text-lg transition duration-300 ease-in-out"
+                                        onClick={() => setMostrarSenha(!mostrarSenha)}
+                                    >
+                                        {mostrarSenha ? <IoEyeOff /> : <IoEye />}
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -223,6 +233,13 @@ export default function PrimeirosPassos() {
                                         />
                                     </div>
                                 )}
+                                <p>
+                                    <strong>Senha: </strong>
+                                    {mostrarSenhaResumo ? senha : '***'}&nbsp;
+                                    <button onClick={() => setMostrarSenhaResumo(!mostrarSenhaResumo)}>
+                                        {mostrarSenhaResumo ? <IoEyeOff /> : <IoEye />}
+                                    </button>
+                                </p>
                                 <p><strong>Data de nascimento:</strong> {dataNascimento ? dataNascimento.toLocaleDateString() : 'N/A'}</p>
                                 <p><strong>Horário de entrada:</strong> {horaEntrada}</p>
                                 <p><strong>Horário de saída:</strong> {horaSaida}</p>
