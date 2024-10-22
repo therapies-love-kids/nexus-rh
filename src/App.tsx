@@ -26,7 +26,6 @@ import {
         FuncoesEditar,
         Social,
         SocialMeuPerfil,
-        SocialEditarMeuPerfil,
         SocialTarefas,
     } from './pages';
 import { Suspense } from 'react';
@@ -209,11 +208,6 @@ export default function App() {
                                 <Route path="/social/perfil" element={
                                     <PrivateRoute>
                                         <LayoutDashFixed><SocialMeuPerfil /></LayoutDashFixed>
-                                    </PrivateRoute>
-                                } />
-                                <Route path="/social/perfil/editar" element={
-                                    <PrivateRoute>
-                                        <LayoutDashFixed><SocialEditarMeuPerfil /></LayoutDashFixed>
                                     </PrivateRoute>
                                 } />
                             </>
