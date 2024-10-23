@@ -3,7 +3,7 @@ import { Breadcrumbs } from "@/components";
 import { Link } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
 import { Notification } from "@/components";
-import { useFuncoes, useProfissionais, useUnidades } from '@/utils/hookProfissionais';
+import { useProfissionais } from '@/hooks/hookProfissionais';
 
 interface Profissional {
     profissional_id: number;
@@ -19,12 +19,19 @@ export default function Profissionais() {
     const [recordsPerPage, setRecordsPerPage] = useState(5);
     const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
-    const profissionais = useProfissionais(undefined, 'profissionais/fotos', 'ativo');
-    const unidades = useUnidades('ativo');
-    const funcoes = useFuncoes('ativo');
+    const { profissionais, unidades, funcoes, empresas, departamentos } = useProfissionais(
+        'profissionais/fotos', // baseFolder
+        'ativo',               // status
+        undefined,       // ID do departamento (ou undefined)
+        undefined,       // ID da unidade (ou undefined)
+        undefined,       // ID da função (ou undefined)
+        undefined        // ID da empresa (ou undefined)
+    );
 
     useEffect(() => {
-        setFilteredProfissionais(profissionais);
+        const uniqueProfissionais = Array.from(new Set(profissionais.map(p => p.profissional_id)))
+            .map(id => profissionais.find(p => p.profissional_id === id));
+        setFilteredProfissionais(uniqueProfissionais);
     }, [profissionais]);
 
     const indexOfLastRecord = currentPage * recordsPerPage;
@@ -32,7 +39,7 @@ export default function Profissionais() {
     const currentRecords = filteredProfissionais.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(filteredProfissionais.length / recordsPerPage);
 
-    const handleChangeStatus = async (status: 'Demitido' | 'Ativo') => {
+    const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
         if (selectedProfissionais.length > 0) {
             try {
                 setNotification({ type: 'info', message: `Alterando status dos profissionais para ${status}...` });
@@ -49,7 +56,10 @@ export default function Profissionais() {
                 });
     
                 if (result.success) {
-                    profissionais; // Atualiza os profissionais
+                    // Atualiza os profissionais removendo os que foram inativados
+                    setFilteredProfissionais(prevProfissionais => 
+                        prevProfissionais.filter(p => !selectedProfissionais.includes(p.profissional_id))
+                    );
                     setSelectedProfissionais([]);
                     setNotification({ type: 'success', message: `Status dos profissionais alterado para ${status} com sucesso!` });
                 } else {
@@ -92,7 +102,7 @@ export default function Profissionais() {
                                             </Link>
                                         </li>
                                         <li>
-                                            <a onClick={() => handleChangeStatus('Demitido')}>
+                                            <a onClick={() => handleChangeStatus('Inativo')}>
                                                 Mover para Inativos
                                             </a>
                                         </li>
@@ -157,14 +167,14 @@ export default function Profissionais() {
                                         </td>
                                         <td>{prof.profissional_nome}</td>
                                         <td>
-                                            {unidades.map((unidade, index) => (
-                                                <div key={index}>{unidade.unidade}</div>
-                                            )) || 'Nenhuma unidade'}
+                                            {unidades[prof.profissional_id]?.map(unidade => (
+                                                <div key={unidade.unidade_id}>{unidade.unidade}</div>
+                                            ))}
                                         </td>
                                         <td>
-                                            {funcoes.map((funcao, index) => (
-                                                <div key={index}>{funcao.funcao}</div>
-                                            )) || 'Nenhuma função'}
+                                            {funcoes[prof.profissional_id]?.map(funcao => (
+                                                <div key={funcao.funcao_id}>{funcao.funcao}</div>
+                                            ))}
                                         </td>
                                         <td className="w-1">
                                             <Link to={`/profissionais/${prof.profissional_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">

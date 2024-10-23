@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { Notification } from '@/components';
-import { uploadImageFtp } from '@/utils/hookFTP';
+import { uploadImageFtp } from '@/hooks/hookFTP';
 
 export default function PrimeirosPassos() {
     const [step, setStep] = useState(1);

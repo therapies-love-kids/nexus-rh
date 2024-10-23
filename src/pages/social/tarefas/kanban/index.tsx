@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useDepartamentos, useProfissionalImage, useProfissionais } from "@/utils/hookProfissionais";
-import { useTarefas, useProjetos, useColunas } from "@/utils/hookTarefas"
-import Filtros from "@/components/FiltrosTarefas";
-import Tarefa from "@/components/Tarefa";
-import ModalNovaTarefa from "@/components/ModalNovaTarefa";
-import ModalNovaColuna from "@/components/ModalNovaColuna";
+import { useDepartamentos, useProfissionais } from "@/hooks/hookProfissionais";
+import { useTarefas, useProjetos, useColunas } from "@/hooks/hookTarefas"
+import Filtros from "@/components/tarefas/FiltrosTarefas";
+import Tarefa from "@/components/tarefas/Tarefa";
+import ModalNovaTarefa from "@/components/notification/modal/ModalNovaTarefa";
+import ModalNovaColuna from "@/components/notification/modal/ModalNovaColuna";
 
 export default function SocialTarefasKanban() {
     const storedDepartamentoId = localStorage.getItem('departamento_id');
@@ -23,7 +23,6 @@ export default function SocialTarefasKanban() {
     const departamentos = useDepartamentos(selectedDepartamento, async () => Promise.resolve());
     const colunas = useColunas(selectedProjeto); // Hook para buscar colunas
     const tarefas = useTarefas(selectedDepartamento);
-    const profissionalImageUrl = useProfissionalImage(selectedProfissional, 'imagens/profissionais');
     const projetos = useProjetos(selectedDepartamento);
 
     return (

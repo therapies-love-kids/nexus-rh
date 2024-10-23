@@ -8,7 +8,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     const profissionalId = localStorage.getItem('profissional_id');
 
     if (!profissionalId) {
-        //return <Navigate to="/" />;
+        return <Navigate to="/" />;
     }
 
     return children;

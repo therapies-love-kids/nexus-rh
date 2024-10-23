@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Notification } from "@/components";
-import { DownloadImageFtp, uploadImageFtp } from '@/utils/hookFTP';
+import { DownloadImageFtp, uploadImageFtp } from '@/hooks/hookFTP';
 import { IoCamera, IoEye, IoEyeOff } from 'react-icons/io5';
 import MaskedInput from 'react-text-mask';
 

@@ -1,141 +1,78 @@
 import { useState, useEffect } from 'react';
 import { Breadcrumbs } from "@/components";
-import { DownloadImageFtp } from '@/utils/hookFTP';
 import { Link } from 'react-router-dom';
 import { IoArrowBack, IoArrowForward, IoPencil } from 'react-icons/io5';
-import { Notification }  from '@/components'; // Importa o componente de notificação
+import { Notification } from "@/components";
+import { useProfissionais } from '@/hooks/hookProfissionais';
 
 interface Profissional {
     profissional_id: number;
     profissional_foto: string;
     profissional_nome: string;
+    imageUrl?: string;  // Inclui o campo imageUrl retornado pelo hook
 }
 
-interface Unidade {
-    unidade: string;
-}
-
-export default function ProfissionaisInativos() {
-    const [, setProfissionais] = useState<Profissional[]>([]);
+export default function Profissionais() {
     const [selectedProfissionais, setSelectedProfissionais] = useState<number[]>([]);
     const [filteredProfissionais, setFilteredProfissionais] = useState<Profissional[]>([]);
-    const [unidadesMap, setUnidadesMap] = useState<Record<number, Unidade[]>>({});
-    const [funcoesMap, setFuncoesMap] = useState<Record<string, string>>({});
-    const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
-    const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null); // Estado da notificação
+    const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
 
-
-// Tipagem para a função map
-    const fetchProfissionais = async () => {
-        try {
-            const result = await window.ipcRenderer.invoke(
-                'query-database-postgres',
-                'SELECT profissional_id, profissional_foto, profissional_nome FROM profissionais WHERE profissional_status1 = \'demitido\''
-            );
-            setProfissionais((result as Profissional[]).sort((a, b) => a.profissional_id - b.profissional_id));
-            setFilteredProfissionais(result as Profissional[]);
-
-            const imagePromises = (result as Profissional[]).map(async (profissional) => {
-                // Passe a pasta base e o caminho da imagem
-                const imageUrl = await DownloadImageFtp('profissionais/fotos', profissional.profissional_foto);
-                return { profissional_id: profissional.profissional_id, imageUrl };
-            });
-
-            const imageResults = await Promise.all(imagePromises);
-            const imageMap: Record<number, string> = {};
-            imageResults.forEach(result => {
-                imageMap[result.profissional_id] = result.imageUrl;
-            });
-
-            setImageUrls(imageMap);
-        } catch (error) {
-            console.error('Erro ao buscar profissionais inativos:', error);
-        }
-    };
-
-    const fetchUnidades = async () => {
-        try {
-            // Tabela de associação de profissionais e unidades
-            const result = await window.ipcRenderer.invoke(
-                'query-database-postgres',
-                `SELECT pu.profissional_id, u.unidade 
-                    FROM profissionais_unidade_associacao pu 
-                    JOIN profissionais_unidade u ON pu.unidade_id = u.unidade_id`
-            );
-            const unidadesMapping: Record<number, Unidade[]> = {};
-            result.forEach((item: { profissional_id: number, unidade: string }) => {
-                if (!unidadesMapping[item.profissional_id]) {
-                    unidadesMapping[item.profissional_id] = [];
-                }
-                unidadesMapping[item.profissional_id].push({ unidade: item.unidade });
-            });
-            setUnidadesMap(unidadesMapping);
-        } catch (error) {
-            console.error('Erro ao buscar unidades:', error);
-        }
-    };
-
-    const fetchFuncoes = async () => {
-        try {
-            const result = await window.ipcRenderer.invoke(
-                'query-database-postgres',
-                'SELECT funcao_id, funcao FROM profissionais_funcao'
-            );
-            const funcoesMapping: Record<string, string> = {};
-            result.forEach((item: { funcao_id: string, funcao: string }) => {
-                funcoesMapping[item.funcao_id] = item.funcao;
-            });
-            setFuncoesMap(funcoesMapping);
-        } catch (error) {
-            console.error('Erro ao buscar funções:', error);
-        }
-    };
+    const { profissionais, unidades, funcoes, empresas, departamentos } = useProfissionais(
+        'profissionais/fotos', // baseFolder
+        'inativo',               // status
+        undefined,       // ID do departamento (ou undefined)
+        undefined,       // ID da unidade (ou undefined)
+        undefined,       // ID da função (ou undefined)
+        undefined        // ID da empresa (ou undefined)
+    );
 
     useEffect(() => {
-        fetchProfissionais();
-        fetchUnidades();
-        fetchFuncoes();
-    }, []);
-
+        const uniqueProfissionais = Array.from(new Set(profissionais.map(p => p.profissional_id)))
+            .map(id => profissionais.find(p => p.profissional_id === id));
+        setFilteredProfissionais(uniqueProfissionais);
+    }, [profissionais]);
+    
     const indexOfLastRecord = currentPage * recordsPerPage;
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
     const currentRecords = filteredProfissionais.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(filteredProfissionais.length / recordsPerPage);
 
-    const handleChangeStatus = async (status: 'Demitido' | 'Ativo') => {
+    const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
         if (selectedProfissionais.length > 0) {
             try {
                 setNotification({ type: 'info', message: `Alterando status dos profissionais para ${status}...` });
     
                 const updates = {
-                    profissional_status1: status.toLowerCase(), // Definindo o status
+                    profissional_status1: status.toLowerCase(),
                 };
     
                 const result = await window.ipcRenderer.invoke('update-records-postgres', {
                     table: 'profissionais',
                     updates,
-                    ids: selectedProfissionais, // IDs dos profissionais selecionados
-                    idColumn: 'profissional_id', // Coluna de identificação
+                    ids: selectedProfissionais,
+                    idColumn: 'profissional_id',
                 });
     
                 if (result.success) {
-                    await fetchProfissionais();
+                    // Atualiza os profissionais removendo os que foram inativados
+                    setFilteredProfissionais(prevProfissionais => 
+                        prevProfissionais.filter(p => !selectedProfissionais.includes(p.profissional_id))
+                    );
                     setSelectedProfissionais([]);
                     setNotification({ type: 'success', message: `Status dos profissionais alterado para ${status} com sucesso!` });
                 } else {
                     setNotification({ type: 'error', message: result.message || 'Erro ao alterar status dos profissionais.' });
                 }
             } catch (error) {
-                console.error('Erro ao alterar status dos profissionais:', error);
                 setNotification({ type: 'error', message: 'Erro ao alterar status dos profissionais.' });
             }
         } else {
             setNotification({ type: 'error', message: 'Nenhum profissional selecionado.' });
         }
     };
-
+    
     const handleCheckboxChange = (profissional_id: number): void => {
         setSelectedProfissionais(prevSelected =>
             prevSelected.includes(profissional_id)
@@ -171,19 +108,16 @@ export default function ProfissionaisInativos() {
                                         </li>
                                     </ul>
                                 </div>
-                                <select 
-                                    className="select select-bordered max-w-xs" 
-                                    value={recordsPerPage} 
-                                    onChange={(e) => {
-                                        setRecordsPerPage(parseInt(e.target.value));
-                                        setCurrentPage(1); // Resetar para a primeira página ao mudar o intervalo
-                                    }}
-                                >
+
+                                <select className="select select-bordered max-w-xs" onChange={(e) => setRecordsPerPage(parseInt(e.target.value))}>
                                     <option value="5">5</option>
                                     <option value="10">10</option>
                                     <option value="25">25</option>
                                     <option value="50">50</option>
                                 </select>
+                                <Link to={'/profissionais/novo'}>
+                                    <button className="btn btn-primary">Adicionar</button>
+                                </Link>
                             </div>
                         </div>
 
@@ -202,15 +136,15 @@ export default function ProfissionaisInativos() {
                                                         setSelectedProfissionais([]);
                                                     }
                                                 }}
-                                                checked={selectedProfissionais.length === currentRecords.length && selectedProfissionais.length > 0}
+                                                checked={selectedProfissionais.length === currentRecords.length}
                                             />
                                         </label>
                                     </th>
                                     <th>ID</th>
                                     <th>Foto</th>
                                     <th>Nome</th>
-                                    {/* <th>Nível de Acesso</th> */}
-                                    <th>Unidade de Atuação</th>
+                                    <th>Unidades</th>
+                                    <th>Funções</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -229,20 +163,18 @@ export default function ProfissionaisInativos() {
                                         </th>
                                         <td>{prof.profissional_id}</td>
                                         <td>
-                                            <div className="avatar">
-                                                <div className="mask mask-squircle w-12 h-12">
-                                                    <img
-                                                        src={imageUrls[prof.profissional_id] || 'default.png'}
-                                                        alt={`Foto de ${prof.profissional_nome}`}
-                                                    />
-                                                </div>
-                                            </div>
+                                            <img src={prof.imageUrl} alt={prof.profissional_nome} className="w-16 h-16 object-cover rounded-full" />
                                         </td>
                                         <td>{prof.profissional_nome}</td>
                                         <td>
-                                            {unidadesMap[prof.profissional_id]?.map((unidade, index) => (
-                                                <div key={index}>{unidade.unidade}</div>
-                                            )) || 'Nenhuma unidade'}
+                                            {unidades[prof.profissional_id]?.map(unidade => (
+                                                <div key={unidade.unidade_id}>{unidade.unidade}</div>
+                                            ))}
+                                        </td>
+                                        <td>
+                                            {funcoes[prof.profissional_id]?.map(funcao => (
+                                                <div key={funcao.funcao_id}>{funcao.funcao}</div>
+                                            ))}
                                         </td>
                                         <td className="w-1">
                                             <Link to={`/profissionais/${prof.profissional_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
@@ -254,7 +186,7 @@ export default function ProfissionaisInativos() {
                             </tbody>
                         </table>
 
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center mt-4">
                             <div className="flex items-center gap-5">
                                 <button
                                     className="btn"
