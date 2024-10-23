@@ -83,7 +83,7 @@ export default function AtualizarProfissional() {
                 'query-database-postgres',
                 `DELETE FROM profissionais_mac WHERE profissional_id = $1 AND mac = $2`,
                 [profissional_id, macToDelete]
-              );
+            );
             
             setMacs(macs.filter(mac => mac !== macToDelete)); // Atualizar a lista de MACs
         } catch (error) {

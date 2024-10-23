@@ -1,12 +1,11 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout, { LayoutDash, LayoutDashFixed } from './Layout';
+import { Layout, LayoutDash, LayoutDashFixed } from './Layout';
 import {
         Login,
         Inicio,
         Profissionais,
         ProfissionaisNovo,
         PrimeirosPassos,
-        ProfissionaisInativos,
         ProfissionaisEditar,
         Unidades,
         UnidadesNova,
@@ -63,12 +62,6 @@ export default function App() {
                             <Route path="/profissionais" element={
                                 <PrivateRoute>
                                     <LayoutDash><Profissionais /></LayoutDash>
-                                </PrivateRoute>
-                            } />
-
-                            <Route path="/profissionais/inativos" element={
-                                <PrivateRoute>
-                                    <LayoutDash><ProfissionaisInativos /></LayoutDash>
                                 </PrivateRoute>
                             } />
 

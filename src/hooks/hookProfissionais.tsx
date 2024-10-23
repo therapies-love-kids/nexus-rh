@@ -108,7 +108,7 @@ export function useUnidades(profissionalId?: number, status?: string) {
 export function useProfissionais(
     baseFolder: string,
     status: string = 'ativo',
-    departamentoId: number | undefined,
+    departamentoId?: number | undefined,
     unidadeID?: number | undefined,
     funcaoID?: number | undefined,
     empresaID?: number | undefined,
@@ -122,7 +122,6 @@ export function useProfissionais(
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Monta a cláusula WHERE dinamicamente com base nos parâmetros fornecidos
                 const whereClauses: string[] = [`p.profissional_status1 = $1`];
                 const params: any[] = [status];
 

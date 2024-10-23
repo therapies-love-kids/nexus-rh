@@ -1,30 +1,27 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import Scrollbar from 'smooth-scrollbar';
 import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
-import { IoClose, IoDownloadOutline, IoArrowBack, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoRefresh, IoSettingsOutline, IoSunny, IoTrophy, IoStatsChart, IoSettings } from "react-icons/io5";
+import { IoClose, IoDownloadOutline, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoSettingsOutline, IoSunny, IoTrophy, IoStatsChart, IoSettings } from "react-icons/io5";
 import { Link } from 'react-router-dom';
 import { DownloadImageFtp } from './hooks/hookFTP';
-import { Update } from './components';
+import { Update, Notification, Breadcrumbs } from './components';
 import config from '../package.json';
 
-// Register the overscroll plugin
 Scrollbar.use(OverscrollPlugin);
 
 interface LayoutProps {
     children: ReactNode;
 }
 
-// Função para obter o tema do local storage
 const getStoredTheme = () => {
     return localStorage.getItem('theme') || 'OrbyLight';
 };
 
-// Função para definir o tema no local storage
 const setStoredTheme = (theme: string) => {
     localStorage.setItem('theme', theme);
 };
 
-export default function Layout({ children }: LayoutProps) {
+export function Layout({ children }: LayoutProps) {
     const scrollbarRef = useRef(null);
     const [theme, setTheme] = useState(getStoredTheme());
 
@@ -270,6 +267,37 @@ export function LayoutDash({ children }: LayoutProps) {
                 </div>
             </div>
         </div>
+    );
+}
+
+interface LayoutDashTableProps {
+    children: ReactNode;
+    notification: { type: 'info' | 'success' | 'error'; message: string } | null;
+    onCloseNotification: () => void;
+}
+
+export function LayoutDashTable({ children, notification, onCloseNotification }: LayoutDashTableProps) {
+    return (
+        <div className='bg-base-200 min-h-screen'>
+            <Breadcrumbs />
+
+            <div className="mt-10 px-24 rounded">
+                <div className='card bg-base-100 shadow-xl w-full mb-10'>
+                    <div className="card-body">
+                        {children}
+                    </div>
+                </div>
+            </div>
+
+            {notification && (
+                <Notification 
+                    type={notification.type} 
+                    message={notification.message} 
+                    onClose={onCloseNotification}
+                />
+            )}
+        </div>
+
     );
 }
 

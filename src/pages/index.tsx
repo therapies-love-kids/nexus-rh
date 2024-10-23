@@ -4,7 +4,6 @@ export { default as PrimeirosPassos} from './Login/primeirospassos'
 export { default as Inicio } from './Inicio';
 
 export { default as Profissionais} from './profissionais'
-export { default as ProfissionaisInativos} from './profissionais/inativos'
 export { default as ProfissionaisNovo} from './profissionais/novo'
 export { default as ProfissionaisEditar} from './profissionais/editar'
 
