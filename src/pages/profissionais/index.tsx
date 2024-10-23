@@ -8,7 +8,7 @@ interface Profissional {
     profissional_id: number;
     profissional_foto: string;
     profissional_nome: string;
-    imageUrl?: string;  // Inclui o campo imageUrl retornado pelo hook
+    imageUrl?: string;
 }
 
 export default function Profissionais() {
@@ -85,15 +85,12 @@ export default function Profissionais() {
         <LayoutDashTable
             notification={notification}
             onCloseNotification={() => setNotification(null)}
+            cardtitle={viewInactive ? 'Profissionais Inativos' : 'Profissionais'}
         >
 
             <div className='flex justify-between'>
                 <h2 className="card-title">
-                {viewInactive ? ( 
-                    <>Profissionais Inativos</>
-                ) : (
-                    <>Profissionais</>
-                )}
+                
                 </h2>
                 <div className='flex gap-2 justify-between'>
                     <div className="dropdown dropdown-end">

@@ -1,16 +1,19 @@
-import React from 'react';
+import { useState } from 'react';
 import { IoKey, IoEyeOff, IoEye } from "react-icons/io5";
 
 interface PswInputProps {
     label: string;
     value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    showPassword: boolean;
-    togglePassword: () => void;
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void; // Adicionando onChange como prop
 }
 
 export default function PasswordInput(props: PswInputProps) {
-    const { label, value, onChange, showPassword, togglePassword } = props;
+    const { label, value, onChange } = props;
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(prev => !prev);
+    };
 
     return (
         <div className="form-control mt-4">
@@ -24,9 +27,9 @@ export default function PasswordInput(props: PswInputProps) {
                     placeholder={label}
                     className="flex-grow"
                     value={value}
-                    onChange={onChange}
+                    onChange={onChange} // Chamando a função onChange passada como prop
                 />
-                <button type="button" onClick={togglePassword}>
+                <button type="button" onClick={togglePasswordVisibility}>
                     {showPassword ? <IoEyeOff /> : <IoEye />}
                 </button>
             </label>

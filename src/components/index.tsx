@@ -5,6 +5,7 @@ export { default as Modal} from './notification/modal/modal';
 export { default as PrivateRoute } from './PrivateRoute'
 
 export { default as Table} from './Table'
+export { default as Steps } from './steps'
 
 export { default as PasswordInput} from './inputs/PasswordInput'
 export { default as DateInput} from './inputs/DateInput'

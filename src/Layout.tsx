@@ -4,7 +4,7 @@ import OverscrollPlugin from 'smooth-scrollbar/plugins/overscroll';
 import { IoClose, IoDownloadOutline, IoCalendar, IoChatbox, IoEnter, IoExit, IoHome, IoMenu, IoMoon, IoNotifications, IoPerson, IoSettingsOutline, IoSunny, IoTrophy, IoStatsChart, IoSettings } from "react-icons/io5";
 import { Link } from 'react-router-dom';
 import { DownloadImageFtp } from './hooks/hookFTP';
-import { Update, Notification, Breadcrumbs } from './components';
+import { Update, Notification, Breadcrumbs, Modal } from './components';
 import config from '../package.json';
 
 Scrollbar.use(OverscrollPlugin);
@@ -272,11 +272,19 @@ export function LayoutDash({ children }: LayoutProps) {
 
 interface LayoutDashTableProps {
     children: ReactNode;
-    notification: { type: 'info' | 'success' | 'error'; message: string } | null;
-    onCloseNotification: () => void;
+    notification?: { type: 'info' | 'success' | 'error'; message: string } | null;
+    onCloseNotification?: () => void | null; // Esta linha deve ser assim
+    modal?: { type: 'info' | 'success' | 'error'; message: string; onClose: () => void } | null;
+    cardtitle?: string
 }
 
-export function LayoutDashTable({ children, notification, onCloseNotification }: LayoutDashTableProps) {
+export function LayoutDashTable({
+    children,
+    notification,
+    onCloseNotification,
+    modal,
+    cardtitle,
+}: LayoutDashTableProps) {
     return (
         <div className='bg-base-200 min-h-screen'>
             <Breadcrumbs />
@@ -284,6 +292,13 @@ export function LayoutDashTable({ children, notification, onCloseNotification }:
             <div className="mt-10 px-24 rounded">
                 <div className='card bg-base-100 shadow-xl w-full mb-10'>
                     <div className="card-body">
+
+                        <div className=' flex flex-row items-center gap-2'>
+                            <p className="card-title m-0 p-0">
+                                {cardtitle}
+                            </p>
+                        </div>
+
                         {children}
                     </div>
                 </div>
@@ -293,11 +308,21 @@ export function LayoutDashTable({ children, notification, onCloseNotification }:
                 <Notification 
                     type={notification.type} 
                     message={notification.message} 
-                    onClose={onCloseNotification}
+                    onClose={onCloseNotification || (() => {})} // Fallback para uma função vazia se `onCloseNotification` for null
                 />
             )}
-        </div>
 
+            {/* Renderiza o modal se for fornecido */}
+            {modal && (
+                <Modal 
+                    type={modal.type} 
+                    message={modal.message} 
+                    onClose={modal.onClose}
+                >
+                    <p>{modal.message}</p>
+                </Modal>
+            )}
+        </div>
     );
 }
 
