@@ -1,5 +1,5 @@
 import DatePicker from 'react-date-picker';
-import { IoCalendar, IoClose } from 'react-icons/io5';
+import { IoCalendar } from 'react-icons/io5';
 
 interface DateInputProps {
     label: string;
@@ -22,8 +22,8 @@ export default function DateInput(props: DateInputProps) {
                     value={value}
                     format="dd/MM/y"
                     className="w-full custom-datepicker"
-                    calendarIcon={<IoCalendar />}
-                    clearIcon={<IoClose />}
+                    calendarIcon={null}
+                    clearIcon={null}
                     dayPlaceholder="dd"
                     monthPlaceholder="mm"
                     yearPlaceholder="aaaa"

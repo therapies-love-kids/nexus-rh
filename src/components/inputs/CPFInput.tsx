@@ -1,4 +1,5 @@
 import React from 'react';
+import { IoIdCard } from 'react-icons/io5';
 import MaskedInput from 'react-text-mask';
 
 interface CPFInputProps {
@@ -14,9 +15,10 @@ const CPFInput: React.FC<CPFInputProps> = ({ label, value, onChange }) => {
                 <span className="label-text">{label}</span>
             </label>
             <label className="input input-bordered flex items-center gap-2">
+                <IoIdCard />
                 <MaskedInput
                     type="text"
-                    placeholder="CPF (000.000.000-00)"
+                    placeholder="000.000.000-00"
                     className="flex-grow"
                     value={value}
                     onChange={onChange}

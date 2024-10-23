@@ -125,7 +125,7 @@ export default function NovoProfissional() {
 
                         {step === 2 && (
                             <div>
-                                <h2 className="text-lg font-semibold mb-4">Selecione as Unidades, Departamentos e Funções</h2>
+                                <h2 className="text-lg font-semibold mb-4">Selecione as Categorias</h2>
                                 
                                 <SelectWithBadges
                                     label="Unidades"

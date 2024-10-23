@@ -1,9 +1,7 @@
 import { useState, useEffect, SetStateAction } from 'react';
-import { Breadcrumbs, Modal } from "@/components";
+import { Breadcrumbs, CPFInput, DateInput, Modal, PasswordInput, TextInput } from "@/components";
 import { Link, useParams } from 'react-router-dom';
-import { IoArrowBack, IoCalendar, IoKey, IoPerson, IoClose, IoEye, IoEyeOff } from 'react-icons/io5';
-import DatePicker from 'react-date-picker';
-import MaskedInput from 'react-text-mask';
+import { IoArrowBack, IoPerson } from 'react-icons/io5';
 
 interface Unidade {
     unidade_id: number;
@@ -600,82 +598,39 @@ export default function AtualizarProfissional() {
                         {step === 1 && (
                             <div>
                                 <h2 className='card-title mt-5'>Informações Gerais</h2>
-                                <div className="form-control mt-4">
-                                    <label className="label">
-                                        <span className="label-text">Nome do profissional</span>
-                                    </label>
-                                    <label className="input input-bordered flex items-center gap-2">
-                                        <IoPerson />
-                                        <input
-                                            type="text"
-                                            placeholder="Nome do profissional"
-                                            className="flex-grow"
-                                            value={nome}
-                                            onChange={(e) => setNome(e.target.value)}
-                                        />
-                                    </label>
-                                </div>
 
-                                <div className="form-control mt-4">
-                                    <label className="label">
-                                        <span className="label-text">CPF do profissional</span>
-                                    </label>
-                                    <MaskedInput
-                                        type="text"
-                                        placeholder="000.000.000-00"
-                                        className="input input-bordered"
-                                        value={cpf}
-                                        onChange={(e: { target: { value: SetStateAction<string>; }; }) => setCPF(e.target.value)}
-                                        mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]}
-                                        guide={false}
-                                    />
-                                </div>
-                                
-                                <div className="form-control mt-4">
-                                    <label className="label">
-                                        <span className="label-text">Senha provisória</span>
-                                    </label>
-                                    <label className="input input-bordered flex items-center gap-2">
-                                        <IoKey />
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            placeholder="Senha do profissional"
-                                            className="flex-grow"
-                                            value={senha}
-                                            onChange={(e) => setSenha(e.target.value)}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                        >
-                                            {showPassword ? <IoEyeOff /> : <IoEye />}
-                                        </button>
-                                    </label>
-                                </div>
+                                <TextInput
+                                    label="Nome do profissional"
+                                    value={nome}
+                                    onChange={(e: { target: { value: SetStateAction<string>; }; }) => setNome(e.target.value)}
+                                    type="text"
+                                    icon={<IoPerson />}
+                                />
 
-                                <div className="form-control mt-4">
-                                    <label className="label">
-                                        <span className="label-text">Data de Ingresso na Empresa</span>
-                                    </label>
-                                    <label className="input input-bordered flex items-center gap-2">
-                                        <IoCalendar />
-                                        <DatePicker
-                                            onChange={(value) => {
-                                                if (value && !Array.isArray(value)) {
-                                                    setDataIngressoEmpresa(value as Date);
-                                                }
-                                            }}
-                                            value={dataIngressoEmpresa}
-                                            format="dd/MM/yyyy"
-                                            className="w-full custom-datepicker"
-                                            calendarIcon={<IoCalendar />}
-                                            clearIcon={<IoClose />}
-                                            dayPlaceholder="dd"
-                                            monthPlaceholder="mm"
-                                            yearPlaceholder="aaaa"
-                                        />
-                                    </label>
-                                </div>
+                                <PasswordInput
+                                    label="Senha"
+                                    value={senha}
+                                    onChange={(e) => setSenha(e.target.value)}
+                                    showPassword={showPassword}
+                                    togglePassword={() => setShowPassword(!showPassword)}
+                                />
+
+                                <DateInput
+                                    label="Data de Ingresso na Empresa"
+                                    value={dataIngressoEmpresa}
+                                    onChange={(value: SetStateAction<Date | null>) => {
+                                        if (value && !Array.isArray(value)) {
+                                            setDataIngressoEmpresa(value);
+                                        }
+                                    }}
+                                />
+
+                                <CPFInput
+                                    label="CPF"
+                                    value={cpf}
+                                    onChange={(e) => setCPF(e.target.value)}
+                                />
+
                             </div>
                         )}
 
