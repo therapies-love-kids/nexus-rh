@@ -178,16 +178,11 @@ export default function MeuPerfil() {
                                 className={`avatar aspect-square mask-square object-cover rounded-full w-full`}
                             />
                             <div
-                                className='absolute tooltip w-72 h-72 rounded-full flex justify-center items-center cursor-pointer'
+                                className='absolute tooltip w-72 h-72 rounded-full flex justify-center items-center cursor-pointer transition-opacity duration-300 opacity-0 hover:opacity-100 backdrop-brightness-50 backdrop-opacity-100'
                                 onClick={() => document.getElementById('fotoInput')?.click()}
-                                onMouseOver={(e) => e.currentTarget.style.setProperty('--hover-opacity', '1')}
-                                onMouseOut={(e) => e.currentTarget.style.setProperty('--hover-opacity', '0')}
-                                style={{ ['--hover-opacity']: '0' } as any}
                             >
                                 <IoCamera
-                                    className='opacity-0 transition duration-300 text-white'
-                                    style={{ opacity: 'var(--hover-opacity)' }}
-                                    size={48}
+                                    className='text-white text-5xl'
                                 />
                             </div>
                             <input
