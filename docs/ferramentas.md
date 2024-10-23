@@ -60,6 +60,10 @@ Ambiente de execução que permite executar códigos JavaScript fora de um naveg
 
 Gerenciador de pacotes para JavaScript utilizado pelo Node.js.
 
+### PostgreSQL
+
+Sistema de gerenciamento de bancos de dados.
+
 ### Vite
 
 ```vite```
