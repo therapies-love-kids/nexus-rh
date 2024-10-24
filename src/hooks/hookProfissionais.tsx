@@ -116,8 +116,8 @@ export function useProfissionais(
     const [profissionais, setProfissionais] = useState<any[]>([]);
     const [unidades, setUnidades] = useState<{ [key: number]: any[] }>({});
     const [funcoes, setFuncoes] = useState<{ [key: number]: any[] }>({});
-    const [empresas, setEmpresas] = useState<any[]>([]);
-    const [departamentos, setDepartamentos] = useState<any[]>([]);
+    const [empresas, setEmpresas] = useState<{ [key: number]: any[] }>({});
+    const [departamentos, setDepartamentos] = useState<{ [key: number]: any[] }>({});
 
     useEffect(() => {
         const fetchData = async () => {
@@ -155,47 +155,55 @@ export function useProfissionais(
                     const imageUrl = await DownloadImageFtp(baseFolder, profissional.profissional_foto);
                     return { ...profissional, imageUrl };
                 }));
-
                 setProfissionais(profissionaisWithImages);
 
-                // Carregar unidades e funções
-                const newUnidades: { [key: number]: any[] } = {};
                 const newFuncoes: { [key: number]: any[] } = {};
-
                 for (const prof of profissionaisWithImages) {
-                    // Unidades
                     const queryUnidades = `
                         SELECT u.unidade_id, u.unidade 
                         FROM profissionais_unidade u
                         JOIN profissionais_unidade_associacao pua ON u.unidade_id = pua.unidade_id
                         WHERE pua.profissional_id = $1`;
-                        
                     const unidadesResult = await window.ipcRenderer.invoke('query-database-postgres', queryUnidades, [prof.profissional_id]);
-                    newUnidades[prof.profissional_id] = unidadesResult;
-
-                    // Funções
-                    const queryFuncoes = `
-                        SELECT f.funcao_id, f.funcao 
-                        FROM profissionais_funcao f
-                        JOIN profissionais_funcao_associacao pfa ON f.funcao_id = pfa.funcao_id
-                        WHERE pfa.profissional_id = $1`;
-                    const funcoesResult = await window.ipcRenderer.invoke('query-database-postgres', queryFuncoes, [prof.profissional_id]);
-                    newFuncoes[prof.profissional_id] = funcoesResult;
+                    newFuncoes[prof.profissional_id] = unidadesResult;
                 }
-
-                setUnidades(newUnidades);
                 setFuncoes(newFuncoes);
 
-                // Carregar empresas
-                const queryEmpresas = `SELECT empresa_id, empresa FROM profissionais_empresa WHERE empresa_status1 = $1`;
-                const empresasResult = await window.ipcRenderer.invoke('query-database-postgres', queryEmpresas, [status]);
-                setEmpresas(empresasResult);
+                const newUnidades: { [key: number]: any[] } = {};
+                for (const prof of profissionaisWithImages) {
+                    const queryUnidades = `
+                        SELECT u.unidade_id, u.unidade 
+                        FROM profissionais_unidade u
+                        JOIN profissionais_unidade_associacao pua ON u.unidade_id = pua.unidade_id
+                        WHERE pua.profissional_id = $1`;
+                    const unidadesResult = await window.ipcRenderer.invoke('query-database-postgres', queryUnidades, [prof.profissional_id]);
+                    newUnidades[prof.profissional_id] = unidadesResult;
+                }
+                setUnidades(newUnidades);
 
-                // Carregar departamentos
-                const queryDepartamentos = `SELECT departamento_id, departamento FROM profissionais_departamento WHERE departamento_status1 = $1`;
-                const departamentosResult = await window.ipcRenderer.invoke('query-database-postgres', queryDepartamentos, [status]);
-                setDepartamentos(departamentosResult);
+                const newEmpresas: { [key: number]: any[] } = {};
+                for (const prof of profissionaisWithImages) {
+                    const queryEmpresas = `
+                        SELECT e.empresa_id, e.empresa, e.cnpj 
+                        FROM profissionais_empresa e
+                        JOIN profissionais_empresa_associacao pea ON e.empresa_id = pea.empresa_id
+                        WHERE pea.profissional_id = $1 AND e.empresa_status1 = $2`;
+                    const empresasResult = await window.ipcRenderer.invoke('query-database-postgres', queryEmpresas, [prof.profissional_id, status]);
+                    newEmpresas[prof.profissional_id] = empresasResult;
+                }
+                setEmpresas(newEmpresas);
 
+                const newDepartamentos: { [key: number]: any[] } = {};
+                for (const prof of profissionaisWithImages) {
+                    const queryDepartamentos = `
+                        SELECT d.departamento_id, d.departamento 
+                        FROM profissionais_departamento d
+                        JOIN profissionais_departamento_associacao dpa ON d.departamento_id = dpa.departamento_id
+                        WHERE dpa.profissional_id = $1 AND d.departamento_status1 = $2`;
+                    const departamentosResult = await window.ipcRenderer.invoke('query-database-postgres', queryDepartamentos, [prof.profissional_id, status]);
+                    newDepartamentos[prof.profissional_id] = departamentosResult;
+                }
+                setDepartamentos(newDepartamentos);
             } catch (error) {
                 console.error('Erro ao buscar dados:', error);
             }
