@@ -6,9 +6,9 @@ import { LayoutDashTable } from '@/Layout';
 
 interface Profissional {
     profissional_id: number;
-    profissional_foto: string;
-    profissional_nome: string;
-    imageUrl?: string;
+    profissional_foto: any;
+    profissional_nome: any;
+    imageUrl?: any;
 }
 
 export default function Profissionais() {
@@ -16,16 +16,26 @@ export default function Profissionais() {
     const [filteredProfissionais, setFilteredProfissionais] = useState<Profissional[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [recordsPerPage, setRecordsPerPage] = useState(5);
-    const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null);
-    const [viewInactive, setViewInactive] = useState(false);
+    const [notification, setNotification] = useState<{ type: 'info' | 'success' | 'error'; message: any } | null>(null);
+    const [viewStatus, setviewStatus] = useState(false);
+
+    const [visibleColumns, setVisibleColumns] = useState({
+        id: true,
+        foto: true,
+        nome: true,
+        funcoes: true,
+        unidades: true,
+        empresas: true,
+        departamentos: true,
+    });
 
     const { profissionais, unidades, funcoes, empresas, departamentos } = useProfissionais(
-        'profissionais/fotos', // baseFolder
-        viewInactive ? 'inativo' : 'ativo',  // Alterna entre ativos e inativos
-        undefined,       // ID do departamento (ou undefined)
-        undefined,       // ID da unidade (ou undefined)
-        undefined,       // ID da função (ou undefined)
-        undefined        // ID da empresa (ou undefined)
+        'profissionais/fotos', 
+        viewStatus ? 'inativo' : 'ativo', 
+        undefined,       
+        undefined,       
+        undefined,       
+        undefined        
     );
 
     useEffect(() => {
@@ -39,6 +49,9 @@ export default function Profissionais() {
     const currentRecords = filteredProfissionais.slice(indexOfFirstRecord, indexOfLastRecord);
     const totalPages = Math.ceil(filteredProfissionais.length / recordsPerPage);
 
+    const toggleColumn = (column: keyof typeof visibleColumns) => {
+        setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
+    };
     const handleChangeStatus = async (status: 'Inativo' | 'Ativo') => {
         if (selectedProfissionais.length > 0) {
             try {
@@ -72,7 +85,7 @@ export default function Profissionais() {
             setNotification({ type: 'error', message: 'Nenhum profissional selecionado.' });
         }
     };
-    
+
     const handleCheckboxChange = (profissional_id: number): void => {
         setSelectedProfissionais(prevSelected =>
             prevSelected.includes(profissional_id)
@@ -85,13 +98,12 @@ export default function Profissionais() {
         <LayoutDashTable
             notification={notification}
             onCloseNotification={() => setNotification(null)}
-            cardtitle={viewInactive ? 'Profissionais Inativos' : 'Profissionais'}
         >
-
-            <div className='flex justify-between'>
+            <div className='flex justify-between items-center'>
                 <h2 className="card-title">
-                
+                {viewStatus ? 'Profissionais Inativos' : 'Profissionais'}
                 </h2>
+
                 <div className='flex gap-2 justify-between'>
                     <div className="dropdown dropdown-end">
                         <div tabIndex={1} role="button" className="btn">
@@ -99,11 +111,11 @@ export default function Profissionais() {
                         </div>
                         <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                             <li>
-                                <a onClick={() => setViewInactive(!viewInactive)}>
-                                    {viewInactive ? 'Visualizar Ativos' : 'Visualizar Inativos'}
+                                <a onClick={() => setviewStatus(!viewStatus)}>
+                                    {viewStatus ? 'Visualizar Ativos' : 'Visualizar Inativos'}
                                 </a>
                             </li>
-                            {viewInactive ? (
+                            {viewStatus ? (
                                 <li>
                                     <a onClick={() => handleChangeStatus('Ativo')}>
                                         Mover para Ativos
@@ -119,16 +131,31 @@ export default function Profissionais() {
                         </ul>
                     </div>
 
-                    <select className="select select-bordered max-w-xs" onChange={(e) => setRecordsPerPage(parseInt(e.target.value))}>
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                    </select>
+                    <div className="dropdown dropdown-end">
+                        <div tabIndex={1} role="button" className="btn">
+                            Colunas
+                        </div>
+                        <ul tabIndex={1} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                            {Object.keys(visibleColumns).map(column => (
+                                <li key={column}>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={visibleColumns[column as keyof typeof visibleColumns]}
+                                            onChange={() => toggleColumn(column as keyof typeof visibleColumns)}
+                                        />
+                                        {column.charAt(0).toUpperCase() + column.slice(1)}
+                                    </label>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
                     <Link to={'/profissionais/novo'}>
                         <button className="btn btn-primary">Adicionar</button>
                     </Link>
                 </div>
+
             </div>
 
             <table className="table">
@@ -150,11 +177,13 @@ export default function Profissionais() {
                                 />
                             </label>
                         </th>
-                        <th>ID</th>
-                        <th>Foto</th>
-                        <th>Nome</th>
-                        <th>Unidades</th>
-                        <th>Funções</th>
+                        {visibleColumns.id && <th>ID</th>}
+                        {visibleColumns.foto && <th>Foto</th>}
+                        {visibleColumns.nome && <th>Nome</th>}
+                        {visibleColumns.funcoes && <th>Funções</th>}
+                        {visibleColumns.unidades && <th>Unidades</th>}
+                        {visibleColumns.empresas && <th>Empresas</th>}
+                        {visibleColumns.departamentos && <th>Departamentos</th>}
                         <th></th>
                     </tr>
                 </thead>
@@ -171,21 +200,41 @@ export default function Profissionais() {
                                     />
                                 </label>
                             </th>
-                            <td>{prof.profissional_id}</td>
+                            {visibleColumns.id && <td>{prof.profissional_id}</td>}
+                            {visibleColumns.foto && (
+                                <td>
+                                    <img src={prof.imageUrl} alt={prof.profissional_nome} className="w-16 h-16 object-cover rounded-full" />
+                                </td>
+                            )}
+                            {visibleColumns.nome && <td>{prof.profissional_nome}</td>}
+                            {visibleColumns.funcoes && (
+                                <td>
+                                    {funcoes[prof.profissional_id]?.map(funcao => (
+                                        <div key={funcao.funcao_id}>{funcao.funcao}</div>
+                                    ))}
+                                </td>
+                            )}
+                            {visibleColumns.unidades && (
+                                <td>
+                                    {unidades[prof.profissional_id]?.map(unidade => (
+                                        <div key={unidade.unidade_id}>{unidade.unidade}</div>
+                                    ))}
+                                </td>
+                            )}
+                            {visibleColumns.empresas && (
                             <td>
-                                <img src={prof.imageUrl} alt={prof.profissional_nome} className="w-16 h-16 object-cover rounded-full" />
-                            </td>
-                            <td>{prof.profissional_nome}</td>
-                            <td>
-                                {unidades[prof.profissional_id]?.map(unidade => (
-                                    <div key={unidade.unidade_id}>{unidade.unidade}</div>
+                                {(empresas[prof.profissional_id] || []).map((empresa: any) => (
+                                <div key={empresa.empresa_id}>{empresa.empresa}</div>
                                 ))}
                             </td>
-                            <td>
-                                {funcoes[prof.profissional_id]?.map(funcao => (
-                                    <div key={funcao.funcao_id}>{funcao.funcao}</div>
-                                ))}
-                            </td>
+                            )}
+                            {visibleColumns.departamentos && (
+                                <td>
+                                    {(departamentos[prof.profissional_id] || []).map((departamento: any) => (
+                                        <div key={departamento.departamento_id}>{departamento.departamento}</div>
+                                    ))}
+                                </td>
+                            )}
                             <td className="w-1">
                                 <Link to={`/profissionais/${prof.profissional_id}`} className='btn btn-ghost tooltip flex w-fit' data-tip="Editar">
                                     <IoPencil />
@@ -196,8 +245,8 @@ export default function Profissionais() {
                 </tbody>
             </table>
 
-            <div className="flex justify-between items-center mt-4">
-                <div className="flex items-center gap-5">
+            <div className="grid grid-cols-3 justify-center items-center w-full mt-4 text-center">
+                <div className="flex items-center justify-start gap-5">
                     <button
                         className="btn"
                         onClick={() => setCurrentPage(currentPage - 1)}
@@ -216,9 +265,19 @@ export default function Profissionais() {
                 </div>
 
                 <div className="text-sm text-neutral">
-                    Mostrando {indexOfFirstRecord + 1}-{Math.min(indexOfLastRecord, filteredProfissionais.length)} de {filteredProfissionais.length} registros
+                    {indexOfFirstRecord + 1} - {Math.min(indexOfLastRecord, filteredProfissionais.length)} de {filteredProfissionais.length}
+                </div>
+
+                <div className='w-full flex justify-end'>
+                    <select className="select select-bordered w-18" onChange={(e) => setRecordsPerPage(parseInt(e.target.value))}>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
                 </div>
             </div>
+
         </LayoutDashTable>
     );
 }
