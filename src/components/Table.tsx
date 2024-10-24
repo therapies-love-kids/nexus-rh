@@ -5,13 +5,13 @@ interface Column {
 }
 
 interface Row {
-    [key: string]: any;
+    [key: string]: any; // Pode ser aprimorado se você souber as chaves específicas
 }
 
 interface TableProps {
     columns: Column[];
     data: Row[];
-    onRowSelect: (row: Row) => void;
+    onRowSelect: (row: Row) => void; // Callback para seleção de linha
 }
 
 export default function Table({ columns, data, onRowSelect }: TableProps) {
