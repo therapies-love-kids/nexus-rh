@@ -1,4 +1,4 @@
-# Ferramentas
+# Tecnologias
 
 ## Bibliotecas
 
@@ -32,7 +32,7 @@ Framework CSS que permite uma rápida estilização de elementos por meio de cla
 
 ### Smooth Scrollbar
 
-```elecsmooth-scrollbar```
+```smooth-scrollbar```
 
 Plugin JavaScript que adiciona uma barra de rolagem customizável.
 
@@ -49,6 +49,8 @@ Pré-processador para o CSS que permite a escrita de códigos CSS mais eficiente
 ```typescript```
 
 Extensão do JavaScript que adiciona tipagem estática opcional e outras coisas à linguagem.
+
+O projeto utiliza arquivos com o formato ```.tsx```, uma extensão do TypeScript que permite a escrita de markup dentro de um arquivo.
 
 ## Miscelânea
 
