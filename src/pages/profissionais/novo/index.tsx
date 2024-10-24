@@ -1,19 +1,19 @@
 import { useState, SetStateAction } from 'react';
-import { Steps, PasswordInput, DateInput, TextInput, SelectWithBadges, CPFInput, Table, } from "@/components";
+import { Steps, PasswordInput, DateInput, TextInput, CheckboxInput, SelectWithBadges, CPFInput, Table, } from "@/components";
 import { IoPerson } from 'react-icons/io5';
 import { useDepartamentos, useEmpresas, useFuncoes, useUnidades } from "@/hooks/hookProfissionais"
 import { FaCopy } from 'react-icons/fa';
 import { LayoutDashTable } from '@/Layout';
+import { useProfissionaisNew } from '@/hooks/hookProfissionaisNew';
 
 export default function NovoProfissional() {
     const [nome, setNome] = useState('');
     const [senha, setSenha] = useState('123');
     const [dataIngressoEmpresa, setDataIngressoEmpresa] = useState<Date | null>(null);
     const [cpf, setCpf] = useState('');
+    const [funcoesSelecionadas, setFuncoesSelecionadas] = useState<number[]>([]);
+    const [funcoesPermissoes, setFuncoesPermissoes] = useState<{ [key: number]: { perm_editar: boolean; perm_criar: boolean; perm_inativar: boolean; perm_excluir: boolean; } }>({});
     
-    const [modalMessage] = useState<string | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
     const [unidadeIds, setUnidadeIds] = useState<number[]>([]);
     const [empresaIds, setEmpresasIds] = useState<number[]>([]);
     const [departamentoIds, setDepartamentosIds] = useState<number[]>([]);
@@ -25,18 +25,18 @@ export default function NovoProfissional() {
     const funcoes = useFuncoes();
 
     const [step, setStep] = useState(1);
-
+    
     const isButtonDisabled = (currentStep: number) => {
         if (currentStep === 1) {
             return (!nome || !senha || !dataIngressoEmpresa || !cpf);
         } else if (currentStep === 2) {
-            return (!unidadeIds.length || !departamentoIds.length || !funcaoIds.length);
+            return (!unidadeIds.length || !departamentoIds.length || !funcoesSelecionadas.length);
         } else if (currentStep === 3) {
             return (!empresaIds.length);
         }
         return false;
     };
-
+    
     const resetForm = () => {
         setNome('');
         setSenha('123');
@@ -47,25 +47,54 @@ export default function NovoProfissional() {
         setDepartamentosIds([]);
         setFuncoesIds([]);
     };
+    
+    const handleFuncoesChange = (selectedIds: number[]) => {
+        setFuncoesSelecionadas(selectedIds);
+        
+        selectedIds.forEach(funcaoId => {
+            if (!funcoesPermissoes[funcaoId]) {
+                setFuncoesPermissoes(prev => ({
+                    ...prev,
+                    [funcaoId]: {
+                        perm_editar: false,
+                        perm_criar: false,
+                        perm_inativar: false,
+                        perm_excluir: false,
+                    }
+                }));
+            }
+        });
+    };
+    
+    const updatePermissao = (funcaoId: number, permissao: string, value: boolean) => {
+        setFuncoesPermissoes(prev => ({
+            ...prev,
+            [funcaoId]: {
+                ...prev[funcaoId],
+                [permissao]: value,
+            }
+        }));
+    };
+    
+    const { handleSubmit, modalMessage, isModalOpen, handleCloseModal } = useProfissionaisNew();
 
+    const handleFinalSubmit = () => {
+        handleSubmit(nome, senha, dataIngressoEmpresa, cpf, unidadeIds, empresaIds, departamentoIds, funcoesSelecionadas, funcoesPermissoes);
+    };
+    
     const handleCopyToClipboard = () => {
         const text =
-            `Departamentos: ${departamentos.filter(d => departamentoIds.includes(d.departamento_id)).map(d => d.departamento).join(', ')}
-            Login: ${nome}
-            Senha provisória: ${senha}`;
+        `Departamentos: ${departamentos.filter(d => departamentoIds.includes(d.departamento_id)).map(d => d.departamento).join(', ')}
+        Login: ${nome}
+        Senha provisória: ${senha}`;
         navigator.clipboard.writeText(text)
     };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        resetForm();
-    };
-
+    
     return (
         <LayoutDashTable
-            modal={isModalOpen ? { type: 'success', message: modalMessage || '',onClose: handleCloseModal } : null}
+        modal={isModalOpen ? { type: 'success', message: modalMessage || '',onClose: handleCloseModal } : null}
             cardtitle='Adicionar Profissional'
-        >
+            >
 
             {step === 1 && (
                 <div>
@@ -107,8 +136,6 @@ export default function NovoProfissional() {
 
             {step === 2 && (
                 <div>
-                    <h2 className="text-lg font-semibold mb-4">Selecione as Categorias</h2>
-                    
                     <SelectWithBadges
                         label="Unidades"
                         options={unidades.map(unidade => ({ id: unidade.unidade_id, name: unidade.unidade }))}
@@ -126,9 +153,40 @@ export default function NovoProfissional() {
                     <SelectWithBadges
                         label="Funções"
                         options={funcoes.map(funcao => ({ id: funcao.funcao_id, name: funcao.funcao }))}
-                        selectedIds={funcaoIds}
-                        onSelectionChange={setFuncoesIds}
+                        selectedIds={funcoesSelecionadas}
+                        onSelectionChange={handleFuncoesChange}
                     />
+
+                    {funcoesSelecionadas.map(funcaoId => (
+                        <div key={funcaoId} className="my-4">
+                            <h3 className="font-semibold">
+                                {funcoes.find(funcao => funcao.funcao_id === funcaoId)?.funcao}
+                            </h3>
+
+                            <div className="gap-4">
+                                <CheckboxInput
+                                    label="Permitir Edição"
+                                    checked={funcoesPermissoes[funcaoId]?.perm_editar || false}
+                                    onChange={(e) => updatePermissao(funcaoId, 'perm_editar', e.target.checked)}
+                                />
+                                <CheckboxInput
+                                    label="Permitir Criação"
+                                    checked={funcoesPermissoes[funcaoId]?.perm_criar || false}
+                                    onChange={(e) => updatePermissao(funcaoId, 'perm_criar', e.target.checked)}
+                                />
+                                <CheckboxInput
+                                    label="Permitir Inativação"
+                                    checked={funcoesPermissoes[funcaoId]?.perm_inativar || false}
+                                    onChange={(e) => updatePermissao(funcaoId, 'perm_inativar', e.target.checked)}
+                                />
+                                <CheckboxInput
+                                    label="Permitir Exclusão"
+                                    checked={funcoesPermissoes[funcaoId]?.perm_excluir || false}
+                                    onChange={(e) => updatePermissao(funcaoId, 'perm_excluir', e.target.checked)}
+                                />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 
@@ -172,6 +230,7 @@ export default function NovoProfissional() {
                 nextButtonText={step === 3 ? 'Finalizar' : 'Próximo'}
                 backButtonText='Voltar'
                 onStepChange={setStep}
+                handleSubmit={handleFinalSubmit}
             />
 
             {isModalOpen && (
@@ -188,6 +247,5 @@ export default function NovoProfissional() {
             )}
 
         </LayoutDashTable>
-    
     )
 }

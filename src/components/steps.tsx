@@ -6,10 +6,10 @@ interface StepNavigatorProps {
     nextButtonText: string;
     backButtonText: string;
     onStepChange: (step: number) => void;
-    handleSubmit?: any
+    handleSubmit: any
 }
 
-export default function StepNavigator(props: StepNavigatorProps) {
+export default function Steps(props: StepNavigatorProps) {
     const {
         totalSteps,
         isButtonDisabled,
@@ -23,7 +23,7 @@ export default function StepNavigator(props: StepNavigatorProps) {
 
     const handleNext = () => {
         if (step === totalSteps) {
-            handleSubmit
+            handleSubmit();
         } else if (step < totalSteps) {
             setStep(step + 1);
             onStepChange(step + 1);
@@ -33,7 +33,7 @@ export default function StepNavigator(props: StepNavigatorProps) {
     const handlePrevious = () => {
         if (step > 1) {
             setStep(step - 1);
-            onStepChange(step - 1); // Chama a função para notificar o passo atual
+            onStepChange(step - 1);
         }
     };
     
