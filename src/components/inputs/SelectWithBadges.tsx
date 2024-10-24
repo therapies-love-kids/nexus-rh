@@ -2,14 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { IoChevronDown, IoChevronUp, IoClose } from 'react-icons/io5';
 
 interface SelectBoxProps {
-    label: string;
+    label?: string;
+    message: string;
     options: Array<{ id: number; name: string }>;
     selectedIds: number[];
     onSelectionChange: (ids: number[]) => void;
 }
 
 export default function SelectBox(props: SelectBoxProps) {
-    const { label, options, selectedIds, onSelectionChange } = props;
+    const { label, message, options, selectedIds, onSelectionChange } = props;
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -50,13 +51,13 @@ export default function SelectBox(props: SelectBoxProps) {
     }, []);
 
     return (
-        <div className="form-control mt-4" ref={dropdownRef}>
+        <div className="form-control mt-4">
             {label && (
                 <label className="label">
                     <span className="label-text">{label}</span>
                 </label>
             )}
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
                 <div className="input input-bordered flex items-center justify-between cursor-pointer" onClick={openDropdown}>
                     {selectedIds.length ? (
                         <div className="flex flex-wrap items-center gap-1">
@@ -73,7 +74,7 @@ export default function SelectBox(props: SelectBoxProps) {
                             })}
                         </div>
                     ) : (
-                        <span>{label}</span>
+                        <span>{message}</span>
                     )}
                     <div className="flex justify-end gap-3">
                         <button className="mr-1 hover:text-error" onClick={handleClear}>
@@ -97,5 +98,3 @@ export default function SelectBox(props: SelectBoxProps) {
         </div>
     );
 }
-
-
