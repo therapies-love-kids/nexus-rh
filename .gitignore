@@ -135,3 +135,5 @@ release/
 release/
 release
 
+# VSCode configs
+.vscode/
