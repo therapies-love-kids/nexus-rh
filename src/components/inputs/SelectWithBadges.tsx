@@ -3,7 +3,7 @@ import { IoChevronDown, IoChevronUp, IoClose } from 'react-icons/io5';
 
 interface SelectBoxProps {
     label?: string;
-    message: string;
+    message?: string;
     options: Array<{ id: number; name: string }>;
     selectedIds: number[];
     onSelectionChange: (ids: number[]) => void;
@@ -86,7 +86,7 @@ export default function SelectBox(props: SelectBoxProps) {
                     </div>
                 </div>
                 {isOpen && (
-                    <div className="absolute bg-base-100 border border-base-300 rounded shadow-lg z-10 mt-1 max-h-[300px] overflow-y-auto">
+                    <div className="absolute w-full bg-base-100 border border-base-300 rounded shadow-lg z-10 mt-1 max-h-[300px] overflow-y-auto">
                         {options.map(option => (
                             <div key={option.id} className={`p-2 cursor-pointer ${selectedIds.includes(option.id) ? 'bg-primary text-primary-content' : 'hover:bg-base-200'}`} onClick={() => handleOptionToggle(option.id)}>
                                 {option.name}

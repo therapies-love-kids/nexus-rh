@@ -1,13 +1,14 @@
 interface TextInputProps{
-    label: string
-    value: string
-    onChange: any
+    icon?: any
+    label?: string
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    placeholder?: string
     type: string
-    icon: any
+    value: string
 }
 
 export default function TextInput (props:TextInputProps) {
-    const { label, value, onChange, icon, type } = props;
+    const { icon, label, onChange, placeholder, type, value } = props;
 
     return(
         <div className="form-control mt-4">
@@ -16,12 +17,12 @@ export default function TextInput (props:TextInputProps) {
             </label>
             <label className="input input-bordered flex items-center gap-2">
                 {icon}
-                <input 
-                    type={type} 
-                    placeholder={label} 
+                <input
                     className="flex-grow"
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    type={type}
                     value={value}
-                    onChange={onChange} 
                 />
             </label>
         </div>

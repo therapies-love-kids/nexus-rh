@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { IoKey, IoEyeOff, IoEye } from "react-icons/io5";
 
-interface PswInputProps {
-    label: string;
+interface PasswordInputProps {
+    label?: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    placeholder?: string;
     value: string;
-    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void; // Adicionando onChange como prop
 }
 
-export default function PasswordInput(props: PswInputProps) {
-    const { label, value, onChange } = props;
+export default function PasswordInput(props: PasswordInputProps) {
+    const { label, onChange, placeholder, value } = props;
     const [showPassword, setShowPassword] = useState<boolean>(false);
 
     const togglePasswordVisibility = () => {
@@ -23,11 +24,11 @@ export default function PasswordInput(props: PswInputProps) {
             <label className="input input-bordered flex items-center gap-2">
                 <IoKey />
                 <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder={label}
                     className="flex-grow"
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    type={showPassword ? "text" : "password"}
                     value={value}
-                    onChange={onChange} // Chamando a função onChange passada como prop
                 />
                 <button type="button" onClick={togglePasswordVisibility}>
                     {showPassword ? <IoEyeOff /> : <IoEye />}

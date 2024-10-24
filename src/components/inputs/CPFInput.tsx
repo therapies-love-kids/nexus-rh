@@ -3,7 +3,7 @@ import { IoIdCard } from 'react-icons/io5';
 import MaskedInput from 'react-text-mask';
 
 interface CPFInputProps {
-    label: string;
+    label?: string;
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -17,13 +17,13 @@ const CPFInput: React.FC<CPFInputProps> = ({ label, value, onChange }) => {
             <label className="input input-bordered flex items-center gap-2">
                 <IoIdCard />
                 <MaskedInput
-                    type="text"
-                    placeholder="000.000.000-00"
                     className="flex-grow"
-                    value={value}
-                    onChange={onChange}
-                    mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]}
                     guide={false}
+                    mask={[/\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '-', /\d/, /\d/]}
+                    onChange={onChange}
+                    placeholder="000.000.000-00"
+                    type="text"
+                    value={value}
                 />
             </label>
         </div>
