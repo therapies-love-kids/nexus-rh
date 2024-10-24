@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Breadcrumbs, Modal } from "@/components";
+import { Breadcrumbs, Modal, TextInput } from "@/components";
 import { Link, useParams } from 'react-router-dom';
 import { IoArrowBack } from 'react-icons/io5';
 import MaskedInput from 'react-text-mask';
+import CEPInput from '@/components/inputs/CEPInput';
 
 export default function AtualizarUnidade() {
     const { unidade_id } = useParams<string>(); // Obter ID da unidade via parâmetros da URL
@@ -90,46 +91,25 @@ export default function AtualizarUnidade() {
                             </p>
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Nome da Unidade</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="Nome da unidade" 
-                                className="input input-bordered" 
-                                value={unidadeNome}
-                                onChange={(e) => setUnidadeNome(e.target.value)} 
-                            />
-                        </div>
+                        <TextInput
+                            label="Nome da Unidade"
+                            placeholder="Nome da unidade"
+                            value={unidadeNome}
+                            onChange={(e) => setUnidadeNome(e.target.value)}
+                        />
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Endereço</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="Endereço da unidade" 
-                                className="input input-bordered" 
-                                value={endereco}
-                                onChange={(e) => setEndereco(e.target.value)} 
-                            />
-                        </div>
+                        <TextInput
+                            label="Endereço"
+                            placeholder="Endereço da unidade"
+                            value={endereco}
+                            onChange={(e) => setEndereco(e.target.value)}
+                        />
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">CEP</span>
-                            </label>
-                            <MaskedInput
-                                type="text"
-                                placeholder="CEP (00000-000)"
-                                className="input input-bordered"
-                                value={cep}
-                                onChange={(e) => setCep(e.target.value)}
-                                mask={[/\d/, /\d/, /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/]} // Máscara para o CEP
-                                guide={false}
-                            />
-                        </div>
+                        <CEPInput
+                            label="CEP"
+                            value={cep}
+                            onChange={(e) => setCep(e.target.value)}
+                        />
 
                         <button 
                             className="btn btn-primary mt-6" 

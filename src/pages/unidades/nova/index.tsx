@@ -1,8 +1,9 @@
 import { useState, useEffect, SetStateAction } from 'react';
-import { Breadcrumbs, Modal } from "@/components";
+import { Breadcrumbs, Modal, TextInput } from "@/components";
 import { Link } from 'react-router-dom';
 import { IoArrowBack, IoCalendar, IoClose, IoKey, IoPerson } from 'react-icons/io5';
 import MaskedInput from 'react-text-mask'; // Importando a máscara
+import CEPInput from '@/components/inputs/CEPInput';
 
 export default function NovaUnidade() {
     const [unidadeNome, setUnidadeNome] = useState('');
@@ -50,46 +51,26 @@ export default function NovaUnidade() {
                             </p>
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Nome da Unidade</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="Nome da unidade" 
-                                className="input input-bordered" 
-                                value={unidadeNome}
-                                onChange={(e) => setUnidadeNome(e.target.value)} 
-                            />
-                        </div>
+                        <TextInput
+                            label="Nome da Unidade"
+                            placeholder="Nome da unidade"
+                            value={unidadeNome}
+                            onChange={(e) => setUnidadeNome(e.target.value)}
+                        />
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Endereço</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="Endereço da unidade" 
-                                className="input input-bordered" 
-                                value={endereco}
-                                onChange={(e) => setEndereco(e.target.value)} 
-                            />
-                        </div>
+                        <TextInput
+                            label="Endereço"
+                            placeholder="Endereço da unidade"
+                            value={endereco}
+                            onChange={(e) => setEndereco(e.target.value)}
+                        />
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">CEP</span>
-                            </label>
-                            <MaskedInput
-                                type="text"
-                                placeholder="CEP (00000-000)"
-                                className="input input-bordered"
-                                value={cep}
-                                onChange={(e: { target: { value: SetStateAction<string>; }; }) => setCep(e.target.value)}
-                                mask={[/\d/, /\d/, /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/]} // Máscara para o CEP
-                                guide={false} // Não exibe a máscara antes de digitar
-                            />
-                        </div>
+                        <CEPInput
+                            label="CEP"
+                            value={cep}
+                            onChange={(e) => setCep(e.target.value)}
+                        />
+
                         <div className="tooltip tooltip-bottom w-full" data-tip={isButtonDisabled ? "Preencha todos os campos obrigatórios" : null}>
                             <button 
                                 className="btn btn-primary mt-6 w-full"

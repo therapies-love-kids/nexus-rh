@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Breadcrumbs, Modal } from "@/components";
+import { Breadcrumbs, Modal, TextInput } from "@/components";
 import { Link } from 'react-router-dom';
 import { IoArrowBack } from 'react-icons/io5';
 
@@ -47,18 +47,12 @@ export default function NovoDepartamento() {
                             </p>
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Nome do Departamento</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="Nome do departamento" 
-                                className="input input-bordered" 
-                                value={departamentoNome}
-                                onChange={(e) => setDepartamentoNome(e.target.value)} 
-                            />
-                        </div>
+                        <TextInput 
+                            label="Nome do Departamento"
+                            placeholder='Nome do Departamento'
+                            value={departamentoNome} 
+                            onChange={(e) => setDepartamentoNome(e.target.value)} 
+                        />
 
                         <div className="tooltip tooltip-bottom w-full" data-tip={isButtonDisabled ? "Preencha todos os campos obrigatórios" : null}>
                             <button 

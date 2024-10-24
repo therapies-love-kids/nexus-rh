@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Breadcrumbs, Modal } from "@/components";
+import { Breadcrumbs, Modal, TextInput } from "@/components";
 import { Link, useParams } from 'react-router-dom';
 import { IoArrowBack } from 'react-icons/io5';
+import CNPJInput from '@/components/inputs/CNPJInput';
 
 export default function AtualizarEmpresa() {
-    const { empresa_id } = useParams<string>(); // Obter ID da empresa via parâmetros da URL
+    const { empresa_id } = useParams<string>();
     const [empresaNome, setEmpresaNome] = useState<string>('');
     const [cnpj, setCnpj] = useState<string>('');
     const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-    // Carregar os dados da empresa existente
     useEffect(() => {
         const fetchEmpresaData = async () => {
             try {
@@ -52,7 +52,7 @@ export default function AtualizarEmpresa() {
                     table,
                     updates,
                     ids,
-                    idColumn: 'empresa_id' // Especificando a coluna de identificação
+                    idColumn: 'empresa_id'
                 });
     
                 if (result.success) {
@@ -86,31 +86,18 @@ export default function AtualizarEmpresa() {
                             </p>
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Nome da Empresa</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="Nome da empresa" 
-                                className="input input-bordered" 
-                                value={empresaNome}
-                                onChange={(e) => setEmpresaNome(e.target.value)} 
-                            />
-                        </div>
+                        <TextInput
+                            label="Nome da Empresa"
+                            placeholder="Nome da empresa"
+                            value={empresaNome}
+                            onChange={(e) => setEmpresaNome(e.target.value)}
+                        />
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">CNPJ</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="CNPJ (00.000.000/0000-00)" 
-                                className="input input-bordered"
-                                value={cnpj}
-                                onChange={(e) => setCnpj(e.target.value)}
-                            />
-                        </div>
+                        <CNPJInput
+                            label="CNPJ"
+                            value={cnpj}
+                            onChange={(e) => setCnpj(e.target.value)}
+                        />
 
                         <button 
                             className="btn btn-primary mt-6" 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Breadcrumbs, Modal } from "@/components";
+import { Breadcrumbs, Modal, TextInput } from "@/components";
 import { Link, useParams } from 'react-router-dom';
 import { IoArrowBack } from 'react-icons/io5';
 
@@ -82,18 +82,12 @@ export default function AtualizarFuncao() {
                             </p>
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Nome da Função</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="Nome da função" 
-                                className="input input-bordered" 
-                                value={funcaoNome}
-                                onChange={(e) => setFuncaoNome(e.target.value)} 
-                            />
-                        </div>
+                        <TextInput
+                            label="Nome da Função"
+                            placeholder="Nome da função"
+                            value={funcaoNome}
+                            onChange={(e) => setFuncaoNome(e.target.value)}
+                        />
 
                         <button 
                             className="btn btn-primary mt-6" 
@@ -105,7 +99,6 @@ export default function AtualizarFuncao() {
                 </div>
             </div>
 
-            {/* Modal */}
             {isModalOpen && (
                 <Modal 
                     type={modalMessage?.includes('sucesso') ? 'success' : 'error'} 

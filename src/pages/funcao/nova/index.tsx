@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Breadcrumbs, Modal } from "@/components";
+import { Breadcrumbs, Modal, TextInput } from "@/components";
 import { Link } from 'react-router-dom';
 import { IoArrowBack } from 'react-icons/io5';
 
@@ -43,18 +43,12 @@ export default function NovaFuncao() {
                                 Adicionar Nova função
                             </p>
                         </div>
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Nome da função</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="Nome da função" 
-                                className="input input-bordered" 
-                                value={funcaoNome}
-                                onChange={(e) => setFuncaoNome(e.target.value)}
-                            />
-                        </div>
+                        <TextInput
+                            label="Nome da função"
+                            placeholder="Nome da função"
+                            value={funcaoNome}
+                            onChange={(e) => setFuncaoNome(e.target.value)}
+                        />
                         <div className="tooltip tooltip-bottom w-full" data-tip={isButtonDisabled ? "Preencha todos os campos obrigatórios" : null}>
                             <button 
                                 className="btn btn-primary mt-6 w-full"

@@ -1,8 +1,9 @@
 import { useState, useEffect, SetStateAction } from 'react';
-import { Breadcrumbs, Modal } from "@/components";
+import { Breadcrumbs, Modal, TextInput } from "@/components";
 import { Link } from 'react-router-dom';
 import { IoArrowBack, IoCalendar, IoClose, IoKey, IoPerson } from 'react-icons/io5';
 import MaskedInput from 'react-text-mask'; // Importando a máscara
+import CNPJInput from '@/components/inputs/CNPJInput';
 
 export default function NovaEmpresa() {
     const [empresaNome, setEmpresaNome] = useState('');
@@ -49,33 +50,18 @@ export default function NovaEmpresa() {
                             </p>
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Nome da Empresa</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="Nome da empresa" 
-                                className="input input-bordered" 
-                                value={empresaNome}
-                                onChange={(e) => setEmpresaNome(e.target.value)} 
-                            />
-                        </div>
+                        <TextInput
+                            label="Nome da Empresa"
+                            placeholder="Nome da empresa"
+                            value={empresaNome}
+                            onChange={(e) => setEmpresaNome(e.target.value)}
+                        />
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">CNPJ</span>
-                            </label>
-                            <MaskedInput
-                                type="text"
-                                placeholder="CNPJ (00.000.000/0000-00)"
-                                className="input input-bordered"
-                                value={cnpj}
-                                onChange={(e: { target: { value: SetStateAction<string>; }; }) => setCnpj(e.target.value)}
-                                mask={[/\d/, /\d/, '.', /\d/, /\d/, /\d/, '.', /\d/, /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/, '-', /\d/, /\d/]} // Máscara para o CNPJ
-                                guide={false} // Não exibe a máscara antes de digitar
-                            />
-                        </div>
+                        <CNPJInput
+                            label="CNPJ"
+                            value={cnpj}
+                            onChange={(e) => setCnpj(e.target.value)}
+                        />
 
                         <div className="tooltip tooltip-bottom w-full" data-tip={isButtonDisabled ? "Preencha todos os campos obrigatórios" : null}>
                             <button 
@@ -90,7 +76,6 @@ export default function NovaEmpresa() {
                 </div>
             </div>
 
-            {/* Modal */}
             {isModalOpen && (
                 <Modal 
                     type={modalMessage?.includes('sucesso') ? 'success' : 'error'} 

@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Breadcrumbs, Modal } from "@/components";
+import { Breadcrumbs, Modal, TextInput } from "@/components";
 import { Link, useParams } from 'react-router-dom';
 import { IoArrowBack } from 'react-icons/io5';
 
 export default function AtualizarDepartamento() {
-    const { departamento_id } = useParams<string>(); // Obter ID do departamento via parâmetros da URL
+    const { departamento_id } = useParams<string>();
     const [departamentoNome, setDepartamentoNome] = useState<string>('');
     const [modalMessage, setModalMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-    // Carregar os dados do departamento existente
     useEffect(() => {
         const fetchDepartamentoData = async () => {
             try {
@@ -49,7 +48,7 @@ export default function AtualizarDepartamento() {
                     table,
                     updates,
                     ids,
-                    idColumn: 'departamento_id' // Especificando a coluna de identificação
+                    idColumn: 'departamento_id'
                 });
     
                 if (result.success) {
@@ -83,18 +82,12 @@ export default function AtualizarDepartamento() {
                             </p>
                         </div>
 
-                        <div className="form-control mt-4">
-                            <label className="label">
-                                <span className="label-text">Nome do Departamento</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                placeholder="Nome do departamento" 
-                                className="input input-bordered" 
-                                value={departamentoNome}
-                                onChange={(e) => setDepartamentoNome(e.target.value)} 
-                            />
-                        </div>
+                        <TextInput 
+                            label="Nome do Departamento"
+                            placeholder="Nome do departamento"
+                            value={departamentoNome}
+                            onChange={(e) => setDepartamentoNome(e.target.value)}
+                        />
 
                         <button 
                             className="btn btn-primary mt-6" 
