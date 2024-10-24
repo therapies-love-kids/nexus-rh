@@ -206,3 +206,268 @@ export function useProfissionais(
 
     return { profissionais, unidades, funcoes, empresas, departamentos };
 }
+
+export function useProfissionaisNew() {
+    const [modalMessage, setModalMessage] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleSubmit = async (
+        nome: string,
+        senha: string,
+        dataIngressoEmpresa: Date | null,
+        cpf: string,
+        unidadeIds: number[],
+        empresaIds: number[],
+        departamentoIds: number[],
+        funcaoIds: number[],
+        funcoesPermissoes: any
+    ) => {
+        if (!nome || !senha || !dataIngressoEmpresa || !cpf || !unidadeIds.length || !departamentoIds.length || !funcaoIds.length || !empresaIds.length) {
+            setModalMessage('Preencha todos os campos obrigatórios.');
+            setIsModalOpen(true);
+            return;
+        }
+
+        try {
+            const table = 'profissionais';
+            const columns = ['profissional_nome', 'profissional_senha', 'profissional_dataingressoempresa', 'profissional_cpf'];
+            const values = [nome, senha, dataIngressoEmpresa, cpf];
+
+            const result = await window.ipcRenderer.invoke('insert-records-postgres', { table, columns, values });
+
+            if (result.success) {
+                const query = `SELECT profissional_id FROM profissionais WHERE profissional_nome = $1`;
+                const searchResult = await window.ipcRenderer.invoke('query-database-postgres', query, [nome]);
+
+                if (searchResult.length > 0) {
+                    const profissionalId = searchResult[0].profissional_id;
+
+                    // Criação das promessas de inserção
+                    const insertPromisesUnidades = unidadeIds.map((unidadeId) => (
+                        window.ipcRenderer.invoke('insert-records-postgres', {
+                            table: 'profissionais_unidade_associacao',
+                            columns: ['profissional_id', 'unidade_id'],
+                            values: [profissionalId, unidadeId],
+                        })
+                    ));
+
+                    const insertPromisesEmpresas = empresaIds.map((empresaId) => (
+                        window.ipcRenderer.invoke('insert-records-postgres', {
+                            table: 'profissionais_empresa_associacao',
+                            columns: ['profissional_id', 'empresa_id'],
+                            values: [profissionalId, empresaId],
+                        })
+                    ));
+
+                    const insertPromisesDepartamentos = departamentoIds.map((departamentoId) => (
+                        window.ipcRenderer.invoke('insert-records-postgres', {
+                            table: 'profissionais_departamento_associacao',
+                            columns: ['profissional_id', 'departamento_id'],
+                            values: [profissionalId, departamentoId],
+                        })
+                    ));
+
+                    const insertPromisesFuncoes = funcaoIds.map((funcaoId) => {
+                        const permissoes = funcoesPermissoes[funcaoId] || {
+                            perm_editar: false,
+                            perm_criar: false,
+                            perm_inativar: false,
+                            perm_excluir: false,
+                        };
+                
+                        return window.ipcRenderer.invoke('insert-records-postgres', {
+                            table: 'profissionais_funcao_associacao',
+                            columns: ['profissional_id', 'funcao_id', 'perm_editar', 'perm_criar', 'perm_inativar', 'perm_excluir'],
+                            values: [profissionalId, funcaoId, permissoes.perm_editar, permissoes.perm_criar, permissoes.perm_inativar, permissoes.perm_excluir],
+                        });
+                    });
+
+                    await Promise.all([
+                        ...insertPromisesUnidades,
+                        ...insertPromisesEmpresas,
+                        ...insertPromisesDepartamentos,
+                        ...insertPromisesFuncoes,
+                    ]);
+
+                    setModalMessage('Usuário criado com sucesso!');
+                } else {
+                    setModalMessage('Erro: Não foi possível encontrar o ID do profissional inserido.');
+                }
+            } else {
+                setModalMessage(`Erro ao adicionar profissional: ${result.message}`);
+            }
+        } catch (error) {
+            setModalMessage('Erro ao adicionar profissional.');
+        } finally {
+            setIsModalOpen(true);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setModalMessage(null);
+    };
+
+    return {
+        handleSubmit,
+        modalMessage,
+        isModalOpen,
+        handleCloseModal
+    };
+}
+
+export function useProfissionaisEdit(profissionalId: number) {
+    const [modalMessage, setModalMessage] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalType, setModalType] = useState<'success' | 'error' | null>(null);
+    const [profissionalData, setProfissionalData] = useState<any | null>(null);
+
+    useEffect(() => {
+        const loadProfissionalData = async () => {
+            try {
+                const query = `SELECT * FROM profissionais WHERE profissional_id = $1`;
+                const result = await window.ipcRenderer.invoke('query-database-postgres', query, [profissionalId]);
+
+                if (result.length > 0) {
+                    const profissional = result[0];
+                    const allData = { ...profissional };
+
+                    // Carregar dados associados
+                    const [departamentos, empresas, unidades, funcoes] = await Promise.all([
+                        window.ipcRenderer.invoke('query-database-postgres', `SELECT * FROM profissionais_departamento WHERE departamento_id IN (SELECT departamento_id FROM profissionais_departamento_associacao WHERE profissional_id = $1)`, [profissionalId]),
+                        window.ipcRenderer.invoke('query-database-postgres', `SELECT * FROM profissionais_empresa WHERE empresa_id IN (SELECT empresa_id FROM profissionais_empresa_associacao WHERE profissional_id = $1)`, [profissionalId]),
+                        window.ipcRenderer.invoke('query-database-postgres', `SELECT * FROM profissionais_unidade WHERE unidade_id IN (SELECT unidade_id FROM profissionais_unidade_associacao WHERE profissional_id = $1)`, [profissionalId]),
+                        window.ipcRenderer.invoke('query-database-postgres', `SELECT f.*, pfa.* FROM profissionais_funcao f LEFT JOIN profissionais_funcao_associacao pfa ON f.funcao_id = pfa.funcao_id WHERE pfa.profissional_id = $1`, [profissionalId])
+                    ]);
+
+                    allData.departamentos = departamentos;
+                    allData.empresas = empresas;
+                    allData.unidades = unidades;
+                    allData.funcoes = funcoes;
+
+                    setProfissionalData(allData);
+                } else {
+                    setModalMessage('Profissional não encontrado.');
+                    setIsModalOpen(true);
+                }
+            } catch (error) {
+                setModalMessage(`Erro ao carregar dados do profissional: ${error}`);
+                setIsModalOpen(true);
+            }
+        };
+
+        loadProfissionalData();
+    }, [profissionalId]);
+
+    const handleSubmit = async (
+        nome: string,
+        senha: string,
+        dataIngressoEmpresa: Date | null,
+        cpf: string,
+        unidadeIds: number[],
+        empresaIds: number[],
+        departamentoIds: number[],
+        funcaoIds: number[],
+        funcoesPermissoes: any
+    ) => {
+        // Validação dos campos obrigatórios
+        if (!nome || !senha || !dataIngressoEmpresa || !cpf || !unidadeIds.length || !departamentoIds.length || !funcaoIds.length || !empresaIds.length) {
+            setModalMessage('Preencha todos os campos obrigatórios.');
+            setModalType('error');
+            setIsModalOpen(true);
+            return;
+        }
+    
+        try {
+            // Atualizar profissional
+            const updateQuery = `
+                UPDATE profissionais
+                SET profissional_nome = $1, profissional_senha = $2, profissional_dataingressoempresa = $3, profissional_cpf = $4
+                WHERE profissional_id = $5
+            `;
+            await window.ipcRenderer.invoke('query-database-postgres', updateQuery, [nome, senha, dataIngressoEmpresa, cpf, profissionalId]);
+    
+            // Deletar associações separadamente
+            const deleteAssociationsQueries = [
+                `DELETE FROM profissionais_unidade_associacao WHERE profissional_id = $1`,
+                `DELETE FROM profissionais_empresa_associacao WHERE profissional_id = $1`,
+                `DELETE FROM profissionais_departamento_associacao WHERE profissional_id = $1`,
+                `DELETE FROM profissionais_funcao_associacao WHERE profissional_id = $1`
+            ];
+    
+            for (const query of deleteAssociationsQueries) {
+                await window.ipcRenderer.invoke('query-database-postgres', query, [profissionalId]);
+            }
+    
+            // Inserir novas associações
+            const insertPromisesUnidades = unidadeIds.map((unidadeId) => (
+                window.ipcRenderer.invoke('insert-records-postgres', {
+                    table: 'profissionais_unidade_associacao',
+                    columns: ['profissional_id', 'unidade_id'],
+                    values: [profissionalId, unidadeId],
+                })
+            ));
+    
+            const insertPromisesEmpresas = empresaIds.map((empresaId) => (
+                window.ipcRenderer.invoke('insert-records-postgres', {
+                    table: 'profissionais_empresa_associacao',
+                    columns: ['profissional_id', 'empresa_id'],
+                    values: [profissionalId, empresaId],
+                })
+            ));
+    
+            const insertPromisesDepartamentos = departamentoIds.map((departamentoId) => (
+                window.ipcRenderer.invoke('insert-records-postgres', {
+                    table: 'profissionais_departamento_associacao',
+                    columns: ['profissional_id', 'departamento_id'],
+                    values: [profissionalId, departamentoId],
+                })
+            ));
+    
+            const insertPromisesFuncoes = funcaoIds.map((funcaoId) => {
+                const permissoes = funcoesPermissoes[funcaoId] || {
+                    perm_editar: false,
+                    perm_criar: false,
+                    perm_inativar: false,
+                    perm_excluir: false,
+                };
+    
+                return window.ipcRenderer.invoke('insert-records-postgres', {
+                    table: 'profissionais_funcao_associacao',
+                    columns: ['profissional_id', 'funcao_id', 'perm_editar', 'perm_criar', 'perm_inativar', 'perm_excluir'],
+                    values: [profissionalId, funcaoId, permissoes.perm_editar, permissoes.perm_criar, permissoes.perm_inativar, permissoes.perm_excluir],
+                });
+            });
+    
+            await Promise.all([
+                ...insertPromisesUnidades,
+                ...insertPromisesEmpresas,
+                ...insertPromisesDepartamentos,
+                ...insertPromisesFuncoes,
+            ]);
+    
+            setModalMessage('Usuário atualizado com sucesso!');
+            setModalType('success');
+        } catch (error) {
+            setModalMessage(`Erro ao atualizar profissional. ${error}`);
+            setModalType('error');
+        } finally {
+            setIsModalOpen(true);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setModalMessage(null);
+        setModalType(null);
+    };
+
+    return {
+        handleSubmit,
+        modalMessage,
+        isModalOpen,
+        handleCloseModal,
+        modalType,
+        profissionalData,
+    };
+}

@@ -1,10 +1,10 @@
 import { useState, SetStateAction } from 'react';
-import { Steps, PasswordInput, DateInput, TextInput, CheckboxInput, SelectWithBadges, CPFInput, Table, } from "@/components";
+import { Steps, PasswordInput, DateInput, TextInput, CheckboxInput, SelectWithBadges, CPFInput, Table, SelectInput, } from "@/components";
 import { IoPerson } from 'react-icons/io5';
 import { useDepartamentos, useEmpresas, useFuncoes, useUnidades } from "@/hooks/hookProfissionais"
 import { FaCopy } from 'react-icons/fa';
 import { LayoutDashTable } from '@/Layout';
-import { useProfissionaisNew } from '@/hooks/hookProfissionaisNew';
+import { useProfissionaisNew } from '@/hooks/hookProfissionais';
 
 export default function NovoProfissional() {
     const [nome, setNome] = useState('');
@@ -82,13 +82,7 @@ export default function NovoProfissional() {
         handleSubmit(nome, senha, dataIngressoEmpresa, cpf, unidadeIds, empresaIds, departamentoIds, funcoesSelecionadas, funcoesPermissoes);
     };
     
-    const handleCopyToClipboard = () => {
-        const text =
-        `Departamentos: ${departamentos.filter(d => departamentoIds.includes(d.departamento_id)).map(d => d.departamento).join(', ')}
-        Login: ${nome}
-        Senha provisória: ${senha}`;
-        navigator.clipboard.writeText(text)
-    };
+
     
     return (
         <LayoutDashTable
@@ -150,11 +144,18 @@ export default function NovoProfissional() {
                         onSelectionChange={setDepartamentosIds}
                     />
                     
-                    <SelectWithBadges
-                        label="Funções"
+                    <SelectInput
+                        label="Função"
                         options={funcoes.map(funcao => ({ id: funcao.funcao_id, name: funcao.funcao }))}
-                        selectedIds={funcoesSelecionadas}
-                        onSelectionChange={handleFuncoesChange}
+                        selectedId={funcoesSelecionadas[0] || null}
+                        onSelectionChange={(id) => {
+                            setFuncoesSelecionadas(id ? [id] : []);
+                            if (id) {
+                                setFuncoesPermissoes({ [id]: { perm_editar: false, perm_criar: false, perm_inativar: false, perm_excluir: false } });
+                            } else {
+                                setFuncoesPermissoes({});
+                            }
+                        }}
                     />
 
                     {funcoesSelecionadas.map(funcaoId => (
@@ -232,19 +233,6 @@ export default function NovoProfissional() {
                 onStepChange={setStep}
                 handleSubmit={handleFinalSubmit}
             />
-
-            {isModalOpen && (
-                <div className="mockup-code relative w-full my-10">
-                    <pre data-prefix="1">Departamento: {departamentos.join(', ')} </pre>
-                    <pre data-prefix="2">Profissional: {nome}</pre>
-                    <pre data-prefix="3">Senha provisória: {senha}</pre>
-                    <button
-                        className="absolute z-10 top-4 right-4 cursor-pointer hover:text-secondary"
-                        onClick={handleCopyToClipboard}
-                    >
-                    <FaCopy/></button>
-                </div>
-            )}
 
         </LayoutDashTable>
     )
