@@ -3,7 +3,7 @@ interface TextInputProps{
     label?: string
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string
-    type: string
+    type?: string
     value: string
 }
 
@@ -21,7 +21,7 @@ export default function TextInput (props:TextInputProps) {
                     className="flex-grow"
                     onChange={onChange}
                     placeholder={placeholder}
-                    type={type}
+                    type={type || 'text'}
                     value={value}
                 />
             </label>

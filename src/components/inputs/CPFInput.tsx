@@ -8,7 +8,9 @@ interface CPFInputProps {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const CPFInput: React.FC<CPFInputProps> = ({ label, value, onChange }) => {
+export default function CPFInput (props:CPFInputProps) {
+    const { label, value, onChange } = props;
+    
     return (
         <div className="form-control mt-4">
             <label className="label">
@@ -29,5 +31,3 @@ const CPFInput: React.FC<CPFInputProps> = ({ label, value, onChange }) => {
         </div>
     );
 };
-
-export default CPFInput;
